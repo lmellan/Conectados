@@ -13,8 +13,6 @@ Puede acceder a la Wiki del proyecto mediante el siguiente [enlace](https://gith
 
 ## Cómo usar
 
-### 5. Ejecución de Pruebas
-
 ## Cómo contribuir
 
 Si deseas contribuir al proyecto, sigue estos pasos utilizando **GitFlow** de para mantener una estructura organizada en el desarrollo:
