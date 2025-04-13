@@ -4,7 +4,7 @@
 
 ## Wiki
 
-Puede acceder a la Wiki del proyecto mediante el siguiente [enlace](https://github.com/lmellan/Tarea_1-INF331/wiki).  
+Puede acceder a la Wiki del proyecto mediante el siguiente [enlace](https://github.com/lmellan/Conectados/wiki).  
 
 ## Instalación
 
