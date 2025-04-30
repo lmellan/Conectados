@@ -1,57 +1,105 @@
-"use client"
+"use client";
 
-import { useContext, useState, useEffect } from "react"
-import { Link, Navigate } from "react-router-dom"
-import { AuthContext } from "../context/AuthContext"
-import { bookings, services } from "../data/mockData"
+import { useContext, useState, useEffect } from "react";
+import { Link, Navigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
+import { bookings, services } from "../data/mockData";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 const ProDashboard = () => {
-  const { user } = useContext(AuthContext)
-  const [activeTab, setActiveTab] = useState("services")
-  const [proServices, setProServices] = useState([])
+  const { user } = useContext(AuthContext);
+  const [activeTab, setActiveTab] = useState("services");
+  const [proServices, setProServices] = useState([]);
   const [proBookings, setProBookings] = useState({
     upcoming: [],
     completed: [],
-  })
+  });
 
-  useEffect(() => {
+  // Estado para el modal de confirmación de eliminación
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState(null);
+
+  // Cargar servicios y reservas del profesional
+  const loadProData = () => {
     if (user && user.isProfessional) {
       // Filtrar servicios del profesional
-      const filteredServices = services.filter((service) => service.providerId === user.id)
-      setProServices(filteredServices)
+      const filteredServices = services.filter(
+        (service) => service.providerId === user.id
+      );
+      setProServices(filteredServices);
 
       // Filtrar reservas del profesional
-      const proFilteredBookings = bookings.filter((booking) => booking.providerId === user.id)
+      const proFilteredBookings = bookings.filter(
+        (booking) => booking.providerId === user.id
+      );
 
       // Separar en próximas y completadas
-      const upcoming = proFilteredBookings.filter((booking) => booking.status === "upcoming")
-      const completed = proFilteredBookings.filter((booking) => booking.status === "completed")
+      const upcoming = proFilteredBookings.filter(
+        (booking) => booking.status === "upcoming"
+      );
+      const completed = proFilteredBookings.filter(
+        (booking) => booking.status === "completed"
+      );
 
       // Agregar información del servicio a cada reserva
       const upcomingWithDetails = upcoming.map((booking) => {
-        const serviceDetails = services.find((service) => service.id === booking.serviceId)
-        return { ...booking, serviceDetails }
-      })
+        const serviceDetails = services.find(
+          (service) => service.id === booking.serviceId
+        );
+        return { ...booking, serviceDetails };
+      });
 
       const completedWithDetails = completed.map((booking) => {
-        const serviceDetails = services.find((service) => service.id === booking.serviceId)
-        return { ...booking, serviceDetails }
-      })
+        const serviceDetails = services.find(
+          (service) => service.id === booking.serviceId
+        );
+        return { ...booking, serviceDetails };
+      });
 
       setProBookings({
         upcoming: upcomingWithDetails,
         completed: completedWithDetails,
-      })
+      });
     }
-  }, [user])
+  };
+
+  useEffect(() => {
+    loadProData();
+  }, [user]);
+
+  // Función para mostrar el modal de confirmación de eliminación
+  const handleDeleteService = (service) => {
+    setServiceToDelete(service);
+    setShowDeleteModal(true);
+  };
+
+  // Función para confirmar la eliminación del servicio
+  const confirmDeleteService = () => {
+    if (serviceToDelete) {
+      // Encontrar el índice del servicio en el array original
+      const serviceIndex = services.findIndex(
+        (s) => s.id === serviceToDelete.id
+      );
+
+      if (serviceIndex !== -1) {
+        // Eliminar el servicio del array
+        services.splice(serviceIndex, 1);
+
+        // Actualizar el estado local
+        loadProData();
+        setShowDeleteModal(false);
+        setServiceToDelete(null);
+      }
+    }
+  };
 
   // Redirigir si no hay usuario autenticado o no es un profesional
   if (!user) {
-    return <Navigate to="/login" />
+    return <Navigate to="/login" />;
   }
 
   if (!user.isProfessional) {
-    return <Navigate to="/user-dashboard" />
+    return <Navigate to="/user-dashboard" />;
   }
 
   return (
@@ -61,7 +109,11 @@ const ProDashboard = () => {
           <div className="p-6 border-b">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
               <div className="flex items-center mb-4 md:mb-0">
-                <img src={user.image || "/placeholder.svg"} alt={user.name} className="w-16 h-16 rounded-full mr-4" />
+                <img
+                  src={user.image || "/placeholder.svg"}
+                  alt={user.name}
+                  className="w-16 h-16 rounded-full mr-4"
+                />
                 <div>
                   <h1 className="text-2xl font-bold">{user.name}</h1>
                   <p className="text-gray-600">{user.profession}</p>
@@ -128,15 +180,31 @@ const ProDashboard = () => {
                           />
                           <div>
                             <h3 className="font-semibold">{service.title}</h3>
-                            <p className="text-sm text-gray-600">Categoría: {service.category}</p>
-                            <p className="text-sm font-medium text-green-600">${service.price}/hora</p>
+                            <p className="text-sm text-gray-600">
+                              Categoría: {service.category}
+                            </p>
+                            <p className="text-sm font-medium text-green-600">
+                              ${service.price}/hora
+                            </p>
                           </div>
                         </div>
                         <div className="flex space-x-2">
-                          <Link to={`/edit-service/${service.id}`} className="btn-secondary text-sm">
+                          <button
+                            className="px-3 py-1 border border-red-300 text-red-600 rounded-md text-sm hover:bg-red-50"
+                            onClick={() => handleDeleteService(service)}
+                          >
+                            Eliminar
+                          </button>
+                          <Link
+                            to={`/edit-service/${service.id}`}
+                            className="btn-secondary text-sm"
+                          >
                             Editar
                           </Link>
-                          <Link to={`/service/${service.id}`} className="btn-primary text-sm">
+                          <Link
+                            to={`/service/${service.id}`}
+                            className="btn-primary text-sm"
+                          >
                             Ver
                           </Link>
                         </div>
@@ -145,8 +213,13 @@ const ProDashboard = () => {
                   </div>
                 ) : (
                   <div className="text-center py-8 bg-gray-50 rounded-lg">
-                    <p className="text-gray-500">No tienes servicios publicados.</p>
-                    <Link to="/create-service" className="text-green-600 font-medium hover:underline mt-2">
+                    <p className="text-gray-500">
+                      No tienes servicios publicados.
+                    </p>
+                    <Link
+                      to="/create-service"
+                      className="text-green-600 font-medium hover:underline mt-2 inline-block"
+                    >
                       Añadir un servicio
                     </Link>
                   </div>
@@ -156,7 +229,9 @@ const ProDashboard = () => {
 
             {activeTab === "bookings" && (
               <div>
-                <h2 className="text-xl font-semibold mb-4">Citas Programadas</h2>
+                <h2 className="text-xl font-semibold mb-4">
+                  Citas Programadas
+                </h2>
 
                 {proBookings.upcoming.length > 0 ? (
                   <div className="space-y-4">
@@ -167,13 +242,20 @@ const ProDashboard = () => {
                       >
                         <div className="flex items-start mb-4 md:mb-0">
                           <img
-                            src={booking.serviceDetails.image || "/placeholder.svg"}
-                            alt={booking.serviceDetails.title}
+                            src={
+                              booking.serviceDetails?.image ||
+                              "/placeholder.svg"
+                            }
+                            alt={booking.serviceDetails?.title}
                             className="w-16 h-16 object-cover rounded-md mr-4"
                           />
                           <div>
-                            <h3 className="font-semibold">{booking.serviceDetails.title}</h3>
-                            <p className="text-sm text-gray-600">Cliente: Usuario #{booking.userId}</p>
+                            <h3 className="font-semibold">
+                              {booking.serviceDetails?.title}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              Cliente: Usuario #{booking.userId}
+                            </p>
                             <div className="flex items-center mt-1">
                               <svg
                                 className="w-4 h-4 text-gray-500 mr-1"
@@ -188,7 +270,9 @@ const ProDashboard = () => {
                                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                                 />
                               </svg>
-                              <span className="text-sm text-gray-600">{booking.date}</span>
+                              <span className="text-sm text-gray-600">
+                                {booking.date}
+                              </span>
                               <span className="mx-2 text-gray-400">|</span>
                               <svg
                                 className="w-4 h-4 text-gray-500 mr-1"
@@ -203,20 +287,28 @@ const ProDashboard = () => {
                                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                                 />
                               </svg>
-                              <span className="text-sm text-gray-600">{booking.time}</span>
+                              <span className="text-sm text-gray-600">
+                                {booking.time}
+                              </span>
                             </div>
                           </div>
                         </div>
                         <div className="flex space-x-2">
-                          <button className="btn-secondary text-sm">Reprogramar</button>
-                          <button className="btn-primary text-sm">Contactar</button>
+                          <button className="btn-secondary text-sm">
+                            Reprogramar
+                          </button>
+                          <button className="btn-primary text-sm">
+                            Contactar
+                          </button>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="text-center py-8 bg-gray-50 rounded-lg">
-                    <p className="text-gray-500">No tienes citas programadas.</p>
+                    <p className="text-gray-500">
+                      No tienes citas programadas.
+                    </p>
                   </div>
                 )}
               </div>
@@ -224,7 +316,9 @@ const ProDashboard = () => {
 
             {activeTab === "history" && (
               <div>
-                <h2 className="text-xl font-semibold mb-4">Historial de Servicios</h2>
+                <h2 className="text-xl font-semibold mb-4">
+                  Historial de Servicios
+                </h2>
 
                 {proBookings.completed.length > 0 ? (
                   <div className="space-y-4">
@@ -235,13 +329,20 @@ const ProDashboard = () => {
                       >
                         <div className="flex items-start mb-4 md:mb-0">
                           <img
-                            src={booking.serviceDetails.image || "/placeholder.svg"}
-                            alt={booking.serviceDetails.title}
+                            src={
+                              booking.serviceDetails?.image ||
+                              "/placeholder.svg"
+                            }
+                            alt={booking.serviceDetails?.title}
                             className="w-16 h-16 object-cover rounded-md mr-4"
                           />
                           <div>
-                            <h3 className="font-semibold">{booking.serviceDetails.title}</h3>
-                            <p className="text-sm text-gray-600">Cliente: Usuario #{booking.userId}</p>
+                            <h3 className="font-semibold">
+                              {booking.serviceDetails?.title}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              Cliente: Usuario #{booking.userId}
+                            </p>
                             <div className="flex items-center mt-1">
                               <svg
                                 className="w-4 h-4 text-gray-500 mr-1"
@@ -256,9 +357,13 @@ const ProDashboard = () => {
                                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                                 />
                               </svg>
-                              <span className="text-sm text-gray-600">{booking.date}</span>
+                              <span className="text-sm text-gray-600">
+                                {booking.date}
+                              </span>
                               <span className="mx-2 text-gray-400">|</span>
-                              <span className="text-sm text-green-600 font-medium">Completado</span>
+                              <span className="text-sm text-green-600 font-medium">
+                                Completado
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -269,7 +374,11 @@ const ProDashboard = () => {
                                 {[...Array(5)].map((_, i) => (
                                   <svg
                                     key={i}
-                                    className={`w-4 h-4 ${i < 5 ? "text-yellow-400" : "text-gray-300"}`}
+                                    className={`w-4 h-4 ${
+                                      i < 5
+                                        ? "text-yellow-400"
+                                        : "text-gray-300"
+                                    }`}
                                     fill="currentColor"
                                     viewBox="0 0 20 20"
                                   >
@@ -277,10 +386,14 @@ const ProDashboard = () => {
                                   </svg>
                                 ))}
                               </div>
-                              <span className="text-sm text-gray-500">Reseña recibida</span>
+                              <span className="text-sm text-gray-500">
+                                Reseña recibida
+                              </span>
                             </div>
                           ) : (
-                            <span className="text-sm text-gray-500">Sin reseña</span>
+                            <span className="text-sm text-gray-500">
+                              Sin reseña
+                            </span>
                           )}
                         </div>
                       </div>
@@ -288,7 +401,9 @@ const ProDashboard = () => {
                   </div>
                 ) : (
                   <div className="text-center py-8 bg-gray-50 rounded-lg">
-                    <p className="text-gray-500">No tienes servicios completados.</p>
+                    <p className="text-gray-500">
+                      No tienes servicios completados.
+                    </p>
                   </div>
                 )}
               </div>
@@ -296,8 +411,21 @@ const ProDashboard = () => {
           </div>
         </div>
       </div>
-    </div>
-  )
-}
 
-export default ProDashboard
+      {/* Modal de confirmación para eliminar servicio */}
+      {showDeleteModal && (
+        <ConfirmationModal
+          title="Eliminar servicio"
+          message={`¿Estás seguro de que deseas eliminar el servicio "${serviceToDelete?.title}"? Esta acción no se puede deshacer.`}
+          confirmText="Sí, eliminar"
+          cancelText="No, cancelar"
+          onConfirm={confirmDeleteService}
+          onCancel={() => setShowDeleteModal(false)}
+          isDestructive={true}
+        />
+      )}
+    </div>
+  );
+};
+
+export default ProDashboard;

@@ -4,7 +4,8 @@ import { useState, useContext, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import AvailabilityCalendar from "../components/AvailabilityCalendar";
-import { services, users } from "../data/mockData";
+import { services, users, bookings } from "../data/mockData";
+import ConfirmationModal from "../components/ConfirmationModal";
 
 const ServiceDetailPage = () => {
   const { id } = useParams();
@@ -16,6 +17,9 @@ const ServiceDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
+  const [errors, setErrors] = useState({});
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     // Simular carga de datos
@@ -36,22 +40,53 @@ const ServiceDetailPage = () => {
     }, 500);
   }, [id]);
 
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!selectedDate) {
+      newErrors.date = "Por favor selecciona una fecha";
+    }
+
+    if (!selectedTime) {
+      newErrors.time = "Por favor selecciona una hora";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleBookService = () => {
     if (!user) {
-      // Redirigir a login si no hay usuario autenticado
-      navigate("/login");
+      // Mostrar modal para iniciar sesión
+      setShowLoginModal(true);
       return;
     }
 
-    if (!selectedDate || !selectedTime) {
-      alert("Por favor selecciona una fecha y hora para tu cita");
+    if (!validateForm()) {
       return;
     }
 
-    // Simular reserva exitosa
-    alert(
-      `Servicio reservado con éxito para el ${selectedDate} a las ${selectedTime}`
-    );
+    // Crear nueva reserva
+    const newBooking = {
+      id: bookings.length > 0 ? Math.max(...bookings.map((b) => b.id)) + 1 : 1,
+      serviceId: service.id,
+      userId: user.id,
+      providerId: service.providerId,
+      date: selectedDate,
+      time: selectedTime,
+      status: "upcoming",
+      reviewed: false,
+    };
+
+    // Añadir la reserva a la lista de reservas
+    bookings.push(newBooking);
+
+    // Mostrar modal de éxito
+    setShowSuccessModal(true);
+  };
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
     navigate("/user-dashboard");
   };
 
@@ -165,11 +200,16 @@ const ServiceDetailPage = () => {
                     <input
                       type="date"
                       id="date"
-                      className="input-field"
+                      className={`input-field ${
+                        errors.date ? "border-red-500" : ""
+                      }`}
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
                       min={new Date().toISOString().split("T")[0]}
                     />
+                    {errors.date && (
+                      <p className="mt-1 text-sm text-red-600">{errors.date}</p>
+                    )}
                   </div>
 
                   <div>
@@ -181,7 +221,9 @@ const ServiceDetailPage = () => {
                     </label>
                     <select
                       id="time"
-                      className="input-field"
+                      className={`input-field ${
+                        errors.time ? "border-red-500" : ""
+                      }`}
                       value={selectedTime}
                       onChange={(e) => setSelectedTime(e.target.value)}
                     >
@@ -196,6 +238,9 @@ const ServiceDetailPage = () => {
                       <option value="16:00">16:00</option>
                       <option value="17:00">17:00</option>
                     </select>
+                    {errors.time && (
+                      <p className="mt-1 text-sm text-red-600">{errors.time}</p>
+                    )}
                   </div>
 
                   <button
@@ -210,6 +255,29 @@ const ServiceDetailPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal para iniciar sesión */}
+      {showLoginModal && (
+        <ConfirmationModal
+          title="Iniciar sesión requerido"
+          message="Debes iniciar sesión para solicitar este servicio."
+          confirmText="Ir a iniciar sesión"
+          cancelText="Cancelar"
+          onConfirm={() => navigate("/login")}
+          onCancel={() => setShowLoginModal(false)}
+        />
+      )}
+
+      {/* Modal de éxito */}
+      {showSuccessModal && (
+        <ConfirmationModal
+          title="¡Servicio agendado!"
+          message={`Has agendado el servicio "${service.title}" para el ${selectedDate} a las ${selectedTime}.`}
+          confirmText="Ver mis reservas"
+          showCancel={false}
+          onConfirm={handleCloseSuccessModal}
+        />
+      )}
     </div>
   );
 };
