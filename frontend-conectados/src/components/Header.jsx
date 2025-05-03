@@ -63,7 +63,7 @@ const Header = () => {
               <>
                 <Link
                   to={
-                    user.isProfessional ? "/pro-dashboard" : "/user-dashboard"
+                    user.rol === "PRESTADOR" ? "/pro-dashboard" : "/user-dashboard"
                   }
                   className="text-gray-600 hover:text-green-600"
                 >
@@ -113,7 +113,7 @@ const Header = () => {
               <>
                 <Link
                   to={
-                    user.isProfessional ? "/pro-dashboard" : "/user-dashboard"
+                    user.rol === "PRESTADOR" ? "/pro-dashboard" : "/user-dashboard"
                   }
                   className="block px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-md"
                   onClick={() => setIsMenuOpen(false)}

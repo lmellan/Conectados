@@ -23,36 +23,42 @@ const RegisterPage = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
-    // Validaciones básicas
+  
     if (formData.password !== formData.confirmPassword) {
       setError("Las contraseñas no coinciden");
       return;
     }
-
-    // Verificar si el email ya está registrado
-    const existingUser = users.find((user) => user.email === formData.email);
-    if (existingUser) {
-      setError("Este correo electrónico ya está registrado");
-      return;
+  
+    try {
+      const response = await fetch("http://localhost:8080/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nombre: formData.name,
+          correo: formData.email,
+          contrasena: formData.password,
+          rol: "BUSCADOR", 
+        }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error al registrar usuario");
+      }
+  
+      const data = await response.json();
+      console.log("Usuario registrado:", data);
+      navigate("/user-dashboard");
+  
+    } catch (err) {
+      console.error("Error:", err);
+      setError(err.message || "Error desconocido");
     }
-
-    // Simulación de registro
-    const newUser = {
-      id: users.length + 1,
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-      isProfessional: false,
-      image: "https://randomuser.me/api/portraits/lego/1.jpg", // Imagen por defecto
-    };
-
-    // Registrar usuario
-    register(newUser);
-    navigate("/user-dashboard");
   };
 
   return (

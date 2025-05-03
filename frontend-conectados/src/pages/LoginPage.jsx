@@ -7,9 +7,10 @@ import { users } from "../data/mockData";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+    correo: "",
+    contrasena: "",
   });
+  
   const [error, setError] = useState("");
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -21,23 +22,36 @@ const LoginPage = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
-    // Simulación de autenticación con datos mock
-    const user = users.find(
-      (user) =>
-        user.email === formData.email && user.password === formData.password
-    );
-
-    if (user) {
+  
+    try {
+      const response = await fetch("http://localhost:8080/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          correo: formData.correo,  
+          contrasena: formData.contrasena
+        })
+        
+      });
+  
+      if (!response.ok) {
+        throw new Error("Credenciales incorrectas");
+      }
+  
+      const user = await response.json();
       login(user);
-      navigate(user.isProfessional ? "/pro-dashboard" : "/user-dashboard");
-    } else {
-      setError("Credenciales incorrectas. Por favor, inténtalo de nuevo.");
+  
+      navigate(user.rol === "PRESTADOR" ? "/pro-dashboard" : "/user-dashboard");
+    } catch (err) {
+      setError(err.message || "Error al iniciar sesión");
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -74,12 +88,10 @@ const LoginPage = () => {
               </label>
               <div className="mt-1">
                 <input
-                  id="email"
-                  name="email"
+                  id="correo"
+                  name="correo"
                   type="email"
-                  autoComplete="email"
-                  required
-                  value={formData.email}
+                  value={formData.correo}
                   onChange={handleChange}
                   className="input-field"
                 />
@@ -95,12 +107,10 @@ const LoginPage = () => {
               </label>
               <div className="mt-1">
                 <input
-                  id="password"
-                  name="password"
+                  id="contrasena"
+                  name="contrasena"
                   type="password"
-                  autoComplete="current-password"
-                  required
-                  value={formData.password}
+                  value={formData.contrasena}
                   onChange={handleChange}
                   className="input-field"
                 />

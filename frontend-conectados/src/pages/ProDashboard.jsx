@@ -14,45 +14,93 @@ const ProDashboard = () => {
     completed: [],
   })
 
-  useEffect(() => {
-    if (user && user.isProfessional) {
-      // Filtrar servicios del profesional
-      const filteredServices = services.filter((service) => service.providerId === user.id)
-      setProServices(filteredServices)
+  // Estado para el modal de confirmación de eliminación
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState(null);
 
-      // Filtrar reservas del profesional
-      const proFilteredBookings = bookings.filter((booking) => booking.providerId === user.id)
-
-      // Separar en próximas y completadas
-      const upcoming = proFilteredBookings.filter((booking) => booking.status === "upcoming")
-      const completed = proFilteredBookings.filter((booking) => booking.status === "completed")
-
-      // Agregar información del servicio a cada reserva
-      const upcomingWithDetails = upcoming.map((booking) => {
-        const serviceDetails = services.find((service) => service.id === booking.serviceId)
-        return { ...booking, serviceDetails }
-      })
-
-      const completedWithDetails = completed.map((booking) => {
-        const serviceDetails = services.find((service) => service.id === booking.serviceId)
-        return { ...booking, serviceDetails }
-      })
-
-      setProBookings({
-        upcoming: upcomingWithDetails,
-        completed: completedWithDetails,
-      })
+  const loadProData = async () => {
+    if (user && user.rol === "PRESTADOR") {
+      try {
+        // 1. Obtener servicios reales del backend
+        const response = await fetch(`http://localhost:8080/api/servicios/prestador/${user.id}`);
+        if (!response.ok) throw new Error("Error al obtener servicios");
+  
+        const serviciosDelPrestador = await response.json();
+        setProServices(serviciosDelPrestador);
+  
+        // 2. Reservas: siguen siendo mock hasta implementar backend
+        const proFilteredBookings = bookings.filter(
+          (booking) => booking.providerId === user.id
+        );
+  
+        const upcoming = proFilteredBookings.filter(
+          (booking) => booking.status === "upcoming"
+        );
+        const completed = proFilteredBookings.filter(
+          (booking) => booking.status === "completed"
+        );
+  
+        // 3. Enlazar reservas con servicios reales
+        const upcomingWithDetails = upcoming.map((booking) => {
+          const serviceDetails = serviciosDelPrestador.find(
+            (service) => service.id === booking.serviceId
+          );
+          return { ...booking, serviceDetails };
+        });
+  
+        const completedWithDetails = completed.map((booking) => {
+          const serviceDetails = serviciosDelPrestador.find(
+            (service) => service.id === booking.serviceId
+          );
+          return { ...booking, serviceDetails };
+        });
+  
+        setProBookings({
+          upcoming: upcomingWithDetails,
+          completed: completedWithDetails,
+        });
+      } catch (error) {
+        console.error("Error al cargar datos del prestador:", error);
+      }
     }
-  }, [user])
+  };
+  
 
+  useEffect(() => {
+    loadProData();
+  }, [user]);
+
+  // Función para mostrar el modal de confirmación de eliminación
+  const handleDeleteService = (service) => {
+    setServiceToDelete(service);
+    setShowDeleteModal(true);
+  };
+
+  // Función para confirmar la eliminación del servicio
+  const confirmDeleteService = async () => {
+    if (serviceToDelete) {
+      try {
+        await fetch(`http://localhost:8080/api/servicios/eliminar/${serviceToDelete.id}`, {
+          method: "DELETE",
+        });
+        setServiceToDelete(null);
+        setShowDeleteModal(false);
+        loadProData(); // Vuelve a cargar los servicios desde backend
+      } catch (error) {
+        console.error("Error al eliminar el servicio:", error);
+      }
+    }
+  };
+  
   // Redirigir si no hay usuario autenticado o no es un profesional
   if (!user) {
     return <Navigate to="/login" />
   }
 
-  if (!user.isProfessional) {
-    return <Navigate to="/user-dashboard" />
+  if (user.rol !== "PRESTADOR") {
+    return <Navigate to="/user-dashboard" />;
   }
+  
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -61,10 +109,15 @@ const ProDashboard = () => {
           <div className="p-6 border-b">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
               <div className="flex items-center mb-4 md:mb-0">
-                <img src={user.image || "/placeholder.svg"} alt={user.name} className="w-16 h-16 rounded-full mr-4" />
+                <img
+                  src={user.image || "https://randomuser.me/api/portraits/women/5.jpg"}
+                  alt={user.nombre}
+                  className="w-16 h-16 rounded-full mr-4"
+                />
                 <div>
-                  <h1 className="text-2xl font-bold">{user.name}</h1>
-                  <p className="text-gray-600">{user.profession}</p>
+                  <h1 className="text-2xl font-bold">{user.nombre}</h1>
+                  <p className="text-gray-600">{Array.isArray(user.categoria) ? user.categoria.join(", ") : "Sin categoría"}</p>
+
                 </div>
               </div>
               <Link to="/create-service" className="btn-primary">
@@ -116,32 +169,49 @@ const ProDashboard = () => {
                 {proServices.length > 0 ? (
                   <div className="space-y-4">
                     {proServices.map((service) => (
-                      <div
-                        key={service.id}
-                        className="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between"
-                      >
-                        <div className="flex items-start mb-4 md:mb-0">
-                          <img
-                            src={service.image || "/placeholder.svg"}
-                            alt={service.title}
-                            className="w-16 h-16 object-cover rounded-md mr-4"
-                          />
-                          <div>
-                            <h3 className="font-semibold">{service.title}</h3>
-                            <p className="text-sm text-gray-600">Categoría: {service.category}</p>
-                            <p className="text-sm font-medium text-green-600">${service.price}/hora</p>
-                          </div>
-                        </div>
-                        <div className="flex space-x-2">
-                          <Link to={`/edit-service/${service.id}`} className="btn-secondary text-sm">
-                            Editar
-                          </Link>
-                          <Link to={`/service/${service.id}`} className="btn-primary text-sm">
-                            Ver
-                          </Link>
+                    <div
+                      key={service.id}
+                      className="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between"
+                    >
+                      <div className="flex items-start mb-4 md:mb-0">
+                        <img
+                          src={service.fotos?.[0] || "/placeholder.svg"}
+                          alt={service.nombre}
+                          className="w-16 h-16 object-cover rounded-md mr-4"
+                        />
+                        <div>
+                          <h3 className="font-semibold">{service.nombre}</h3>
+                          <p className="text-sm text-gray-600">
+                            Categoría: {service.categoria}
+                          </p>
+                          <p className="text-sm font-medium text-green-600">
+                            ${service.precio}/hora
+                          </p>
                         </div>
                       </div>
-                    ))}
+                      <div className="flex space-x-2">
+                        <button
+                          className="px-3 py-1 border border-red-300 text-red-600 rounded-md text-sm hover:bg-red-50"
+                          onClick={() => handleDeleteService(service)}
+                        >
+                          Eliminar
+                        </button>
+                        <Link
+                          to={`/edit-service/${service.id}`}
+                          className="btn-secondary text-sm"
+                        >
+                          Editar
+                        </Link>
+                        <Link
+                          to={`/service/${service.id}`}
+                          className="btn-primary text-sm"
+                        >
+                          Ver
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+
                   </div>
                 ) : (
                   <div className="text-center py-8 bg-gray-50 rounded-lg">

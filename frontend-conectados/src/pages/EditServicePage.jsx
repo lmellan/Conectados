@@ -3,7 +3,6 @@
 import { useState, useContext, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { services } from "../data/mockData";
 
 const EditServicePage = () => {
   const { id } = useParams();
@@ -11,118 +10,113 @@ const EditServicePage = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    title: "",
-    category: "",
-    description: "",
-    price: "",
-    image: null,
-    imagePreview: null,
+    nombre: "",
+    categoria: "",
+    descripcion: "",
+    precio: "",
+    zonaAtencion: "",
+    fotos: [""]
   });
 
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const categories = [
-    { id: "limpieza", name: "Limpieza" },
-    { id: "electricidad", name: "Electricidad" },
-    { id: "plomeria", name: "Plomería" },
-    { id: "jardineria", name: "Jardinería" },
-    { id: "peluqueria", name: "Peluquería" },
-    { id: "carpinteria", name: "Carpintería" },
+    { id: "Limpieza", name: "Limpieza" },
+    { id: "Electricidad", name: "Electricidad" },
+    { id: "Plomería", name: "Plomería" },
+    { id: "Jardinería", name: "Jardinería" },
+    { id: "Peluquería", name: "Peluquería" },
+    { id: "Carpintería", name: "Carpintería" },
   ];
 
   useEffect(() => {
-    // Cargar los datos del servicio
-    const serviceId = Number.parseInt(id);
-    const serviceData = services.find((s) => s.id === serviceId);
+    const fetchService = async () => {
+      try {
+        const response = await fetch(`http://localhost:8080/api/servicios/${id}`);
+        if (!response.ok) throw new Error("No se pudo cargar el servicio");
 
-    if (serviceData && serviceData.providerId === user?.id) {
-      setFormData({
-        title: serviceData.title,
-        category:
-          categories.find((c) => c.name === serviceData.category)?.id || "",
-        description: serviceData.description,
-        price: serviceData.price.toString(),
-        image: null,
-        imagePreview: serviceData.image,
-      });
-    } else {
-      // Si el servicio no existe o no pertenece al usuario, redirigir
-      navigate("/pro-dashboard");
-    }
+        const data = await response.json();
+        if (data.prestador?.id !== user?.id) {
+          navigate("/pro-dashboard");
+          return;
+        }
 
-    setLoading(false);
+        setFormData({
+          nombre: data.nombre,
+          categoria: data.categoria,
+          descripcion: data.descripcion,
+          precio: data.precio.toString(),
+          zonaAtencion: data.zonaAtencion,
+          fotos: data.fotos?.length > 0 ? data.fotos : [""]
+        });
+        setImagePreview(data.fotos?.[0] || null);
+      } catch (err) {
+        console.error(err);
+        navigate("/pro-dashboard");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchService();
   }, [id, user, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setFormData({
-        ...formData,
-        image: file,
-        imagePreview: URL.createObjectURL(file),
-      });
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-
-    if (!formData.title.trim()) newErrors.title = "El título es obligatorio";
-    if (!formData.category)
-      newErrors.category = "Debes seleccionar una categoría";
-    if (!formData.description.trim())
-      newErrors.description = "La descripción es obligatoria";
-    if (!formData.price) newErrors.price = "El precio es obligatorio";
-    else if (isNaN(formData.price) || Number(formData.price) <= 0)
-      newErrors.price = "El precio debe ser un número positivo";
-
+    if (!formData.nombre.trim()) newErrors.nombre = "El nombre es obligatorio";
+    if (!formData.categoria) newErrors.categoria = "Debes seleccionar una categoría";
+    if (!formData.descripcion.trim()) newErrors.descripcion = "La descripción es obligatoria";
+    if (!formData.precio || isNaN(formData.precio) || Number(formData.precio) <= 0) newErrors.precio = "Precio inválido";
+    if (!formData.zonaAtencion) newErrors.zonaAtencion = "Debes seleccionar una zona de atención";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validateForm()) return;
 
     setIsSubmitting(true);
+    try {
+      const updatedData = {
+        ...formData,
+        precio: parseFloat(formData.precio),
+        fotos: imageFile ? [imagePreview] : formData.fotos,
+      };
 
-    // Simulación de actualización de servicio
-    setTimeout(() => {
-      const serviceId = Number.parseInt(id);
-      const serviceIndex = services.findIndex((s) => s.id === serviceId);
+      const response = await fetch(`http://localhost:8080/api/servicios/actualizar/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData),
+      });
 
-      if (serviceIndex !== -1) {
-        // Actualizar el servicio existente
-        services[serviceIndex] = {
-          ...services[serviceIndex],
-          title: formData.title,
-          category:
-            categories.find((c) => c.id === formData.category)?.name ||
-            formData.category,
-          description: formData.description,
-          price: Number(formData.price),
-          image: formData.imagePreview,
-        };
-      }
-
-      setIsSubmitting(false);
+      if (!response.ok) throw new Error("Error al actualizar servicio");
       navigate("/pro-dashboard");
-    }, 1000);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // Redirigir si no hay usuario autenticado o no es un profesional
-  if (!user || !user.isProfessional) {
+  if (!user || user.rol !== "PRESTADOR") {
     navigate("/login");
     return null;
   }
@@ -141,143 +135,122 @@ const EditServicePage = () => {
         <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
           <div className="p-6 border-b">
             <h1 className="text-2xl font-bold">Editar Servicio</h1>
-            <p className="text-gray-600">
-              Actualiza la información de tu servicio
-            </p>
+            <p className="text-gray-600">Actualiza la información de tu servicio</p>
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             <div>
-              <label
-                htmlFor="title"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Título del servicio *
-              </label>
+              <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-1">Título del servicio *</label>
               <input
                 type="text"
-                id="title"
-                name="title"
-                value={formData.title}
+                id="nombre"
+                name="nombre"
+                value={formData.nombre}
                 onChange={handleChange}
-                className={`input-field ${
-                  errors.title ? "border-red-500" : ""
-                }`}
-                placeholder="Ej: Instalación eléctrica completa"
+                className={`input-field ${errors.nombre ? "border-red-500" : ""}`}
               />
-              {errors.title && (
-                <p className="mt-1 text-sm text-red-600">{errors.title}</p>
-              )}
+              {errors.nombre && <p className="text-sm text-red-600 mt-1">{errors.nombre}</p>}
             </div>
 
             <div>
-              <label
-                htmlFor="category"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Categoría *
-              </label>
+              <label htmlFor="categoria" className="block text-sm font-medium text-gray-700 mb-1">Categoría *</label>
               <select
-                id="category"
-                name="category"
-                value={formData.category}
+                id="categoria"
+                name="categoria"
+                value={formData.categoria}
                 onChange={handleChange}
-                className={`input-field ${
-                  errors.category ? "border-red-500" : ""
-                }`}
+                className={`input-field ${errors.categoria ? "border-red-500" : ""}`}
               >
                 <option value="">Selecciona una categoría</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
                 ))}
               </select>
-              {errors.category && (
-                <p className="mt-1 text-sm text-red-600">{errors.category}</p>
-              )}
+              {errors.categoria && <p className="text-sm text-red-600 mt-1">{errors.categoria}</p>}
             </div>
 
             <div>
-              <label
-                htmlFor="description"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Descripción *
-              </label>
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
+              <label htmlFor="zonaAtencion" className="block text-sm font-medium text-gray-700">Zona de atención *</label>
+              <select
+                id="zonaAtencion"
+                name="zonaAtencion"
+                value={formData.zonaAtencion}
                 onChange={handleChange}
-                rows={4}
-                className={`input-field ${
-                  errors.description ? "border-red-500" : ""
-                }`}
-                placeholder="Describe detalladamente el servicio que ofreces..."
-              />
-              {errors.description && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.description}
-                </p>
-              )}
+                className={`input-field ${errors.zonaAtencion ? "border-red-500" : ""}`}
+              >
+                <option value="">Selecciona una región</option>
+                <option value="Arica y Parinacota">Arica y Parinacota</option>
+                <option value="Tarapacá">Tarapacá</option>
+                <option value="Antofagasta">Antofagasta</option>
+                <option value="Atacama">Atacama</option>
+                <option value="Coquimbo">Coquimbo</option>
+                <option value="Valparaíso">Valparaíso</option>
+                <option value="Región Metropolitana">Región Metropolitana</option>
+                <option value="O’Higgins">O’Higgins</option>
+                <option value="Maule">Maule</option>
+                <option value="Ñuble">Ñuble</option>
+                <option value="Biobío">Biobío</option>
+                <option value="La Araucanía">La Araucanía</option>
+                <option value="Los Ríos">Los Ríos</option>
+                <option value="Los Lagos">Los Lagos</option>
+                <option value="Aysén">Aysén</option>
+                <option value="Magallanes">Magallanes</option>
+              </select>
+              {errors.zonaAtencion && <p className="text-sm text-red-600 mt-1">{errors.zonaAtencion}</p>}
             </div>
 
             <div>
-              <label
-                htmlFor="price"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Precio por hora (CLP) *
-              </label>
+              <label htmlFor="descripcion" className="block text-sm font-medium text-gray-700 mb-1">Descripción *</label>
+              <textarea
+                id="descripcion"
+                name="descripcion"
+                rows={4}
+                value={formData.descripcion}
+                onChange={handleChange}
+                className={`input-field ${errors.descripcion ? "border-red-500" : ""}`}
+              />
+              {errors.descripcion && <p className="text-sm text-red-600 mt-1">{errors.descripcion}</p>}
+            </div>
+
+            <div>
+              <label htmlFor="precio" className="block text-sm font-medium text-gray-700 mb-1">Precio por hora (CLP) *</label>
               <input
                 type="number"
-                id="price"
-                name="price"
-                value={formData.price}
+                id="precio"
+                name="precio"
+                value={formData.precio}
                 onChange={handleChange}
-                min="1"
-                step="0.01"
-                className={`input-field ${
-                  errors.price ? "border-red-500" : ""
-                }`}
-                placeholder="25.00"
+                className={`input-field ${errors.precio ? "border-red-500" : ""}`}
+                min="0"
               />
-              {errors.price && (
-                <p className="mt-1 text-sm text-red-600">{errors.price}</p>
-              )}
+              {errors.precio && <p className="text-sm text-red-600 mt-1">{errors.precio}</p>}
             </div>
 
             <div>
-              <label
-                htmlFor="image"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Imagen del servicio
-              </label>
+              <label htmlFor="foto" className="block text-sm font-medium text-gray-700 mb-1">Imagen del servicio</label>
               <div className="mt-1 flex items-center">
                 <input
                   type="file"
-                  id="image"
-                  name="image"
+                  id="foto"
+                  name="foto"
                   accept="image/*"
                   onChange={handleImageChange}
                   className="hidden"
                 />
                 <label
-                  htmlFor="image"
+                  htmlFor="foto"
                   className="cursor-pointer bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50"
                 >
                   Cambiar imagen
                 </label>
                 <span className="ml-3 text-sm text-gray-500">
-                  {formData.image ? formData.image.name : "Usar imagen actual"}
+                  {imageFile ? imageFile.name : "Usar imagen actual"}
                 </span>
               </div>
-              {formData.imagePreview && (
+              {imagePreview && (
                 <div className="mt-3">
                   <img
-                    src={formData.imagePreview || "/placeholder.svg"}
+                    src={imagePreview}
                     alt="Vista previa"
                     className="h-32 w-auto object-cover rounded-md"
                   />
@@ -286,21 +259,8 @@ const EditServicePage = () => {
             </div>
 
             <div className="flex justify-end space-x-3 pt-4">
-              <button
-                type="button"
-                onClick={() => navigate("/pro-dashboard")}
-                className="btn-secondary"
-                disabled={isSubmitting}
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="btn-primary"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Guardando..." : "Guardar Cambios"}
-              </button>
+              <button type="button" onClick={() => navigate("/pro-dashboard")} className="btn-secondary" disabled={isSubmitting}>Cancelar</button>
+              <button type="submit" className="btn-primary" disabled={isSubmitting}>{isSubmitting ? "Guardando..." : "Guardar Cambios"}</button>
             </div>
           </form>
         </div>
