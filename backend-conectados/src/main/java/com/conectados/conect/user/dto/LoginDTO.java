@@ -1,21 +1,12 @@
 package com.conectados.conect.user.dto;
 
-public class LoginDTO {
+public class LoginDto {
     private String correo;
-    private String contraseña;
+    private String contrasena;
 
-    // Getters y setters
-    public String getCorreo() {
-        return correo;
-    }
-    public void setCorreo(String correo) {
-        this.correo = correo;
-    }
+    public String getCorreo() {return correo;}
+    public void setCorreo(String correo) {this.correo = correo;}
 
-    public String getContraseña() {
-        return contraseña;
-    }
-    public void setContraseña(String contraseña) {
-        this.contraseña = contraseña;
-    }
+    public String getContrasena() {return contrasena;}
+    public void setContrasena(String contrasena) {this.contrasena = contrasena;}
 }

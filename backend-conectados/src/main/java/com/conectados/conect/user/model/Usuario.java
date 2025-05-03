@@ -2,8 +2,9 @@ package com.conectados.conect.user.model;
 
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
-@Table(name = "usuarios")
 public class Usuario {
 
     @Id
@@ -11,26 +12,24 @@ public class Usuario {
     private Long id;
 
     private String nombre;
-
-    @Column(unique = true, nullable = false)
     private String correo;
-
-    private String contraseña;
+    private String contrasena;
 
     @Enumerated(EnumType.STRING)
     private Rol rol;
 
-    private String zonaAtencion; //aplica si el usuario es prestador
-
+    // Atributos solo para prestadores
+    private String zonaAtencion;
+    private List<String> categoria;
     private String descripcion;
+    private List<String> disponibilidad;
 
-    private String telefono;
+    // Atributos solo para admin
+    @ElementCollection
+    private List<String> permisos;
 
-    //constructor vacío por defecto
-    public Usuario() {}
 
-    
-    //getters y setters
+    // Getters y Setters
 
     public Long getId() {
         return id;
@@ -56,12 +55,12 @@ public class Usuario {
         this.correo = correo;
     }
 
-    public String getContraseña() {
-        return contraseña;
+    public String getContrasena() {
+        return contrasena;
     }
 
-    public void setContraseña(String contraseña) {
-        this.contraseña = contraseña;
+    public void setContrasena(String contrasena) {
+        this.contrasena = contrasena;
     }
 
     public Rol getRol() {
@@ -80,6 +79,23 @@ public class Usuario {
         this.zonaAtencion = zonaAtencion;
     }
 
+    public List<String> getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(List<String> categoria) {
+        this.categoria = categoria;
+    }
+
+    public List<String> getDisponibilidad() {
+        return disponibilidad;
+    }
+
+    public void setDisponibilidad(List<String> disponibilidad) {
+        this.disponibilidad = disponibilidad;
+    }
+
+
     public String getDescripcion() {
         return descripcion;
     }
@@ -88,11 +104,13 @@ public class Usuario {
         this.descripcion = descripcion;
     }
 
-    public String getTelefono() {
-        return telefono;
+    public List<String> getPermisos() {
+        return permisos;
     }
 
-    public void setTelefono(String telefono) {
-        this.telefono = telefono;
+    public void setPermisos(List<String> permisos) {
+        this.permisos = permisos;
     }
+
+
 }
