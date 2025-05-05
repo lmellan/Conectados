@@ -14,10 +14,10 @@ const CreateServicePage = () => {
     descripcion: "",
     precio: "",
     zonaAtencion: "",
-    fotos: [""],
+    foto: "",           // antes era fotos: [""]
     imageFile: null,
   });
-
+  
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -38,13 +38,18 @@ const CreateServicePage = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setFormData({
-        ...formData,
-        imageFile: file,
-        fotos: [URL.createObjectURL(file)],
-      });
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({
+          ...formData,
+          foto: reader.result,       
+          imageFile: file,       
+        });
+      };
+      reader.readAsDataURL(file);
     }
   };
+  
 
   const validateForm = () => {
     const newErrors = {};
@@ -60,7 +65,7 @@ const CreateServicePage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
+  
     setIsSubmitting(true);
     try {
       const response = await fetch("http://localhost:8080/api/servicios/crear", {
@@ -72,11 +77,12 @@ const CreateServicePage = () => {
           descripcion: formData.descripcion,
           precio: parseFloat(formData.precio),
           zonaAtencion: formData.zonaAtencion,
-          fotos: formData.fotos,
+          foto: formData.foto,                
           prestador: { id: user.id },
         }),
+        
       });
-
+  
       if (!response.ok) throw new Error("Error al crear servicio");
       navigate("/pro-dashboard");
     } catch (err) {
@@ -85,6 +91,7 @@ const CreateServicePage = () => {
       setIsSubmitting(false);
     }
   };
+  
 
   if (!user || user.rol !== "PRESTADOR") {
     navigate("/login");
@@ -209,10 +216,10 @@ const CreateServicePage = () => {
                   {formData.imageFile ? formData.imageFile.name : "Ningún archivo seleccionado"}
                 </span>
               </div>
-              {formData.fotos[0] && (
+              {formData.foto && (
                 <div className="mt-3">
                   <img
-                    src={formData.fotos[0] || "/placeholder.svg"}
+                    src={formData.foto || "/placeholder.svg"}
                     alt="Vista previa"
                     className="h-32 w-auto object-cover rounded-md"
                   />

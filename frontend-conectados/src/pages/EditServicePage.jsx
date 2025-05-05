@@ -15,8 +15,9 @@ const EditServicePage = () => {
     descripcion: "",
     precio: "",
     zonaAtencion: "",
-    fotos: [""]
+    foto: "" 
   });
+  
 
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -44,16 +45,16 @@ const EditServicePage = () => {
           navigate("/pro-dashboard");
           return;
         }
-
         setFormData({
           nombre: data.nombre,
           categoria: data.categoria,
           descripcion: data.descripcion,
           precio: data.precio.toString(),
           zonaAtencion: data.zonaAtencion,
-          fotos: data.fotos?.length > 0 ? data.fotos : [""]
+          foto: data.foto || ""
         });
-        setImagePreview(data.fotos?.[0] || null);
+        setImagePreview(data.foto || null);
+        
       } catch (err) {
         console.error(err);
         navigate("/pro-dashboard");
@@ -73,10 +74,19 @@ const EditServicePage = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({
+          ...prev,
+          foto: reader.result
+        }));
+        setImageFile(file);
+        setImagePreview(reader.result); 
+      };
+      reader.readAsDataURL(file);
     }
   };
+  
 
   const validateForm = () => {
     const newErrors = {};
@@ -98,7 +108,6 @@ const EditServicePage = () => {
       const updatedData = {
         ...formData,
         precio: parseFloat(formData.precio),
-        fotos: imageFile ? [imagePreview] : formData.fotos,
       };
 
       const response = await fetch(`http://localhost:8080/api/servicios/actualizar/${id}`, {

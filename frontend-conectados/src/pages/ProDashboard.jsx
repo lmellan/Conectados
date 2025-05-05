@@ -3,7 +3,6 @@
 import { useContext, useState, useEffect } from "react"
 import { Link, Navigate } from "react-router-dom"
 import { AuthContext } from "../context/AuthContext"
-import { bookings, services } from "../data/mockData"
 
 const ProDashboard = () => {
   const { user } = useContext(AuthContext)
@@ -21,49 +20,56 @@ const ProDashboard = () => {
   const loadProData = async () => {
     if (user && user.rol === "PRESTADOR") {
       try {
-        // 1. Obtener servicios reales del backend
-        const response = await fetch(`http://localhost:8080/api/servicios/prestador/${user.id}`);
-        if (!response.ok) throw new Error("Error al obtener servicios");
+        // Obtener servicios del prestador (solo para la pestaña de servicios)
+        const serviciosResponse = await fetch(`http://localhost:8080/api/servicios/prestador/${user.id}`);
+        if (!serviciosResponse.ok) throw new Error("Error al obtener servicios");
+        const servicios = await serviciosResponse.json();
+        setProServices(servicios);
   
-        const serviciosDelPrestador = await response.json();
-        setProServices(serviciosDelPrestador);
+        // Obtener citas reales del backend
+        const citasResponse = await fetch(`http://localhost:8080/api/citas/prestador/${user.id}`);
+        if (!citasResponse.ok) throw new Error("Error al obtener citas");
+        const citas = await citasResponse.json();
   
-        // 2. Reservas: siguen siendo mock hasta implementar backend
-        const proFilteredBookings = bookings.filter(
-          (booking) => booking.providerId === user.id
+        // Obtener detalles de servicio y cliente 
+        const citasConDetalles = await Promise.all(
+          citas.map(async (cita) => {
+            // Detalles del servicio
+            const resServicio = await fetch(`http://localhost:8080/api/servicios/${cita.idServicio}`);
+            const servicio = await resServicio.json();
+  
+            // Detalles del cliente
+            const clienteRes = await fetch(`http://localhost:8080/api/usuarios/id/${cita.idBuscador}`);
+            const cliente = await clienteRes.json();
+  
+            return {
+              ...cita,
+              serviceDetails: {
+                title: servicio.nombre,
+                image: servicio.foto || "/placeholder.svg"
+              },
+              cliente: cliente,
+            };
+          })
         );
   
-        const upcoming = proFilteredBookings.filter(
-          (booking) => booking.status === "upcoming"
-        );
-        const completed = proFilteredBookings.filter(
-          (booking) => booking.status === "completed"
-        );
+        // Clasificar por estado
+        const pendientes = citasConDetalles.filter(c => c.estado === "Pendiente");
+        const completadas = citasConDetalles.filter(c => c.estado === "Completada");
   
-        // 3. Enlazar reservas con servicios reales
-        const upcomingWithDetails = upcoming.map((booking) => {
-          const serviceDetails = serviciosDelPrestador.find(
-            (service) => service.id === booking.serviceId
-          );
-          return { ...booking, serviceDetails };
-        });
-  
-        const completedWithDetails = completed.map((booking) => {
-          const serviceDetails = serviciosDelPrestador.find(
-            (service) => service.id === booking.serviceId
-          );
-          return { ...booking, serviceDetails };
-        });
-  
+        // Actualizar estado
         setProBookings({
-          upcoming: upcomingWithDetails,
-          completed: completedWithDetails,
+          upcoming: pendientes,
+          completed: completadas,
         });
+  
       } catch (error) {
         console.error("Error al cargar datos del prestador:", error);
       }
     }
   };
+  
+  
   
 
   useEffect(() => {
@@ -110,12 +116,13 @@ const ProDashboard = () => {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
               <div className="flex items-center mb-4 md:mb-0">
                 <img
-                  src={user.image || "https://randomuser.me/api/portraits/women/5.jpg"}
+                  src={user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nombre)}&background=0D8ABC&color=fff`}
                   alt={user.nombre}
                   className="w-16 h-16 rounded-full mr-4"
                 />
                 <div>
                   <h1 className="text-2xl font-bold">{user.nombre}</h1>
+                  <p className="text-gray-600">{user.correo}</p>
                   <p className="text-gray-600">{Array.isArray(user.categoria) ? user.categoria.join(", ") : "Sin categoría"}</p>
 
                 </div>
@@ -174,11 +181,11 @@ const ProDashboard = () => {
                       className="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between"
                     >
                       <div className="flex items-start mb-4 md:mb-0">
-                        <img
-                          src={service.fotos?.[0] || "/placeholder.svg"}
-                          alt={service.nombre}
-                          className="w-16 h-16 object-cover rounded-md mr-4"
-                        />
+                      <img
+                        src={service.foto || "/placeholder.svg"}
+                        alt={service.nombre}
+                        className="w-16 h-16 object-cover rounded-md mr-4"
+                      />
                         <div>
                           <h3 className="font-semibold">{service.nombre}</h3>
                           <p className="text-sm text-gray-600">
@@ -243,7 +250,15 @@ const ProDashboard = () => {
                           />
                           <div>
                             <h3 className="font-semibold">{booking.serviceDetails.title}</h3>
-                            <p className="text-sm text-gray-600">Cliente: Usuario #{booking.userId}</p>
+                            <div className="flex items-center space-x-2">
+                              <img
+                                src={booking.cliente?.imagen || `https://ui-avatars.com/api/?name=${encodeURIComponent(booking.cliente?.nombre || "Cliente")}&background=0D8ABC&color=fff`}
+                                alt={booking.cliente?.nombre || "Cliente"}
+                                className="w-8 h-8 rounded-full"
+                              />
+                              <p className="text-sm text-gray-600">Cliente: {booking.cliente?.nombre}</p>
+                            </div>
+
                             <div className="flex items-center mt-1">
                               <svg
                                 className="w-4 h-4 text-gray-500 mr-1"
@@ -258,7 +273,7 @@ const ProDashboard = () => {
                                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                                 />
                               </svg>
-                              <span className="text-sm text-gray-600">{booking.date}</span>
+                              <span className="text-sm text-gray-600">{booking.fecha}</span>
                               <span className="mx-2 text-gray-400">|</span>
                               <svg
                                 className="w-4 h-4 text-gray-500 mr-1"
@@ -273,7 +288,7 @@ const ProDashboard = () => {
                                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                                 />
                               </svg>
-                              <span className="text-sm text-gray-600">{booking.time}</span>
+                              <span className="text-sm text-gray-600">{booking.hora}</span>
                             </div>
                           </div>
                         </div>
@@ -311,7 +326,21 @@ const ProDashboard = () => {
                           />
                           <div>
                             <h3 className="font-semibold">{booking.serviceDetails.title}</h3>
-                            <p className="text-sm text-gray-600">Cliente: Usuario #{booking.userId}</p>
+                            <div className="flex items-center space-x-2 mt-1">
+                              <img
+                                src={
+                                  booking.cliente?.imagen ||
+                                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                    booking.cliente?.nombre || "Cliente"
+                                  )}&background=0D8ABC&color=fff`
+                                }
+                                alt={booking.cliente?.nombre || "Cliente"}
+                                className="w-8 h-8 rounded-full"
+                              />
+                              <p className="text-sm text-gray-600">
+                                Cliente: {booking.cliente?.nombre}
+                              </p>
+                            </div>
                             <div className="flex items-center mt-1">
                               <svg
                                 className="w-4 h-4 text-gray-500 mr-1"
@@ -326,7 +355,7 @@ const ProDashboard = () => {
                                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                                 />
                               </svg>
-                              <span className="text-sm text-gray-600">{booking.date}</span>
+                              <span className="text-sm text-gray-600">{booking.fecha}</span>
                               <span className="mx-2 text-gray-400">|</span>
                               <span className="text-sm text-green-600 font-medium">Completado</span>
                             </div>
@@ -363,6 +392,7 @@ const ProDashboard = () => {
                 )}
               </div>
             )}
+
           </div>
         </div>
       </div>

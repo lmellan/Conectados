@@ -49,29 +49,39 @@ const ServiceDetailPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleBookService = () => {
+  const handleBookService = async () => {
     if (!user) {
       setShowLoginModal(true);
       return;
     }
-
+  
     if (!validateForm()) return;
-
-    const newBooking = {
-      id: bookings.length > 0 ? Math.max(...bookings.map((b) => b.id)) + 1 : 1,
-      serviceId: service.id,
-      userId: user.id,
-      providerId: provider?.nombre,
-      date: selectedDate,
-      time: selectedTime,
-      status: "upcoming",
-      reviewed: false,
+  
+    const nuevaCita = {
+      idBuscador: user.id,
+      idPrestador: provider.id,
+      idServicio: service.id,
+      fecha: selectedDate,
+      hora: selectedTime,
+      estado: "upcoming"
     };
-
-    bookings.push(newBooking);
-    setShowSuccessModal(true);
+  
+    try {
+      const response = await fetch("http://localhost:8080/api/citas/crear", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nuevaCita)
+      });
+  
+      if (!response.ok) throw new Error("No se pudo agendar la cita");
+  
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error("Error al crear cita:", error);
+      alert("Hubo un error al agendar la cita. Inténtalo nuevamente.");
+    }
   };
-
+  
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
     navigate("/user-dashboard");
@@ -113,11 +123,12 @@ const ServiceDetailPage = () => {
       <div className="container mx-auto px-4">
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="h-64 md:h-80 overflow-hidden">
-            <img
-              src={service.fotos?.[0] || "/placeholder.svg"}
-              alt={service.nombre}
-              className="w-full h-full object-cover"
-            />
+          <img
+            src={service.foto ? service.foto : "/placeholder.svg"}
+            alt={service.nombre}
+            className="w-full h-full object-cover"
+          />
+
           </div>
 
           <div className="p-6">
@@ -155,7 +166,7 @@ const ServiceDetailPage = () => {
 
                 <div className="flex items-center mb-6">
                   <img
-                    src={"https://randomuser.me/api/portraits/women/5.jpg"}
+                    src={provider?.imagen ||`https://ui-avatars.com/api/?name=${encodeURIComponent(provider?.nombre)}&background=0D8ABC&color=fff`}
                     alt={provider?.nombre}
                     className="w-10 h-10 rounded-full mr-3"
                   />

@@ -7,48 +7,52 @@ import { bookings, services } from "../data/mockData";
 
 const UserDashboard = () => {
   const { user } = useContext(AuthContext);
-  const [activeTab, setActiveTab] = useState("upcoming");
+  const [activeTab, setActiveTab] = useState("Pendiente");
   const [userBookings, setUserBookings] = useState({
-    upcoming: [],
-    completed: [],
+    Pendiente: [],
+    Completada: [],
   });
-
+  
   useEffect(() => {
-    if (user) {
-      // Filtrar reservas del usuario actual
-      const userFilteredBookings = bookings.filter(
-        (booking) => booking.userId === user.id
-      );
-
-      // Separar en próximas y completadas
-      const upcoming = userFilteredBookings.filter(
-        (booking) => booking.status === "upcoming"
-      );
-      const completed = userFilteredBookings.filter(
-        (booking) => booking.status === "completed"
-      );
-
-      // Agregar información del servicio a cada reserva
-      const upcomingWithDetails = upcoming.map((booking) => {
-        const serviceDetails = services.find(
-          (service) => service.id === booking.serviceId
+    const fetchBookings = async () => {
+      try {
+        const response = await fetch(`http://localhost:8080/api/citas/buscador/${user.id}`);
+        if (!response.ok) throw new Error("Error al obtener citas");
+  
+        const citas = await response.json();
+  
+        const citasConDetalles = await Promise.all(
+          citas.map(async (cita) => {
+            const resServicio = await fetch(`http://localhost:8080/api/servicios/${cita.idServicio}`);
+            const servicio = await resServicio.json();
+  
+            return {
+              ...cita,
+              serviceDetails: {
+                title: servicio.nombre,
+                prestador: servicio.prestador, 
+                image: servicio.foto || "/placeholder.svg",
+              },
+            };
+          })
         );
-        return { ...booking, serviceDetails };
-      });
+  
+        const upcoming = citasConDetalles.filter(cita => cita.estado === "Pendiente");
+        const completed = citasConDetalles.filter(cita => cita.estado === "Completada");
+        
+        setUserBookings({ Pendiente: upcoming, Completada: completed });
 
-      const completedWithDetails = completed.map((booking) => {
-        const serviceDetails = services.find(
-          (service) => service.id === booking.serviceId
-        );
-        return { ...booking, serviceDetails };
-      });
-
-      setUserBookings({
-        upcoming: upcomingWithDetails,
-        completed: completedWithDetails,
-      });
+      } catch (error) {
+        console.error("Error al cargar citas:", error);
+      }
+    };
+  
+    if (user && user.rol === "BUSCADOR") {
+      fetchBookings();
     }
   }, [user]);
+ 
+  
 
   // Redirigir si no hay usuario autenticado o es un profesional
   if (!user) {
@@ -87,36 +91,38 @@ const UserDashboard = () => {
           <div className="p-6">
             <div className="border-b mb-6">
               <nav className="flex space-x-8">
-                <button
-                  onClick={() => setActiveTab("upcoming")}
-                  className={`pb-4 px-1 ${
-                    activeTab === "upcoming"
-                      ? "border-b-2 border-green-500 text-green-600 font-medium"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  Próximas Citas
-                </button>
-                <button
-                  onClick={() => setActiveTab("completed")}
-                  className={`pb-4 px-1 ${
-                    activeTab === "completed"
-                      ? "border-b-2 border-green-500 text-green-600 font-medium"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  Historial
-                </button>
+              <button
+                onClick={() => setActiveTab("Pendiente")}
+                className={`pb-4 px-1 ${
+                  activeTab === "Pendiente"
+                    ? "border-b-2 border-green-500 text-green-600 font-medium"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Próximas Citas
+              </button>
+              <button
+                onClick={() => setActiveTab("Completada")}
+                className={`pb-4 px-1 ${
+                  activeTab === "Completada"
+                    ? "border-b-2 border-green-500 text-green-600 font-medium"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Historial
+              </button>
+
               </nav>
             </div>
 
-            {activeTab === "upcoming" && (
+            {activeTab === "Pendiente" && (
               <div>
                 <h2 className="text-xl font-semibold mb-4">Próximas Citas</h2>
 
-                {userBookings.upcoming.length > 0 ? (
+                {userBookings.Pendiente.length > 0 ? (
+
                   <div className="space-y-4">
-                    {userBookings.upcoming.map((booking) => (
+                    {userBookings.Pendiente.map((booking) => (
                       <div
                         key={booking.id}
                         className="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between"
@@ -126,15 +132,16 @@ const UserDashboard = () => {
                             src={
                               booking.serviceDetails.image || "/placeholder.svg"
                             }
-                            alt={booking.serviceDetails.title}
+                            alt={booking.serviceDetails?.title|| "Servicio"}
                             className="w-16 h-16 object-cover rounded-md mr-4"
                           />
                           <div>
                             <h3 className="font-semibold">
-                              {booking.serviceDetails.title}
+                              {booking.serviceDetails?.title || "Servicio"}
                             </h3>
                             <p className="text-sm text-gray-600">
-                              Proveedor: {booking.serviceDetails.providerName}
+                              Proveedor: {booking.serviceDetails?.prestador?.nombre || "Prestador desconocido"}
+
                             </p>
                             <div className="flex items-center mt-1">
                               <svg
@@ -151,7 +158,7 @@ const UserDashboard = () => {
                                 />
                               </svg>
                               <span className="text-sm text-gray-600">
-                                {booking.date}
+                                {booking.fecha}
                               </span>
                               <span className="mx-2 text-gray-400">|</span>
                               <svg
@@ -168,7 +175,7 @@ const UserDashboard = () => {
                                 />
                               </svg>
                               <span className="text-sm text-gray-600">
-                                {booking.time}
+                              {booking.hora}
                               </span>
                             </div>
                           </div>
@@ -200,15 +207,15 @@ const UserDashboard = () => {
               </div>
             )}
 
-            {activeTab === "completed" && (
+            {activeTab === "Completada" && (
               <div>
                 <h2 className="text-xl font-semibold mb-4">
                   Historial de Servicios
                 </h2>
 
-                {userBookings.completed.length > 0 ? (
+                {userBookings.Completada.length > 0 ? (
                   <div className="space-y-4">
-                    {userBookings.completed.map((booking) => (
+                    {userBookings.Completada.map((booking) => (
                       <div
                         key={booking.id}
                         className="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between"
@@ -218,15 +225,15 @@ const UserDashboard = () => {
                             src={
                               booking.serviceDetails.image || "/placeholder.svg"
                             }
-                            alt={booking.serviceDetails.title}
+                            alt={booking.serviceDetails?.title || "Servicio"}
                             className="w-16 h-16 object-cover rounded-md mr-4"
                           />
                           <div>
                             <h3 className="font-semibold">
-                              {booking.serviceDetails.title}
+                              {booking.serviceDetails?.title || "Servicio"}
                             </h3>
                             <p className="text-sm text-gray-600">
-                              Proveedor: {booking.serviceDetails.providerName}
+                              Proveedor: {booking.serviceDetails?.prestador?.nombre || "Prestador desconocido"}
                             </p>
                             <div className="flex items-center mt-1">
                               <svg
@@ -243,7 +250,7 @@ const UserDashboard = () => {
                                 />
                               </svg>
                               <span className="text-sm text-gray-600">
-                                {booking.date}
+                                {booking.fecha}
                               </span>
                               <span className="mx-2 text-gray-400">|</span>
                               <span className="text-sm text-green-600 font-medium">
