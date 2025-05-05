@@ -25,17 +25,22 @@ const UserDashboard = () => {
           citas.map(async (cita) => {
             const resServicio = await fetch(`http://localhost:8080/api/servicios/${cita.idServicio}`);
             const servicio = await resServicio.json();
-  
+        
+            // Verificar si el usuario ya dejó una reseña
+            const yaReseno = servicio.resenas?.some(resena => resena.buscador?.id === user.id);
+        
             return {
               ...cita,
               serviceDetails: {
                 title: servicio.nombre,
-                prestador: servicio.prestador, 
+                prestador: servicio.prestador,
                 image: servicio.foto || "/placeholder.svg",
               },
+              reviewed: yaReseno,
             };
           })
         );
+        
   
         const upcoming = citasConDetalles.filter(cita => cita.estado === "Pendiente");
         const completed = citasConDetalles.filter(cita => cita.estado === "Completada");
@@ -52,6 +57,27 @@ const UserDashboard = () => {
     }
   }, [user]);
  
+  const handleCancelarCita = async (idCita) => {
+    const confirmacion = window.confirm("¿Estás seguro de que deseas cancelar esta cita?");
+    if (!confirmacion) return;
+  
+    try {
+      const response = await fetch(`http://localhost:8080/api/citas/eliminar/${idCita}`, {
+        method: "DELETE",
+      });
+  
+      if (!response.ok) throw new Error("Error al cancelar la cita");
+  
+      // Quitar la cita del estado actual sin recargar todo
+      setUserBookings(prev => ({
+        ...prev,
+        Pendiente: prev.Pendiente.filter(cita => cita.id !== idCita),
+      }));
+    } catch (error) {
+      console.error("Error al cancelar la cita:", error);
+      alert("No se pudo cancelar la cita. Intenta nuevamente.");
+    }
+  };
   
 
   // Redirigir si no hay usuario autenticado o es un profesional
@@ -181,13 +207,17 @@ const UserDashboard = () => {
                           </div>
                         </div>
                         <div className="flex space-x-2">
-                          <button className="btn-secondary text-sm">
+                        <button
+                            onClick={() => handleCancelarCita(booking.id)}
+                            className="btn-secondary text-sm"
+                          >
                             Cancelar
                           </button>
                           <button className="btn-primary text-sm">
                             Contactar
                           </button>
                         </div>
+
                       </div>
                     ))}
                   </div>
@@ -260,15 +290,11 @@ const UserDashboard = () => {
                           </div>
                         </div>
                         <div>
-                          {booking.reviewed ? (
-                            <span className="text-sm text-gray-500">
-                              Reseña enviada
-                            </span>
-                          ) : (
-                            <button className="btn-primary text-sm">
-                              Dejar Reseña
-                            </button>
-                          )}
+                        {booking.reviewed ? (
+                          <Link to={`/service/${booking.idServicio}`} className="btn-secondary text-sm">Ver Servicio</Link>
+                        ) : (
+                          <Link to={`/crear-resena/${booking.id}`} className="btn-primary text-sm">Dejar Reseña</Link>
+                        )}
                         </div>
                       </div>
                     ))}
