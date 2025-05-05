@@ -63,7 +63,8 @@ const ServiceDetailPage = () => {
       idServicio: service.id,
       fecha: selectedDate,
       hora: selectedTime,
-      estado: "upcoming"
+      estado: "Pendiente"
+
     };
   
     try {
