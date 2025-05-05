@@ -85,14 +85,13 @@ const ProDashboard = () => {
         });
         setServiceToDelete(null);
         setShowDeleteModal(false);
-        loadProData(); // Vuelve a cargar los servicios desde backend
+        loadProData(); 
       } catch (error) {
         console.error("Error al eliminar el servicio:", error);
       }
     }
   };
-  
-  // Redirigir si no hay usuario autenticado o no es un profesional
+
   if (!user) {
     return <Navigate to="/login" />
   }
@@ -103,6 +102,7 @@ const ProDashboard = () => {
   
 
   return (
+    <>
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -367,6 +367,33 @@ const ProDashboard = () => {
         </div>
       </div>
     </div>
+
+    {/* Modal de confirmación de eliminación */}
+    {showDeleteModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+        <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+          <h2 className="text-lg font-semibold mb-4">¿Eliminar servicio?</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Esta acción no se puede deshacer. ¿Estás seguro que deseas eliminar el servicio <strong>{serviceToDelete?.nombre}</strong>?
+          </p>
+          <div className="flex justify-end space-x-2">
+            <button
+              onClick={() => setShowDeleteModal(false)}
+              className="px-4 py-2 text-sm bg-gray-200 rounded hover:bg-gray-300"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={confirmDeleteService}
+              className="px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+            >
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   )
 }
 

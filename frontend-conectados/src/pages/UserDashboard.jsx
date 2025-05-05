@@ -65,17 +65,19 @@ const UserDashboard = () => {
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="p-6 border-b">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-              <div className="flex items-center mb-4 md:mb-0">
-                <img
-                  src={user.image || "/placeholder.svg"}
-                  alt={user.name}
-                  className="w-16 h-16 rounded-full mr-4"
-                />
-                <div>
-                  <h1 className="text-2xl font-bold">{user.name}</h1>
-                  <p className="text-gray-600">{user.email}</p>
-                </div>
+
+            <div className="flex items-center mb-4 md:mb-0">
+              <img
+                src={user.imagen || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nombre)}&background=0D8ABC&color=fff`}
+                alt={user.nombre}
+                className="w-16 h-16 rounded-full mr-4"
+              />
+              <div>
+                <h1 className="text-2xl font-bold">{user.nombre}</h1>
+                <p className="text-gray-600">{user.correo}</p>
               </div>
+            </div>
+
               <Link to="/search" className="btn-primary">
                 Buscar Servicios
               </Link>

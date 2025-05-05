@@ -42,13 +42,32 @@ const RegisterPage = () => {
           nombre: formData.name,
           correo: formData.email,
           contrasena: formData.password,
-          rol: "BUSCADOR", 
+          rol: "BUSCADOR",
         }),
       });
   
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Error al registrar usuario");
+        let errorMessage = "Error al registrar usuario";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (jsonErr) {
+          const text = await response.text();
+          if (text.includes("ya existe")) {
+            errorMessage = "Ya existe una cuenta registrada con este correo.";
+          }
+        }
+  
+        // Mostrar error claro al usuario
+        if (
+          response.status === 409 ||
+          errorMessage.toLowerCase().includes("ya existe")
+        ) {
+          setError("Ya existe una cuenta registrada con este correo.");
+        } else {
+          setError(errorMessage);
+        }
+        return;
       }
   
       const data = await response.json();
@@ -57,9 +76,10 @@ const RegisterPage = () => {
   
     } catch (err) {
       console.error("Error:", err);
-      setError(err.message || "Error desconocido");
+      setError("Error de conexión. Intenta nuevamente.");
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

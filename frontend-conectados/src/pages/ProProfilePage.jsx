@@ -70,13 +70,12 @@ const ProProfilePage = () => {
             <div className="flex flex-col md:flex-row">
               <div className="md:w-1/3 flex flex-col items-center mb-6 md:mb-0">
                 <img
-                  src={professional.image || "/placeholder.svg"}
+                  src={professional.imagen || `https://ui-avatars.com/api/?name=${encodeURIComponent(professional.nombre)}&background=0D8ABC&color=fff`}
                   alt={professional.name}
                   className="w-32 h-32 rounded-full mb-4"
                 />
-                <h1 className="text-2xl font-bold text-center">
-                  {professional.name}
-                </h1>
+                <h1 className="text-2xl font-bold text-center"> {professional.name}</h1>
+                <p className="text-gray-600">{professional.correo}</p>
                 <p className="text-gray-600 text-center">
                   {professional.profession}
                 </p>

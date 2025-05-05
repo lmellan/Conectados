@@ -91,19 +91,46 @@ const RegisterProPage = () => {
     try {
       const response = await fetch("http://localhost:8080/auth/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(payload),
       });
   
       if (!response.ok) {
-        throw new Error("Error al registrar el usuario");
+        let errorMessage = "Error al registrar usuario";
+  
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          const text = await response.text();
+          if (text.toLowerCase().includes("ya existe")) {
+            errorMessage = "Ya existe una cuenta registrada con este correo.";
+          } else {
+            errorMessage = text;
+          }
+        }
+  
+        if (
+          response.status === 409 ||
+          errorMessage.toLowerCase().includes("ya existe")
+        ) {
+          setError("Ya existe una cuenta registrada con este correo.");
+        } else {
+          setError(errorMessage);
+        }
+        return;
       }
   
-      navigate("/login"); 
+      navigate("/login");
     } catch (err) {
-      setError(err.message);
+      console.error("Error:", err);
+      setError("Error de conexión. Intenta nuevamente.");
     }
   };
+  
+  
   
   
   return (
@@ -290,16 +317,16 @@ const RegisterProPage = () => {
                 Descripción de tus servicios
               </label>
               <div className="mt-1">
-                <textarea
-                  id="description"
-                  name="description"
-                  rows={3}
-                  required
-                  value={formData.description}
-                  onChange={handleChange}
-                  className="input-field"
-                  placeholder="Describe tu experiencia y los servicios que ofreces..."
-                />
+              <textarea
+                id="description"
+                name="descripcion"  
+                rows={3}
+                required
+                value={formData.descripcion}
+                onChange={handleChange}
+                className="input-field"
+                placeholder="Describe tu experiencia y los servicios que ofreces..."
+              />
               </div>
             </div>
 

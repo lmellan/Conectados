@@ -1,83 +1,111 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useLocation } from "react-router-dom"
-import SearchBar from "../components/SearchBar"
-import ServiceCard from "../components/ServiceCard"
-import { services } from "../data/mockData"
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import SearchBar from "../components/SearchBar";
+import ServiceCard from "../components/ServiceCard";
 
 const SearchPage = () => {
-  const location = useLocation()
-  const queryParams = new URLSearchParams(location.search)
-  const initialQuery = queryParams.get("q") || ""
-  const initialCategory = queryParams.get("category") || ""
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const initialQuery = queryParams.get("q") || "";
+  const initialCategory = queryParams.get("category") || "";
 
-  const [searchTerm, setSearchTerm] = useState(initialQuery)
-  const [selectedCategory, setSelectedCategory] = useState(initialCategory)
-  const [filteredServices, setFilteredServices] = useState([])
-  const [priceRange, setPriceRange] = useState([0, 100])
+  const [searchTerm, setSearchTerm] = useState(initialQuery);
+  const [selectedCategory, setSelectedCategory] = useState("Todas las categorías");
+  const [filteredServices, setFilteredServices] = useState([]);
+  const [priceRange, setPriceRange] = useState([0, 10000]);
 
   const categories = [
     { id: "all", name: "Todas las categorías" },
-    { id: "limpieza", name: "Limpieza" },
-    { id: "electricidad", name: "Electricidad" },
-    { id: "plomeria", name: "Plomería" },
-    { id: "jardineria", name: "Jardinería" },
-    { id: "peluqueria", name: "Peluquería" },
-    { id: "carpinteria", name: "Carpintería" },
-  ]
+    { id: "Limpieza", name: "Limpieza" },
+    { id: "Electricidad", name: "Electricidad" },
+    { id: "Plomería", name: "Plomería" },
+    { id: "Jardinería", name: "Jardinería" },
+    { id: "Peluquería", name: "Peluquería" },
+    { id: "Carpintería", name: "Carpintería" },
+  ];
 
-  // Filtrar servicios cuando cambian los criterios de búsqueda
+
   useEffect(() => {
-    let results = [...services]
+    const queryParams = new URLSearchParams(location.search);
+    const query = queryParams.get("q") || "";
+    setSearchTerm(query);
+  }, [location.search]);
 
-    // Filtrar por término de búsqueda
-    if (searchTerm) {
-      results = results.filter(
-        (service) =>
-          service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          service.description.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
-    }
+  // Cargar servicios desde el backend
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/api/servicios/todos");
+        if (!response.ok) throw new Error("Error al obtener los servicios");
+  
+        const data = await response.json();
+        let results = [...data];
+  
+        // Filtrar por término de búsqueda
+        if (searchTerm) {
+          results = results.filter(
+            (service) =>
+              service.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              service.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+        }
+  
+        // Filtrar por categoría (solo si no es "Todas las categorías")
+        if (selectedCategory && selectedCategory !== "Todas las categorías") {
+          results = results.filter(
+            (service) =>
+              service.categoria?.toLowerCase() === selectedCategory.toLowerCase()
+          );
+        }
+        
+  
+        // Filtrar por rango de precio
+        results = results.filter(
+          (service) => service.precio >= priceRange[0] && service.precio <= priceRange[1]
+        );
 
-    // Filtrar por categoría
-    if (selectedCategory && selectedCategory !== "all") {
-      results = results.filter((service) => service.category.toLowerCase() === selectedCategory.toLowerCase())
-    }
+        console.log("Servicios desde el backend:", data);
+        console.log("Categoría seleccionada:", selectedCategory);
 
-    // Filtrar por rango de precio
-    results = results.filter((service) => service.price >= priceRange[0] && service.price <= priceRange[1])
-
-    setFilteredServices(results)
-  }, [searchTerm, selectedCategory, priceRange])
+  
+        setFilteredServices(results);
+      } catch (error) {
+        console.error("Error al cargar servicios:", error);
+      }
+    };
+  
+    fetchServices();
+  }, [searchTerm, selectedCategory, priceRange]);
+  
 
   const handleSearch = (e) => {
-    e.preventDefault()
-    // La búsqueda ya se maneja en el useEffect
-  }
+    e.preventDefault();
+  };
 
   const handleCategoryChange = (e) => {
-    setSelectedCategory(e.target.value)
-  }
+    setSelectedCategory(e.target.value);
+  };
 
   const handlePriceChange = (e) => {
-    const value = Number.parseInt(e.target.value)
-    const isMin = e.target.id === "min-price"
+    const value = Number.parseInt(e.target.value);
+    const isMin = e.target.id === "min-price";
 
     setPriceRange((prev) => {
       if (isMin) {
-        return [value, prev[1]]
+        return [value, prev[1]];
       } else {
-        return [prev[0], value]
+        return [prev[0], value];
       }
-    })
-  }
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
         <h1 className="text-3xl font-bold mb-8 text-center">Buscar Servicios</h1>
-
+  
         <div className="mb-8 flex justify-center">
           <SearchBar
             className="w-full max-w-3xl"
@@ -85,25 +113,33 @@ const SearchPage = () => {
             onSearch={(value) => setSearchTerm(value)}
           />
         </div>
-
+  
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Filtros */}
           <div className="bg-white p-6 rounded-lg shadow-sm h-fit">
             <h2 className="text-lg font-semibold mb-4">Filtros</h2>
-
+  
             <div className="mb-6">
               <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
                 Categoría
               </label>
-              <select id="category" value={selectedCategory} onChange={handleCategoryChange} className="input-field">
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
+              <select
+                id="category"
+                value={selectedCategory}
+                onChange={handleCategoryChange}
+                className="input-field"
+              >
+                <option value="Todas las categorías">Todas las categorías</option>
+                {categories
+                  .filter((cat) => cat.name !== "Todas las categorías")
+                  .map((category) => (
+                    <option key={category.name} value={category.name}>
+                      {category.name}
+                    </option>
+                  ))}
               </select>
             </div>
-
+  
             <div className="mb-6">
               <h3 className="text-sm font-medium text-gray-700 mb-2">Precio por hora</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -136,19 +172,19 @@ const SearchPage = () => {
                 </div>
               </div>
             </div>
-
+  
             <button
               onClick={() => {
-                setSelectedCategory("all")
-                setPriceRange([0, 100])
-                setSearchTerm("")
+                setSelectedCategory("Todas las categorías");
+                setPriceRange([0, 100000]);
+                setSearchTerm("");
               }}
               className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               Limpiar filtros
             </button>
           </div>
-
+  
           {/* Resultados */}
           <div className="lg:col-span-3">
             <div className="mb-4 flex justify-between items-center">
@@ -159,7 +195,7 @@ const SearchPage = () => {
                 <option value="price-desc">Precio: Mayor a menor</option>
               </select>
             </div>
-
+  
             {filteredServices.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredServices.map((service) => (
@@ -176,7 +212,8 @@ const SearchPage = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+  
+};
 
-export default SearchPage
+export default SearchPage;
