@@ -59,7 +59,7 @@ public class ServicioServicesImpl implements ServicioServices {
             s.setPrecio(servicio.getPrecio());
             s.setZonaAtencion(servicio.getZonaAtencion());
             s.setCategoria(servicio.getCategoria());
-            s.setFotos(servicio.getFotos());
+            s.setFoto(servicio.getFoto());
             s.setDescripcion(servicio.getDescripcion());
             return servicioRepository.save(s);
         }

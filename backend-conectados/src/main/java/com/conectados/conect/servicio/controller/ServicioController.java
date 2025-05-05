@@ -51,7 +51,7 @@ public class ServicioController {
         servicioExistente.setPrecio(servicioDto.getPrecio());
         servicioExistente.setZonaAtencion(servicioDto.getZonaAtencion());
         servicioExistente.setCategoria(servicioDto.getCategoria());
-        servicioExistente.setFotos(servicioDto.getFotos());
+        servicioExistente.setFoto(servicioDto.getFoto());
         servicioExistente.setDescripcion(servicioDto.getDescripcion());
 
         Servicio actualizado = servicioService.actualizarServicio(id, servicioExistente);
