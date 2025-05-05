@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -20,10 +22,17 @@ public class AuthController {
     private UsuarioServices usuarioService;
 
     @PostMapping("/register")
-    public ResponseEntity<Usuario> registrarUsuario(@RequestBody RegistroUsuarioDto dto) {
-        Usuario creado = usuarioService.registrarUsuario(dto);
-        return ResponseEntity.ok(creado);
+    public ResponseEntity<?> registrarUsuario(@RequestBody RegistroUsuarioDto dto) {
+        try {
+            Usuario creado = usuarioService.registrarUsuario(dto);
+            return ResponseEntity.ok(creado);
+        } catch (RuntimeException e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse); // 409
+        }
     }
+
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDto dto) {

@@ -1,5 +1,6 @@
 package com.conectados.conect.servicio.services.impl;
 
+import com.conectados.conect.servicio.entities.Dto.ServicioDto;
 import com.conectados.conect.servicio.entities.Servicio;
 import com.conectados.conect.servicio.repositories.ServicioRepository;
 import com.conectados.conect.servicio.services.ServicioServices;
@@ -39,8 +40,9 @@ public class ServicioServicesImpl implements ServicioServices {
     }
 
     @Override
-    public List<Servicio> obtenerTodosLosServicios() {
-        return servicioRepository.findAll();
+    public List<ServicioDto> obtenerTodosLosServicios() {
+        List<Servicio> servicios = servicioRepository.findAll();
+        return ServicioDto.fromEntityList(servicios);
     }
 
     @Override

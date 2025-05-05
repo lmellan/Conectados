@@ -18,11 +18,17 @@ public class UsuarioServicesImpl implements UsuarioServices {
 
     @Override
     public Usuario registrarUsuario(RegistroUsuarioDto dto) {
+        Optional<Usuario> existente = usuarioRepository.findByCorreo(dto.getCorreo());
+        if (existente.isPresent()) {
+            throw new RuntimeException("Ya existe una cuenta con este correo");
+        }
+
         Usuario usuario = new Usuario();
         usuario.setNombre(dto.getNombre());
         usuario.setCorreo(dto.getCorreo());
         usuario.setContrasena(dto.getContrasena());
         usuario.setRol(dto.getRol());
+        usuario.setImagen(dto.getImagen());
 
         if (dto.getRol().name().equals("PRESTADOR")) {
             usuario.setZonaAtencion(dto.getZonaAtencion());
@@ -33,6 +39,7 @@ public class UsuarioServicesImpl implements UsuarioServices {
 
         return usuarioRepository.save(usuario);
     }
+
 
     @Override
     public Optional<Usuario> obtenerUsuarioPorId(Long id) {
@@ -48,6 +55,8 @@ public class UsuarioServicesImpl implements UsuarioServices {
             usuario.setCorreo(dto.getCorreo());
             usuario.setContrasena(dto.getContrasena());
             usuario.setRol(dto.getRol());
+            usuario.setImagen(dto.getImagen());
+
 
             if (dto.getRol().name().equals("PRESTADOR")) {
                 usuario.setZonaAtencion(dto.getZonaAtencion());
