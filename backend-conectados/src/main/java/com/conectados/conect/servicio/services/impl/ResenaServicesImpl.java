@@ -9,8 +9,11 @@ import com.conectados.conect.servicio.services.ResenaServices;
 import com.conectados.conect.user.model.Usuario;
 import com.conectados.conect.user.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,18 +35,18 @@ public class ResenaServicesImpl implements ResenaServices {
         Optional<Usuario> buscadorOpt = usuarioRepository.findById(resena.getBuscador().getId());
         Optional<Usuario> prestadorOpt = usuarioRepository.findById(resena.getPrestador().getId());
 
-        if (servicioOpt.isPresent() && buscadorOpt.isPresent() && prestadorOpt.isPresent()) {
-            resena.setServicio(servicioOpt.get());
-            resena.setBuscador(buscadorOpt.get());
-            resena.setPrestador(prestadorOpt.get());
-
-            Resena guardada = resenaRepository.save(resena);
-            return ResenaDto.fromEntity(guardada);
+        if (servicioOpt.isEmpty() || buscadorOpt.isEmpty() || prestadorOpt.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Entidad relacionada no encontrada");
         }
 
-        throw new RuntimeException("Entidad relacionada no encontrada");
-    }
+        resena.setServicio(servicioOpt.get());
+        resena.setBuscador(buscadorOpt.get());
+        resena.setPrestador(prestadorOpt.get());
+        resena.setFecha(LocalDate.now());
 
+        Resena guardada = resenaRepository.save(resena);
+        return ResenaDto.fromEntity(guardada);
+    }
 
 
     @Override

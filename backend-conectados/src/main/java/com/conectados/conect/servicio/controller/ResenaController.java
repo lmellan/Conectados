@@ -42,9 +42,15 @@ public class ResenaController {
     }
 
     @GetMapping("/todas")
-    public ResponseEntity<List<Resena>> obtenerTodas() {
-        return ResponseEntity.ok(resenaService.obtenerTodasLasResenas());
+    public ResponseEntity<List<ResenaDto>> obtenerTodas() {
+        List<Resena> resenas = resenaService.obtenerTodasLasResenas();
+        List<ResenaDto> resenasDto = resenas.stream()
+                .map(ResenaDto::fromEntity)
+                .toList();
+
+        return ResponseEntity.ok(resenasDto);
     }
+
 
     @PutMapping("/actualizar/{id}")
     public ResponseEntity<Resena> actualizar(@PathVariable Long id, @RequestBody Resena resena) {
