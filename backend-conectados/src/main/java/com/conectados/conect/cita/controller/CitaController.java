@@ -46,4 +46,19 @@ public class CitaController {
     public ResponseEntity<List<Cita>> obtenerPorPrestador(@PathVariable Long idPrestador) {
         return ResponseEntity.ok(citaServices.obtenerCitasPorPrestador(idPrestador));
     }
-}
+
+    @PutMapping("/citas/finalizar/{id}")
+    public ResponseEntity<?> finalizarCita(@PathVariable Long id) {
+        // Add implementation for finalizarCita here
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/actualizar-automatica")
+    public ResponseEntity<String> actualizarCitasAutomaticamente() {
+        citaServices.actualizarEstadosDeCitas();
+        return ResponseEntity.ok("Estados de las citas actualizados automáticamente.");
+    }
+
+
+    }
+

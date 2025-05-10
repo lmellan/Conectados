@@ -92,4 +92,19 @@ public class UsuarioServicesImpl implements UsuarioServices {
     public List<Usuario> listarUsuarios() {
         return usuarioRepository.findAll();
     }
+
+    @Override
+public Usuario actualizarUsuario(Long id, Usuario usuarioActualizado) {
+    return usuarioRepository.findById(id)
+            .map(usuarioExistente -> {
+                usuarioExistente.setNombre(usuarioActualizado.getNombre());
+                usuarioExistente.setCorreo(usuarioActualizado.getCorreo());
+                usuarioExistente.setContrasena(usuarioActualizado.getContrasena());
+                usuarioExistente.setZonaAtencion(usuarioActualizado.getZonaAtencion());
+                usuarioExistente.setImagen(usuarioActualizado.getImagen());
+                return usuarioRepository.save(usuarioExistente);
+            })
+            .orElse(null);
+}
+
 }

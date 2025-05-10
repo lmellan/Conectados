@@ -11,4 +11,7 @@ public interface CitaServices {
     void eliminarCita(Long id);
     List<Cita> obtenerCitasPorBuscador(Long idBuscador);
     List<Cita> obtenerCitasPorPrestador(Long idPrestador);
+    void actualizarEstadosDeCitas();
+
+
 }

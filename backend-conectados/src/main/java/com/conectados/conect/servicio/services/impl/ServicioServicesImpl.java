@@ -1,6 +1,7 @@
 package com.conectados.conect.servicio.services.impl;
 
 import com.conectados.conect.servicio.entities.Dto.ServicioDto;
+import com.conectados.conect.servicio.ServicioConstantes;
 import com.conectados.conect.servicio.entities.Servicio;
 import com.conectados.conect.servicio.repositories.ServicioRepository;
 import com.conectados.conect.servicio.services.ServicioServices;
@@ -8,6 +9,7 @@ import com.conectados.conect.user.model.Usuario;
 import com.conectados.conect.user.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,8 +33,14 @@ public class ServicioServicesImpl implements ServicioServices {
             }
             servicio.setPrestador(prestadorCompleto);
         }
+        if (!ServicioConstantes.CATEGORIAS_VALIDAS.contains(servicio.getCategoria())) {
+            throw new IllegalArgumentException("Categoría no válida. Las opciones disponibles son: " + ServicioConstantes.CATEGORIAS_VALIDAS);
+        }
+
         return servicioRepository.save(servicio);
     }
+
+
 
     @Override
     public Servicio obtenerServicioPorId(Long id) {
@@ -63,6 +71,10 @@ public class ServicioServicesImpl implements ServicioServices {
             s.setDescripcion(servicio.getDescripcion());
             return servicioRepository.save(s);
         }
+        if (!ServicioConstantes.CATEGORIAS_VALIDAS.contains(servicio.getCategoria())) {
+            throw new IllegalArgumentException("Categoría no válida. Las opciones disponibles son: " + ServicioConstantes.CATEGORIAS_VALIDAS);
+}
+
         return null;
     }
 
@@ -75,6 +87,11 @@ public class ServicioServicesImpl implements ServicioServices {
     @Override
     public List<Servicio> obtenerServiciosPorPrestadorId(Long prestadorId) {
         return servicioRepository.findByPrestador_Id(prestadorId);
+    }
+
+     @Override
+    public List<Servicio> obtenerServiciosOrdenados(String sortBy) {
+        return servicioRepository.findAll(Sort.by(sortBy));
     }
 
 }

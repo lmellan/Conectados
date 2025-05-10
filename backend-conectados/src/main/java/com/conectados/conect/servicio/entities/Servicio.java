@@ -1,6 +1,8 @@
 package com.conectados.conect.servicio.entities;
 
 import com.conectados.conect.user.model.Usuario;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -35,7 +37,9 @@ public class Servicio {
     private Usuario prestador;
 
     @OneToMany(mappedBy = "servicio", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Resena> resenas;
+
 
     public Long getId() {
         return id;

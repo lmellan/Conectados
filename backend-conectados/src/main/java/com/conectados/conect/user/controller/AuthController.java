@@ -1,6 +1,6 @@
 package com.conectados.conect.user.controller;
 
-import com.conectados.conect.user.dto.LoginDto;
+import com.conectados.conect.user.dto.LoginDTO;
 import com.conectados.conect.user.dto.RegistroUsuarioDto;
 import com.conectados.conect.user.model.Usuario;
 import com.conectados.conect.user.service.UsuarioServices;
@@ -35,7 +35,7 @@ public class AuthController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginDto dto) {
+    public ResponseEntity<?> login(@RequestBody LoginDTO dto) {
         Optional<Usuario> usuario = usuarioService.login(dto.getCorreo(), dto.getContrasena());
         return usuario.isPresent()
                 ? ResponseEntity.ok(usuario.get())

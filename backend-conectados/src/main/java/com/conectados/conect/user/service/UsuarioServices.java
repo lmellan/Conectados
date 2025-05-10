@@ -20,5 +20,8 @@ public interface UsuarioServices {
     void eliminarUsuario(Long id);
 
     List<Usuario> listarUsuarios();
+    
+    Usuario actualizarUsuario(Long id, Usuario usuarioActualizado);
+
 
 }

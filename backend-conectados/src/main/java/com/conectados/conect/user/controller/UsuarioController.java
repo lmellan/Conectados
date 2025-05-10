@@ -1,7 +1,7 @@
 package com.conectados.conect.user.controller;
 
 
-import com.conectados.conect.user.dto.LoginDto;
+import com.conectados.conect.user.dto.LoginDTO;
 import com.conectados.conect.user.dto.RegistroUsuarioDto;
 import com.conectados.conect.user.model.Usuario;
 import com.conectados.conect.user.service.UsuarioServices;
@@ -39,6 +39,11 @@ public class UsuarioController {
         usuarioService.eliminarUsuario(id);
         return ResponseEntity.noContent().build();
     }
+    @PutMapping("/actualizar/{id}")
+    public ResponseEntity<Usuario> actualizarUsuario(@PathVariable Long id, @RequestBody Usuario usuarioActualizado) {
+        Usuario actualizado = usuarioService.actualizarUsuario(id, usuarioActualizado);
+        return actualizado != null ? ResponseEntity.ok(actualizado) : ResponseEntity.notFound().build();
+}
 
 
 }

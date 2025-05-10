@@ -29,24 +29,33 @@ public class ResenaServicesImpl implements ResenaServices {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    @Override
-    public ResenaDto crearResena(Resena resena) {
-        Optional<Servicio> servicioOpt = servicioRepository.findById(resena.getServicio().getId());
-        Optional<Usuario> buscadorOpt = usuarioRepository.findById(resena.getBuscador().getId());
-        Optional<Usuario> prestadorOpt = usuarioRepository.findById(resena.getPrestador().getId());
+@Override
+public ResenaDto crearResena(Resena resena) {
+    Optional<Servicio> servicioOpt = servicioRepository.findById(resena.getServicio().getId());
+    Optional<Usuario> buscadorOpt = usuarioRepository.findById(resena.getBuscador().getId());
+    Optional<Usuario> prestadorOpt = usuarioRepository.findById(resena.getPrestador().getId());
 
-        if (servicioOpt.isEmpty() || buscadorOpt.isEmpty() || prestadorOpt.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Entidad relacionada no encontrada");
-        }
-
-        resena.setServicio(servicioOpt.get());
-        resena.setBuscador(buscadorOpt.get());
-        resena.setPrestador(prestadorOpt.get());
-        resena.setFecha(LocalDate.now());
-
-        Resena guardada = resenaRepository.save(resena);
-        return ResenaDto.fromEntity(guardada);
+    if (servicioOpt.isEmpty() || buscadorOpt.isEmpty() || prestadorOpt.isEmpty()) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Entidad relacionada no encontrada");
     }
+
+    //validacion nueva
+    Long buscadorId = buscadorOpt.get().getId();
+    Long citaId = resena.getCita().getId();
+
+    Long conteo = resenaRepository.contarResenasPorBuscadorYCita(buscadorId, citaId);
+    if (conteo > 0) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ya existe una reseña para esta cita por este usuario.");
+    }
+
+    resena.setServicio(servicioOpt.get());
+    resena.setBuscador(buscadorOpt.get());
+    resena.setPrestador(prestadorOpt.get());
+    resena.setFecha(LocalDate.now());
+
+    Resena guardada = resenaRepository.save(resena);
+    return ResenaDto.fromEntity(guardada);
+}
 
 
     @Override

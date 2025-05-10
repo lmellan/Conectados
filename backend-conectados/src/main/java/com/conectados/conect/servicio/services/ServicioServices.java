@@ -14,6 +14,7 @@ public interface ServicioServices {
     Servicio actualizarServicio(Long id, Servicio servicio);
     void eliminarServicio(Long id);
     List<Servicio> obtenerServiciosPorPrestadorId(Long prestadorId);
+    List<Servicio> obtenerServiciosOrdenados(String sortBy);
 
 
 }
