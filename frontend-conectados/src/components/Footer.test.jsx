@@ -1,51 +1,42 @@
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import Footer from './Footer';
+import React from "react";
+import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import Footer from "./Footer";
 
-describe('Footer', () => {
-  test('renders section titles and descriptions', () => {
+describe("Footer", () => {
+  beforeEach(() => {
     render(
       <MemoryRouter>
         <Footer />
       </MemoryRouter>
     );
-
-    // Secciones principales
-    expect(screen.getByText('Conectados')).toBeInTheDocument();
-    expect(screen.getByText('Enlaces')).toBeInTheDocument();
-    expect(screen.getByText('Contacto')).toBeInTheDocument();
-
-    // Descripción
-    expect(screen.getByText(/Conectando usuarios/i)).toBeInTheDocument();
-
-    // Contacto
-    expect(screen.getByText(/Email:/i)).toBeInTheDocument();
-    expect(screen.getByText(/Teléfono:/i)).toBeInTheDocument();
   });
 
-  test('renders navigation links with correct href', () => {
-    render(
-      <MemoryRouter>
-        <Footer />
-      </MemoryRouter>
-    );
-
-    const links = screen.getAllByRole('link');
-    expect(links.length).toBe(3);
-
-    expect(links[0]).toHaveAttribute('href', '/');
-    expect(links[1]).toHaveAttribute('href', '/search');
-    expect(links[2]).toHaveAttribute('href', '/register-pro');
+  test("renderiza el nombre del sitio y descripción", () => {
+    expect(screen.getByText("Conectados")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Conectando usuarios con los mejores profesionales/i)
+    ).toBeInTheDocument();
   });
 
-  test('renders current year in copyright', () => {
-    render(
-      <MemoryRouter>
-        <Footer />
-      </MemoryRouter>
-    );
+  test("renderiza los títulos de secciones", () => {
+    expect(screen.getByText("Enlaces")).toBeInTheDocument();
+    expect(screen.getByText("Contacto")).toBeInTheDocument();
+  });
 
+  test("renderiza todos los enlaces de navegación", () => {
+    expect(screen.getByRole("link", { name: "Inicio" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "Buscar Servicios" })).toHaveAttribute("href", "/search");
+    expect(screen.getByRole("link", { name: "Ofrecer Servicios" })).toHaveAttribute("href", "/register-pro");
+  });
+
+  test("renderiza la información de contacto", () => {
+    expect(screen.getByText(/info@conectados\.com/)).toBeInTheDocument();
+    expect(screen.getByText(/123.*456.*7890/)).toBeInTheDocument();
+  });
+
+  test("renderiza el año actual en el copyright", () => {
     const year = new Date().getFullYear();
-    expect(screen.getByText(new RegExp(`${year}`))).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(`© ${year}`))).toBeInTheDocument();
   });
 });

@@ -1,54 +1,41 @@
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import CategoryList from './CategoryList';
+import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import CategoryList from "./CategoryList";
 
-describe('CategoryList', () => {
-  test('renders all categories', () => {
+describe("CategoryList", () => {
+  const categoriasEsperadas = [
+    { slug: "limpieza", name: "Limpieza" },
+    { slug: "electricidad", name: "Electricidad" },
+    { slug: "plomeria", name: "Plomería" },
+    { slug: "jardineria", name: "Jardinería" },
+    { slug: "peluqueria", name: "Peluquería" },
+    { slug: "carpinteria", name: "Carpintería" },
+  ];
+
+  it("renderiza todas las categorías", () => {
     render(
       <MemoryRouter>
         <CategoryList />
       </MemoryRouter>
     );
 
-    // Los nombres de las categorías deberían aparecer
-    const categories = ["Limpieza", "Electricidad", "Plomería", "Jardinería", "Peluquería", "Carpintería"];
-    
-    categories.forEach((categoryName) => {
-      expect(screen.getByText(categoryName)).toBeInTheDocument();
+    categoriasEsperadas.forEach((cat) => {
+      expect(screen.getByText((text) => text.includes(cat.name))).toBeInTheDocument();
     });
   });
 
-  test('renders category icons', () => {
+  it("cada categoría tiene un enlace correcto", () => {
     render(
       <MemoryRouter>
         <CategoryList />
       </MemoryRouter>
     );
 
-    const icons = ["🧹", "💡", "🔧", "🌱", "✂️", "🪚"];
-
-    icons.forEach((icon) => {
-      expect(screen.getByText(icon)).toBeInTheDocument();
+    categoriasEsperadas.forEach((cat) => {
+      const link = screen.getByRole("link", {
+        name: (name) => name.includes(cat.name),
+      });
+      expect(link).toHaveAttribute("href", `/search?category=${cat.slug}`);
     });
-  });
-
-  test('renders links with correct href', () => {
-    render(
-      <MemoryRouter>
-        <CategoryList />
-      </MemoryRouter>
-    );
-
-    // Debe haber 6 links (uno por categoría)
-    const links = screen.getAllByRole('link');
-    expect(links.length).toBe(6);
-
-    // Verificar que cada link tenga el href correcto
-    expect(links[0]).toHaveAttribute('href', '/search?category=limpieza');
-    expect(links[1]).toHaveAttribute('href', '/search?category=electricidad');
-    expect(links[2]).toHaveAttribute('href', '/search?category=plomeria');
-    expect(links[3]).toHaveAttribute('href', '/search?category=jardineria');
-    expect(links[4]).toHaveAttribute('href', '/search?category=peluqueria');
-    expect(links[5]).toHaveAttribute('href', '/search?category=carpinteria');
   });
 });

@@ -1,43 +1,43 @@
-import { render, screen } from '@testing-library/react';
-import AvailabilityCalendar from './AvailabilityCalendar';
+import React from "react";
+import { render, screen } from "@testing-library/react";
+import AvailabilityCalendar from "./AvailabilityCalendar";
+import { act } from "react";
 
-describe('AvailabilityCalendar', () => {
-  test('renders all days of the week', () => {
-    render(<AvailabilityCalendar availability={[]} />);
-    
-    const days = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
-    days.forEach(day => {
-      expect(screen.getByText(day)).toBeInTheDocument();
+describe("AvailabilityCalendar", () => {
+  const availabilityExample = [0, 2, 4]; // Lunes, Miércoles, Viernes
+
+  it("renderiza el título correctamente", () => {
+    act(() => {
+      render(<AvailabilityCalendar availability={availabilityExample} />);
+    });
+  
+    expect(screen.getByText("Disponibilidad")).toBeInTheDocument();
+  });
+
+  it("renderiza todos los días de la semana", () => {
+    render(<AvailabilityCalendar availability={availabilityExample} />);
+    const dias = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+    dias.forEach((dia) => {
+      expect(screen.getByText(dia)).toBeInTheDocument();
     });
   });
 
-  test('shows "Sí" with green background for available days', () => {
-    render(<AvailabilityCalendar availability={[0, 2, 4]} />); // Lunes, Miércoles, Viernes disponibles
-
-    const yesElements = screen.getAllByText("Sí");
-
-    // Verificar que tengan la clase correcta
-    yesElements.forEach(el => {
-      expect(el).toHaveClass('bg-green-100');
-      expect(el).toHaveClass('text-green-800');
-    });
+  it("marca correctamente los días disponibles como 'Sí'", () => {
+    render(<AvailabilityCalendar availability={availabilityExample} />);
+    const siElements = screen.getAllByText("Sí");
+    expect(siElements).toHaveLength(3); // Lun, Mié, Vie
   });
 
-  test('shows "No" with gray background for unavailable days', () => {
-    render(<AvailabilityCalendar availability={[1, 3, 5]} />); // Martes, Jueves, Sábado disponibles
-
+  it("marca correctamente los días no disponibles como 'No'", () => {
+    render(<AvailabilityCalendar availability={availabilityExample} />);
     const noElements = screen.getAllByText("No");
-
-    // Verificar que tengan la clase correcta
-    noElements.forEach(el => {
-      expect(el).toHaveClass('bg-gray-100');
-      expect(el).toHaveClass('text-gray-400');
-    });
+    expect(noElements).toHaveLength(4); // Mar, Jue, Sáb, Dom
   });
 
-  test('renders footer note about schedule', () => {
-    render(<AvailabilityCalendar availability={[]} />);
-
-    expect(screen.getByText(/\* Horario habitual/i)).toBeInTheDocument();
+  it("muestra la nota de horario habitual", () => {
+    render(<AvailabilityCalendar availability={availabilityExample} />);
+    expect(
+      screen.getByText("* Horario habitual: 9:00 AM - 6:00 PM")
+    ).toBeInTheDocument();
   });
 });

@@ -1,66 +1,75 @@
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import SearchBar from './SearchBar';
-import { MemoryRouter, useNavigate } from 'react-router-dom';
+import React from "react";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import SearchBar from "./SearchBar";
+import { act } from "react";
 
-// Mock del hook useNavigate
-jest.mock('react-router-dom', () => {
-  const originalModule = jest.requireActual('react-router-dom');
+// Mock de useNavigate
+const mockNavigate = jest.fn();
+jest.mock("react-router-dom", () => {
+  const actual = jest.requireActual("react-router-dom");
   return {
-    ...originalModule,
-    useNavigate: jest.fn(),
+    ...actual,
+    useNavigate: () => mockNavigate,
   };
 });
 
-describe('SearchBar', () => {
-  const mockNavigate = jest.fn();
-
+describe("SearchBar", () => {
   beforeEach(() => {
-    // Cada test tendrá su propio mock limpio
-    useNavigate.mockReturnValue(mockNavigate);
-  });
-
-  afterEach(() => {
     jest.clearAllMocks();
   });
 
-  test('renders input and button', () => {
-    render(
-      <MemoryRouter>
-        <SearchBar />
-      </MemoryRouter>
-    );
 
-    expect(screen.getByPlaceholderText('¿Qué servicio necesitas?')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /buscar/i })).toBeInTheDocument();
+  test("renderiza el título, categoría y nombre del proveedor", () => {
+    act(() => {
+      render(
+        <MemoryRouter>
+          <SearchBar />
+        </MemoryRouter>
+      );
+    });
+
+
+  
+    expect(screen.getByPlaceholderText("¿Qué servicio necesitas?")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Buscar" })).toBeInTheDocument();
   });
 
-  test('allows user to type in the input', async () => {
+  test("actualiza el valor del input cuando se escribe", () => {
     render(
       <MemoryRouter>
         <SearchBar />
       </MemoryRouter>
     );
 
-    const input = screen.getByPlaceholderText('¿Qué servicio necesitas?');
-    await userEvent.type(input, 'electricidad');
-
-    expect(input).toHaveValue('electricidad');
+    const input = screen.getByPlaceholderText("¿Qué servicio necesitas?");
+    fireEvent.change(input, { target: { value: "plomería" } });
+    expect(input.value).toBe("plomería");
   });
 
-  test('navigates to search page on submit', async () => {
+  test("navega a la ruta de búsqueda al enviar el formulario", () => {
     render(
       <MemoryRouter>
         <SearchBar />
       </MemoryRouter>
     );
 
-    const input = screen.getByPlaceholderText('¿Qué servicio necesitas?');
-    const button = screen.getByRole('button', { name: /buscar/i });
+    const input = screen.getByPlaceholderText("¿Qué servicio necesitas?");
+    const form = input.closest("form");
 
-    await userEvent.type(input, 'plomeria');
-    await userEvent.click(button);
+    fireEvent.change(input, { target: { value: "electricidad" } });
+    fireEvent.submit(form);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/search?q=plomeria');
+    expect(mockNavigate).toHaveBeenCalledWith("/search?q=electricidad");
+  });
+
+  test("aplica la clase adicional pasada por props", () => {
+    const { container } = render(
+      <MemoryRouter>
+        <SearchBar className="mt-10" />
+      </MemoryRouter>
+    );
+
+    expect(container.firstChild).toHaveClass("mt-10");
   });
 });

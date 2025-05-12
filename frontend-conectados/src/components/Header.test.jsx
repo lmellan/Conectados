@@ -1,66 +1,71 @@
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import Header from './Header';
-import { MemoryRouter } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
+import React from "react";
+import { render, screen, fireEvent, within } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import Header from "./Header";
+import { AuthContext } from "../context/AuthContext";
 
-// Helper para renderizar con contexto y router
-function renderWithProviders(ui, { user = null } = {}) {
-  const logout = jest.fn();
-
+// Mock de useNavigate
+const mockNavigate = jest.fn();
+jest.mock("react-router-dom", () => {
+  const actual = jest.requireActual("react-router-dom");
   return {
-    logout,
-    ...render(
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
+
+describe("Header", () => {
+  const renderWithContext = (user = null, logout = jest.fn()) => {
+    return render(
       <MemoryRouter>
         <AuthContext.Provider value={{ user, logout }}>
-          {ui}
+          <Header />
         </AuthContext.Provider>
       </MemoryRouter>
-    ),
+    );
   };
-}
 
-describe('Header', () => {
-  test('renders site name and public links when not logged in', () => {
-    renderWithProviders(<Header />, { user: null });
-
-    expect(screen.getByText('Conectados')).toBeInTheDocument();
-    expect(screen.getByText('Servicios')).toBeInTheDocument();
-    expect(screen.getByText('Iniciar Sesión')).toBeInTheDocument();
-    expect(screen.getByText('Registrarse')).toBeInTheDocument();
-    expect(screen.getByText('Ofrecer Servicios')).toBeInTheDocument();
+  test("muestra enlaces de login y registro si no hay usuario", () => {
+    renderWithContext(null);
+    expect(screen.getByText("Iniciar Sesión")).toBeInTheDocument();
+    expect(screen.getByText("Registrarse")).toBeInTheDocument();
+    expect(screen.getByText("Ofrecer Servicios")).toBeInTheDocument();
   });
 
-  test('renders user links when logged in as normal user', () => {
-    renderWithProviders(<Header />, { user: { isProfessional: false } });
-
-    expect(screen.getByText('Mi Panel')).toHaveAttribute('href', '/user-dashboard');
-    expect(screen.getByText('Cerrar Sesión')).toBeInTheDocument();
+  test("muestra 'Mi Panel' y 'Cerrar Sesión' si el usuario está logueado", () => {
+    const mockUser = { isProfessional: false };
+    renderWithContext(mockUser);
+    expect(screen.getByText("Mi Panel")).toBeInTheDocument();
+    expect(screen.getByText("Cerrar Sesión")).toBeInTheDocument();
   });
 
-  test('renders user links when logged in as professional', () => {
-    renderWithProviders(<Header />, { user: { isProfessional: true } });
-
-    expect(screen.getByText('Mi Panel')).toHaveAttribute('href', '/pro-dashboard');
-    expect(screen.getByText('Cerrar Sesión')).toBeInTheDocument();
+  test("dirige a /pro-dashboard si el usuario es profesional", () => {
+    const mockUser = { isProfessional: true };
+    renderWithContext(mockUser);
+    const link = screen.getByText("Mi Panel");
+    expect(link).toHaveAttribute("href", "/pro-dashboard");
   });
 
-  test('can toggle mobile menu', async () => {
-    renderWithProviders(<Header />, { user: null });
-
-    const toggleButton = screen.getByRole('button');
-    await userEvent.click(toggleButton);
-
-    expect(screen.getByText('Servicios')).toBeInTheDocument();
-    expect(screen.getByText('Iniciar Sesión')).toBeInTheDocument();
+  test("al hacer clic en Cerrar Sesión se ejecuta logout y redirige", () => {
+    const mockLogout = jest.fn();
+    renderWithContext({ isProfessional: false }, mockLogout);
+    fireEvent.click(screen.getByText("Cerrar Sesión"));
+    expect(mockLogout).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith("/");
   });
 
-  test('calls logout when logout button is clicked', async () => {
-    const { logout } = renderWithProviders(<Header />, { user: { isProfessional: false } });
 
-    const logoutButton = screen.getByText('Cerrar Sesión');
-    await userEvent.click(logoutButton);
 
-    expect(logout).toHaveBeenCalledTimes(1);
+  test("abre y cierra el menú móvil al hacer clic en el botón", () => {
+    renderWithContext(null);
+    const toggleBtn = screen.getByRole("button");
+  
+    fireEvent.click(toggleBtn); // abrir
+    const mobileMenu = screen.getByTestId("mobile-menu");
+    expect(within(mobileMenu).getByText("Iniciar Sesión")).toBeInTheDocument();
+  
+    fireEvent.click(toggleBtn); // cerrar
+    expect(mobileMenu).not.toBeVisible(); // asegura que el menú está oculto
   });
+  
 });

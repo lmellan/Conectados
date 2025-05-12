@@ -1,116 +1,60 @@
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import ConfirmationModal from './ConfirmationModal';
+import React from "react";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import ConfirmationModal from "./ConfirmationModal";
 
-describe('ConfirmationModal', () => {
-  test('renders title and message', () => {
-    render(
-      <ConfirmationModal
-        title="Confirmación"
-        message="¿Estás seguro de continuar?"
-        onConfirm={() => {}}
-        onCancel={() => {}}
-      />
-    );
+describe("ConfirmationModal", () => {
+  const baseProps = {
+    title: "¿Eliminar usuario?",
+    message: "Esta acción no se puede deshacer.",
+    confirmText: "Sí, eliminar",
+    cancelText: "Cancelar",
+    onConfirm: jest.fn(),
+    onCancel: jest.fn(),
+  };
 
-    expect(screen.getByText('Confirmación')).toBeInTheDocument();
-    expect(screen.getByText('¿Estás seguro de continuar?')).toBeInTheDocument();
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  test('renders confirm and cancel buttons with correct text', () => {
-    render(
-      <ConfirmationModal
-        title="Test"
-        message="Mensaje"
-        confirmText="Sí"
-        cancelText="No"
-        onConfirm={() => {}}
-        onCancel={() => {}}
-      />
-    );
-
-    expect(screen.getByText('Sí')).toBeInTheDocument();
-    expect(screen.getByText('No')).toBeInTheDocument();
+  test("renderiza el título y el mensaje", () => {
+    render(<ConfirmationModal {...baseProps} />);
+    expect(screen.getByText(baseProps.title)).toBeInTheDocument();
+    expect(screen.getByText(baseProps.message)).toBeInTheDocument();
   });
 
-  test('does not render cancel button when showCancel is false', () => {
-    render(
-      <ConfirmationModal
-        title="Test"
-        message="Mensaje"
-        showCancel={false}
-        onConfirm={() => {}}
-        onCancel={() => {}}
-      />
-    );
-
-    const cancelButton = screen.queryByText('Cancelar');
-    expect(cancelButton).not.toBeInTheDocument();
+  test("muestra botones con los textos personalizados", () => {
+    render(<ConfirmationModal {...baseProps} />);
+    expect(screen.getByText("Sí, eliminar")).toBeInTheDocument();
+    expect(screen.getByText("Cancelar")).toBeInTheDocument();
   });
 
-  test('calls onConfirm when confirm button is clicked', async () => {
-    const handleConfirm = jest.fn();
-
-    render(
-      <ConfirmationModal
-        title="Test"
-        message="Mensaje"
-        onConfirm={handleConfirm}
-        onCancel={() => {}}
-      />
-    );
-
-    const confirmButton = screen.getByText('Confirmar');
-    await userEvent.click(confirmButton);
-
-    expect(handleConfirm).toHaveBeenCalledTimes(1);
+  test("llama a onConfirm al hacer clic en Confirmar", async () => {
+    render(<ConfirmationModal {...baseProps} />);
+    await userEvent.click(screen.getByText("Sí, eliminar"));
+    expect(baseProps.onConfirm).toHaveBeenCalledTimes(1);
   });
 
-  test('calls onCancel when cancel button is clicked', async () => {
-    const handleCancel = jest.fn();
-
-    render(
-      <ConfirmationModal
-        title="Test"
-        message="Mensaje"
-        onConfirm={() => {}}
-        onCancel={handleCancel}
-      />
-    );
-
-    const cancelButton = screen.getByText('Cancelar');
-    await userEvent.click(cancelButton);
-
-    expect(handleCancel).toHaveBeenCalledTimes(1);
+  test("llama a onCancel al hacer clic en Cancelar", async () => {
+    render(<ConfirmationModal {...baseProps} />);
+    await userEvent.click(screen.getByText("Cancelar"));
+    expect(baseProps.onCancel).toHaveBeenCalledTimes(1);
   });
 
-  test('confirm button has red background when isDestructive is true', () => {
-    render(
-      <ConfirmationModal
-        title="Test"
-        message="Mensaje"
-        isDestructive={true}
-        onConfirm={() => {}}
-        onCancel={() => {}}
-      />
-    );
-
-    const confirmButton = screen.getByText('Confirmar');
-    expect(confirmButton).toHaveClass('bg-red-600');
+  test("no renderiza el botón Cancelar si showCancel es false", () => {
+    render(<ConfirmationModal {...baseProps} showCancel={false} />);
+    expect(screen.queryByText("Cancelar")).not.toBeInTheDocument();
   });
 
-  test('confirm button has green background when isDestructive is false', () => {
-    render(
-      <ConfirmationModal
-        title="Test"
-        message="Mensaje"
-        isDestructive={false}
-        onConfirm={() => {}}
-        onCancel={() => {}}
-      />
-    );
+  test("botón Confirmar tiene clase destructiva si isDestructive es true", () => {
+    render(<ConfirmationModal {...baseProps} isDestructive={true} />);
+    const confirmBtn = screen.getByText("Sí, eliminar");
+    expect(confirmBtn).toHaveClass("bg-red-600");
+  });
 
-    const confirmButton = screen.getByText('Confirmar');
-    expect(confirmButton).toHaveClass('bg-green-600');
+  test("botón Confirmar tiene clase segura si isDestructive es false", () => {
+    render(<ConfirmationModal {...baseProps} isDestructive={false} />);
+    const confirmBtn = screen.getByText("Sí, eliminar");
+    expect(confirmBtn).toHaveClass("bg-green-600");
   });
 });

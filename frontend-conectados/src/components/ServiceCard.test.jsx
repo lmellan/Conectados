@@ -1,78 +1,80 @@
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import ServiceCard from './ServiceCard';
+import React from "react";
+import { render, screen } from "@testing-library/react";
+import { act } from "react";
+import { MemoryRouter } from "react-router-dom";
+import ServiceCard from "./ServiceCard";
 
-describe('ServiceCard', () => {
+describe("ServiceCard", () => {
   const serviceMock = {
-    id: 123,
-    title: 'Limpieza de Casa',
-    category: 'Limpieza',
-    image: 'https://example.com/image.jpg',
-    providerName: 'Juan Pérez',
-    providerImage: 'https://example.com/provider.jpg',
-    description: 'Servicio de limpieza general para hogares y oficinas.',
+    id: 42,
+    title: "Reparación de lavadoras",
+    category: "Electrodomésticos",
+    image: "/lavadora.jpg",
+    providerName: "Juan Pérez",
+    providerImage: "/juan.jpg",
+    description: "Reparo lavadoras de todo tipo, con garantía.",
     price: 15000,
   };
 
-  test('renders service details', () => {
+  test("renderiza el título, categoría y nombre del proveedor", () => {
+    act(() => {
+      render(
+        <MemoryRouter>
+          <ServiceCard service={serviceMock} />
+        </MemoryRouter>
+      );
+    });
+
+    expect(screen.getByText("Reparación de lavadoras")).toBeInTheDocument();
+    expect(screen.getByText("Electrodomésticos")).toBeInTheDocument();
+    expect(screen.getByText("Juan Pérez")).toBeInTheDocument();
+  });
+
+  test("muestra la descripción y precio correctamente", () => {
     render(
       <MemoryRouter>
         <ServiceCard service={serviceMock} />
       </MemoryRouter>
     );
 
-    // Verifica título
-    expect(screen.getByText(serviceMock.title)).toBeInTheDocument();
-    // Verifica categoría
-    expect(screen.getByText(serviceMock.category)).toBeInTheDocument();
-    // Verifica proveedor
-    expect(screen.getByText(serviceMock.providerName)).toBeInTheDocument();
-    // Verifica descripción
-    expect(screen.getByText(serviceMock.description)).toBeInTheDocument();
-    // Verifica precio
-    expect(screen.getByText(`$${serviceMock.price}/hora`)).toBeInTheDocument();
+    expect(screen.getByText(/Reparo lavadoras/i)).toBeInTheDocument();
+    expect(screen.getByText("$15000/hora")).toBeInTheDocument();
   });
 
-  test('renders service and provider images', () => {
+  test("el botón 'Ver detalles' lleva al enlace correcto", () => {
     render(
       <MemoryRouter>
         <ServiceCard service={serviceMock} />
       </MemoryRouter>
     );
 
-    // Imagen principal
-    const serviceImage = screen.getByAltText(serviceMock.title);
-    expect(serviceImage).toHaveAttribute('src', serviceMock.image);
-
-    // Imagen proveedor
-    const providerImage = screen.getByAltText(serviceMock.providerName);
-    expect(providerImage).toHaveAttribute('src', serviceMock.providerImage);
+    const link = screen.getByRole("link", { name: /ver detalles/i });
+    expect(link).toHaveAttribute("href", "/service/42");
   });
 
-  test('renders placeholder images if no image provided', () => {
-    const serviceWithoutImages = { ...serviceMock, image: null, providerImage: null };
-
-    render(
-      <MemoryRouter>
-        <ServiceCard service={serviceWithoutImages} />
-      </MemoryRouter>
-    );
-
-    const serviceImage = screen.getByAltText(serviceMock.title);
-    expect(serviceImage).toHaveAttribute('src', '/placeholder.svg');
-
-    const providerImage = screen.getByAltText(serviceMock.providerName);
-    expect(providerImage).toHaveAttribute('src', '/placeholder.svg');
-  });
-
-  test('renders "Ver detalles" link with correct href', () => {
-    render(
+  test("usa imágenes proporcionadas si están disponibles", () => {
+    const { container } = render(
       <MemoryRouter>
         <ServiceCard service={serviceMock} />
       </MemoryRouter>
     );
 
-    const detailsLink = screen.getByRole('link', { name: /ver detalles/i });
-    expect(detailsLink).toHaveAttribute('href', `/service/${serviceMock.id}`);
+    const [mainImg, avatarImg] = container.querySelectorAll("img");
+    expect(mainImg).toHaveAttribute("src", "/lavadora.jpg");
+    expect(avatarImg).toHaveAttribute("src", "/juan.jpg");
+  });
+
+  test("usa imágenes por defecto si no hay imágenes disponibles", () => {
+    const serviceSinImagenes = { ...serviceMock, image: null, providerImage: null };
+
+    const { container } = render(
+      <MemoryRouter>
+        <ServiceCard service={serviceSinImagenes} />
+      </MemoryRouter>
+    );
+
+    const [mainImg, avatarImg] = container.querySelectorAll("img");
+    expect(mainImg).toHaveAttribute("src", "/placeholder.svg");
+    expect(avatarImg).toHaveAttribute("src", "/placeholder.svg");
   });
 });
