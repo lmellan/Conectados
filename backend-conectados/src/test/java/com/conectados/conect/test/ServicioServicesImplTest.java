@@ -125,7 +125,7 @@ class ServicioServicesImplTest {
 
     // 5 obtener todos los servicios
     @Test
-    void obtenerTodosLosServicios_deberiaListarServicios() {
+    void obtenerTodosLosServicios_peticion_deberiaListarServicios() {
         Servicio servicio = new Servicio();
         when(servicioRepository.findAll()).thenReturn(List.of(servicio));
 
@@ -146,7 +146,7 @@ class ServicioServicesImplTest {
 
     // 7 actualizar servicio valido 
     @Test
-    void actualizarServicio_deberiaActualizarCampos() {
+    void actualizarServicio_peticion_deberiaActualizarCampos() {
         Servicio servicioExistente = new Servicio();
         servicioExistente.setNombre("Viejo");
 
@@ -165,7 +165,7 @@ class ServicioServicesImplTest {
 
     // 8 obtener servicios por prestador ID 
     @Test
-    void obtenerServiciosPorPrestadorId_deberiaListarServicios() {
+    void obtenerServiciosPorPrestadorId_valido_deberiaListarServicios() {
         when(servicioRepository.findByPrestador_Id(1L)).thenReturn(List.of(new Servicio()));
 
         List<Servicio> servicios = servicioServices.obtenerServiciosPorPrestadorId(1L);
@@ -176,7 +176,7 @@ class ServicioServicesImplTest {
 
         // 9 eliminar servicio
     @Test
-    void eliminarServicio_deberiaEliminarServicio() {
+    void eliminarServicio_valido_deberiaEliminarServicio() {
         servicioServices.eliminarServicio(1L);
 
         verify(servicioRepository, times(1)).deleteById(1L);
