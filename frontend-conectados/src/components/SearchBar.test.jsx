@@ -1,8 +1,7 @@
-import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import SearchBar from "./SearchBar";
-import { act } from "react";
+import { React, act } from "react";
 
 // Mock de useNavigate
 const mockNavigate = jest.fn();

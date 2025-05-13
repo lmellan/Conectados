@@ -1,5 +1,5 @@
-import React from "react";
-import { render, act, screen } from "@testing-library/react";
+import { React, act } from 'react'; 
+import { render, screen } from "@testing-library/react";
 import { AuthProvider, AuthContext } from "./AuthContext";
 
 // Mock localStorage

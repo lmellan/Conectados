@@ -1,7 +1,6 @@
-import React from "react";
 import { render, screen } from "@testing-library/react";
 import AvailabilityCalendar from "./AvailabilityCalendar";
-import { act } from "react";
+import { React, act } from "react";
 
 describe("AvailabilityCalendar", () => {
   const availabilityExample = [0, 2, 4]; // Lunes, Miércoles, Viernes
@@ -15,7 +14,9 @@ describe("AvailabilityCalendar", () => {
   });
 
   it("renderiza todos los días de la semana", () => {
-    render(<AvailabilityCalendar availability={availabilityExample} />);
+    act(() => {
+      render(<AvailabilityCalendar availability={availabilityExample} />);
+    });
     const dias = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
     dias.forEach((dia) => {
       expect(screen.getByText(dia)).toBeInTheDocument();
@@ -23,19 +24,25 @@ describe("AvailabilityCalendar", () => {
   });
 
   it("marca correctamente los días disponibles como 'Sí'", () => {
-    render(<AvailabilityCalendar availability={availabilityExample} />);
+    act(() => {
+      render(<AvailabilityCalendar availability={availabilityExample} />);
+    });
     const siElements = screen.getAllByText("Sí");
     expect(siElements).toHaveLength(3); // Lun, Mié, Vie
   });
 
   it("marca correctamente los días no disponibles como 'No'", () => {
-    render(<AvailabilityCalendar availability={availabilityExample} />);
+    act(() => {
+      render(<AvailabilityCalendar availability={availabilityExample} />);
+    });
     const noElements = screen.getAllByText("No");
     expect(noElements).toHaveLength(4); // Mar, Jue, Sáb, Dom
   });
 
   it("muestra la nota de horario habitual", () => {
-    render(<AvailabilityCalendar availability={availabilityExample} />);
+    act(() => {
+      render(<AvailabilityCalendar availability={availabilityExample} />);
+    });
     expect(
       screen.getByText("* Horario habitual: 9:00 AM - 6:00 PM")
     ).toBeInTheDocument();
