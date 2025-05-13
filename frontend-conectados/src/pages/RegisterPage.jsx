@@ -43,6 +43,12 @@ const RegisterPage = () => {
       return;
     }
 
+    if (!termsAccepted) {
+      // Establece el error si los términos no han sido aceptados
+      setError("Debes aceptar los términos y condiciones");
+      return; // Detiene la ejecución de la función si no se aceptan los términos
+  }
+
     const newUser = {
       id: users.length + 1,
       name: formData.name,
