@@ -18,10 +18,6 @@ const ServiceDetailPage = () => {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [errors, setErrors] = useState({});
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-
-  const [errors, setErrors] = useState({});
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
 

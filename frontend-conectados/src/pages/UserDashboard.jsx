@@ -55,7 +55,7 @@ const UserDashboard = () => {
     if (user && user.rol === "BUSCADOR") {
       fetchBookings();
     }
-  };
+  });
 
   useEffect(() => {
     loadUserBookings();
