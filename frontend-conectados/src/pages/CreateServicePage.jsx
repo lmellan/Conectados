@@ -123,7 +123,7 @@ const CreateServicePage = () => {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <form role="form" onSubmit={handleSubmit} className="p-6 space-y-6">
             <div>
               <label
                 htmlFor="title"

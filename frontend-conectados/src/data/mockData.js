@@ -117,6 +117,35 @@ export const services = [
     rating: 4.8,
     reviews: 21,
   },
+  {
+    id: 99,
+    title: "Limpieza profunda",
+    category: "Limpieza",
+    description:
+      "Servicio de limpieza profunda para hogares y oficinas. Incluye desinfección, lavado de pisos y limpieza de superficies difíciles.",
+    price: 25,
+    providerId: 8,
+    providerName: "María González",
+    providerImage: "https://randomuser.me/api/portraits/women/8.jpg",
+    image:
+      "https://images.unsplash.com/photo-1581579185169-641f92f3f41b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+    rating: 4.9,
+    reviews: 42,
+  },
+  {
+    id: 100,
+    title: "Servicio de Plomería",
+    category: "Plomería",
+    description: "Reparación de cañerías y filtraciones en el hogar.",
+    price: 35,
+    providerId: 9,
+    providerName: "Carlos Tapia",
+    providerImage: "https://randomuser.me/api/portraits/men/9.jpg",
+    image:
+      "https://images.unsplash.com/photo-1597262975002-c5c3b14bbd62?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+    rating: 4.6,
+    reviews: 30,
+  }
 ];
 
 // Testimonios
