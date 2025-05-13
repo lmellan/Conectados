@@ -8,75 +8,81 @@ import ConfirmationModal from "../components/ConfirmationModal";
 
 const UserDashboard = () => {
   const { user } = useContext(AuthContext);
-  const [activeTab, setActiveTab] = useState("upcoming");
+  const [activeTab, setActiveTab] = useState("Pendiente");
   const [userBookings, setUserBookings] = useState({
-    upcoming: [],
-    completed: [],
-    canceled: [],
+    Pendiente: [],
+    Completada: [],
   });
-
-  // Estados para modales y edición
-  const [showCancelModal, setShowCancelModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState(null);
-  const [editForm, setEditForm] = useState({
-    date: "",
-    time: "",
-  });
-  const [formErrors, setFormErrors] = useState({});
-
-  // Cargar reservas del usuario
-  const loadUserBookings = () => {
-    if (user) {
-      // Filtrar reservas del usuario actual
-      const userFilteredBookings = bookings.filter(
-        (booking) => booking.userId === user.id
-      );
-
-      // Separar en próximas, completadas y canceladas
-      const upcoming = userFilteredBookings.filter(
-        (booking) => booking.status === "upcoming"
-      );
-      const completed = userFilteredBookings.filter(
-        (booking) => booking.status === "completed"
-      );
-      const canceled = userFilteredBookings.filter(
-        (booking) => booking.status === "canceled"
-      );
-
-      // Agregar información del servicio a cada reserva
-      const upcomingWithDetails = upcoming.map((booking) => {
-        const serviceDetails = services.find(
-          (service) => service.id === booking.serviceId
+  
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const response = await fetch(`http://localhost:8080/api/citas/buscador/${user.id}`);
+        if (!response.ok) throw new Error("Error al obtener citas");
+  
+        const citas = await response.json();
+  
+        const citasConDetalles = await Promise.all(
+          citas.map(async (cita) => {
+            const resServicio = await fetch(`http://localhost:8080/api/servicios/${cita.idServicio}`);
+            const servicio = await resServicio.json();
+        
+            // Verificar si el usuario ya dejó una reseña
+            const yaReseno = servicio.resenas?.some(resena => resena.buscador?.id === user.id);
+        
+            return {
+              ...cita,
+              serviceDetails: {
+                title: servicio.nombre,
+                prestador: servicio.prestador,
+                image: servicio.foto || "/placeholder.svg",
+              },
+              reviewed: yaReseno,
+            };
+          })
         );
-        return { ...booking, serviceDetails };
-      });
-
-      const completedWithDetails = completed.map((booking) => {
-        const serviceDetails = services.find(
-          (service) => service.id === booking.serviceId
-        );
-        return { ...booking, serviceDetails };
-      });
-
-      const canceledWithDetails = canceled.map((booking) => {
-        const serviceDetails = services.find(
-          (service) => service.id === booking.serviceId
-        );
-        return { ...booking, serviceDetails };
-      });
-
-      setUserBookings({
-        upcoming: upcomingWithDetails,
-        completed: completedWithDetails,
-        canceled: canceledWithDetails,
-      });
+        
+  
+        const upcoming = citasConDetalles.filter(cita => cita.estado === "Pendiente");
+        const completed = citasConDetalles.filter(cita => cita.estado === "Completada");
+        
+        setUserBookings({ Pendiente: upcoming, Completada: completed });
+      } catch (error) {
+        console.error("Error al cargar citas:", error);
+      }
+    };
+  
+    if (user && user.rol === "BUSCADOR") {
+      fetchBookings();
     }
   };
 
   useEffect(() => {
     loadUserBookings();
   }, [user]);
+ 
+  const handleCancelarCita = async (idCita) => {
+    const confirmacion = window.confirm("¿Estás seguro de que deseas cancelar esta cita?");
+    if (!confirmacion) return;
+  
+    try {
+      const response = await fetch(`http://localhost:8080/api/citas/eliminar/${idCita}`, {
+        method: "DELETE",
+      });
+  
+      if (!response.ok) throw new Error("Error al cancelar la cita");
+  
+      // Quitar la cita del estado actual sin recargar todo
+      setUserBookings(prev => ({
+        ...prev,
+        Pendiente: prev.Pendiente.filter(cita => cita.id !== idCita),
+      }));
+    } catch (error) {
+      console.error("Error al cancelar la cita:", error);
+      alert("No se pudo cancelar la cita. Intenta nuevamente.");
+    }
+  };
+  
 
   // Funciones para cancelar reserva
   const handleCancelBooking = (booking) => {
@@ -169,17 +175,19 @@ const UserDashboard = () => {
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="p-6 border-b">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-              <div className="flex items-center mb-4 md:mb-0">
-                <img
-                  src={user.image || "/placeholder.svg"}
-                  alt={user.name}
-                  className="w-16 h-16 rounded-full mr-4"
-                />
-                <div>
-                  <h1 className="text-2xl font-bold">{user.name}</h1>
-                  <p className="text-gray-600">{user.email}</p>
-                </div>
+
+            <div className="flex items-center mb-4 md:mb-0">
+              <img
+                src={user.imagen || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nombre)}&background=0D8ABC&color=fff`}
+                alt={user.nombre}
+                className="w-16 h-16 rounded-full mr-4"
+              />
+              <div>
+                <h1 className="text-2xl font-bold">{user.nombre}</h1>
+                <p className="text-gray-600">{user.correo}</p>
               </div>
+            </div>
+
               <Link to="/search" className="btn-primary">
                 Buscar Servicios
               </Link>
@@ -189,46 +197,37 @@ const UserDashboard = () => {
           <div className="p-6">
             <div className="border-b mb-6">
               <nav className="flex space-x-8">
-                <button
-                  onClick={() => setActiveTab("upcoming")}
-                  className={`pb-4 px-1 ${
-                    activeTab === "upcoming"
-                      ? "border-b-2 border-green-500 text-green-600 font-medium"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  Próximas Citas
-                </button>
-                <button
-                  onClick={() => setActiveTab("completed")}
-                  className={`pb-4 px-1 ${
-                    activeTab === "completed"
-                      ? "border-b-2 border-green-500 text-green-600 font-medium"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  Historial
-                </button>
-                <button
-                  onClick={() => setActiveTab("canceled")}
-                  className={`pb-4 px-1 ${
-                    activeTab === "canceled"
-                      ? "border-b-2 border-green-500 text-green-600 font-medium"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  Canceladas
-                </button>
+              <button
+                onClick={() => setActiveTab("Pendiente")}
+                className={`pb-4 px-1 ${
+                  activeTab === "Pendiente"
+                    ? "border-b-2 border-green-500 text-green-600 font-medium"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Próximas Citas
+              </button>
+              <button
+                onClick={() => setActiveTab("Completada")}
+                className={`pb-4 px-1 ${
+                  activeTab === "Completada"
+                    ? "border-b-2 border-green-500 text-green-600 font-medium"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                Historial
+              </button>
               </nav>
             </div>
 
-            {activeTab === "upcoming" && (
+            {activeTab === "Pendiente" && (
               <div>
                 <h2 className="text-xl font-semibold mb-4">Próximas Citas</h2>
 
-                {userBookings.upcoming.length > 0 ? (
+                {userBookings.Pendiente.length > 0 ? (
+
                   <div className="space-y-4">
-                    {userBookings.upcoming.map((booking) => (
+                    {userBookings.Pendiente.map((booking) => (
                       <div
                         key={booking.id}
                         className="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between"
@@ -239,15 +238,16 @@ const UserDashboard = () => {
                               booking.serviceDetails?.image ||
                               "/placeholder.svg"
                             }
-                            alt={booking.serviceDetails?.title}
+                            alt={booking.serviceDetails?.title|| "Servicio"}
                             className="w-16 h-16 object-cover rounded-md mr-4"
                           />
                           <div>
                             <h3 className="font-semibold">
-                              {booking.serviceDetails?.title}
+                              {booking.serviceDetails?.title || "Servicio"}
                             </h3>
                             <p className="text-sm text-gray-600">
-                              Proveedor: {booking.serviceDetails?.providerName}
+                              Proveedor: {booking.serviceDetails?.prestador?.nombre || "Prestador desconocido"}
+
                             </p>
                             <div className="flex items-center mt-1">
                               <svg
@@ -264,7 +264,7 @@ const UserDashboard = () => {
                                 />
                               </svg>
                               <span className="text-sm text-gray-600">
-                                {booking.date}
+                                {booking.fecha}
                               </span>
                               <span className="mx-2 text-gray-400">|</span>
                               <svg
@@ -281,15 +281,15 @@ const UserDashboard = () => {
                                 />
                               </svg>
                               <span className="text-sm text-gray-600">
-                                {booking.time}
+                              {booking.hora}
                               </span>
                             </div>
                           </div>
                         </div>
                         <div className="flex space-x-2">
-                          <button
+                        <button
+                            onClick={() => handleCancelarCita(booking.id)}
                             className="btn-secondary text-sm"
-                            onClick={() => handleCancelBooking(booking)}
                           >
                             Cancelar
                           </button>
@@ -300,6 +300,7 @@ const UserDashboard = () => {
                             Reagendar
                           </button>
                         </div>
+
                       </div>
                     ))}
                   </div>
@@ -319,15 +320,15 @@ const UserDashboard = () => {
               </div>
             )}
 
-            {activeTab === "completed" && (
+            {activeTab === "Completada" && (
               <div>
                 <h2 className="text-xl font-semibold mb-4">
                   Historial de Servicios
                 </h2>
 
-                {userBookings.completed.length > 0 ? (
+                {userBookings.Completada.length > 0 ? (
                   <div className="space-y-4">
-                    {userBookings.completed.map((booking) => (
+                    {userBookings.Completada.map((booking) => (
                       <div
                         key={booking.id}
                         className="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between"
@@ -338,15 +339,16 @@ const UserDashboard = () => {
                               booking.serviceDetails?.image ||
                               "/placeholder.svg"
                             }
-                            alt={booking.serviceDetails?.title}
+
+                            alt={booking.serviceDetails?.title || "Servicio"}
                             className="w-16 h-16 object-cover rounded-md mr-4"
                           />
                           <div>
                             <h3 className="font-semibold">
-                              {booking.serviceDetails?.title}
+                              {booking.serviceDetails?.title || "Servicio"}
                             </h3>
                             <p className="text-sm text-gray-600">
-                              Proveedor: {booking.serviceDetails?.providerName}
+                              Proveedor: {booking.serviceDetails?.prestador?.nombre || "Prestador desconocido"}
                             </p>
                             <div className="flex items-center mt-1">
                               <svg
@@ -363,7 +365,7 @@ const UserDashboard = () => {
                                 />
                               </svg>
                               <span className="text-sm text-gray-600">
-                                {booking.date}
+                                {booking.fecha}
                               </span>
                               <span className="mx-2 text-gray-400">|</span>
                               <span className="text-sm text-green-600 font-medium">
@@ -373,15 +375,11 @@ const UserDashboard = () => {
                           </div>
                         </div>
                         <div>
-                          {booking.reviewed ? (
-                            <span className="text-sm text-gray-500">
-                              Reseña enviada
-                            </span>
-                          ) : (
-                            <button className="btn-primary text-sm">
-                              Dejar Reseña
-                            </button>
-                          )}
+                        {booking.reviewed ? (
+                          <Link to={`/service/${booking.idServicio}`} className="btn-secondary text-sm">Ver Servicio</Link>
+                        ) : (
+                          <Link to={`/crear-resena/${booking.id}`} className="btn-primary text-sm">Dejar Reseña</Link>
+                        )}
                         </div>
                       </div>
                     ))}

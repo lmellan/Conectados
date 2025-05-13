@@ -14,6 +14,7 @@ import { AuthProvider } from "./context/AuthContext";
 import "./App.css";
 import CreateServicePage from "./pages/CreateServicePage";
 import EditServicePage from "./pages/EditServicePage";
+import CreateReviewPage from "./pages/CreateReviewPage";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/register-pro" element={<RegisterProPage />} />
+              <Route path="/crear-resena/:idCita" element={<CreateReviewPage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/service/:id" element={<ServiceDetailPage />} />
               <Route path="/user-dashboard" element={<UserDashboard />} />

@@ -1,10 +1,9 @@
 "use client";
 
-import { useContext, useState, useEffect } from "react";
-import { Link, Navigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
-import { bookings, services } from "../data/mockData";
-import ConfirmationModal from "../components/ConfirmationModal";
+
+import { useContext, useState, useEffect } from "react"
+import { Link, Navigate } from "react-router-dom"
+import { AuthContext } from "../context/AuthContext"
 
 const ProDashboard = () => {
   const { user } = useContext(AuthContext);
@@ -18,50 +17,60 @@ const ProDashboard = () => {
   // Estado para el modal de confirmación de eliminación
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState(null);
-
-  // Cargar servicios y reservas del profesional
-  const loadProData = () => {
-    if (user && user.isProfessional) {
-      // Filtrar servicios del profesional
-      const filteredServices = services.filter(
-        (service) => service.providerId === user.id
-      );
-      setProServices(filteredServices);
-
-      // Filtrar reservas del profesional
-      const proFilteredBookings = bookings.filter(
-        (booking) => booking.providerId === user.id
-      );
-
-      // Separar en próximas y completadas
-      const upcoming = proFilteredBookings.filter(
-        (booking) => booking.status === "upcoming"
-      );
-      const completed = proFilteredBookings.filter(
-        (booking) => booking.status === "completed"
-      );
-
-      // Agregar información del servicio a cada reserva
-      const upcomingWithDetails = upcoming.map((booking) => {
-        const serviceDetails = services.find(
-          (service) => service.id === booking.serviceId
+  const loadProData = async () => {
+    if (user && user.rol === "PRESTADOR") {
+      try {
+        // Obtener servicios del prestador (solo para la pestaña de servicios)
+        const serviciosResponse = await fetch(`http://localhost:8080/api/servicios/prestador/${user.id}`);
+        if (!serviciosResponse.ok) throw new Error("Error al obtener servicios");
+        const servicios = await serviciosResponse.json();
+        setProServices(servicios);
+  
+        // Obtener citas reales del backend
+        const citasResponse = await fetch(`http://localhost:8080/api/citas/prestador/${user.id}`);
+        if (!citasResponse.ok) throw new Error("Error al obtener citas");
+        const citas = await citasResponse.json();
+  
+        // Obtener detalles de servicio y cliente 
+        const citasConDetalles = await Promise.all(
+          citas.map(async (cita) => {
+            // Detalles del servicio
+            const resServicio = await fetch(`http://localhost:8080/api/servicios/${cita.idServicio}`);
+            const servicio = await resServicio.json();
+  
+            // Detalles del cliente
+            const clienteRes = await fetch(`http://localhost:8080/api/usuarios/id/${cita.idBuscador}`);
+            const cliente = await clienteRes.json();
+  
+            return {
+              ...cita,
+              serviceDetails: {
+                title: servicio.nombre,
+                image: servicio.foto || "/placeholder.svg"
+              },
+              cliente: cliente,
+            };
+          })
         );
-        return { ...booking, serviceDetails };
-      });
-
-      const completedWithDetails = completed.map((booking) => {
-        const serviceDetails = services.find(
-          (service) => service.id === booking.serviceId
-        );
-        return { ...booking, serviceDetails };
-      });
-
-      setProBookings({
-        upcoming: upcomingWithDetails,
-        completed: completedWithDetails,
-      });
+  
+        // Clasificar por estado
+        const pendientes = citasConDetalles.filter(c => c.estado === "Pendiente");
+        const completadas = citasConDetalles.filter(c => c.estado === "Completada");
+  
+        // Actualizar estado
+        setProBookings({
+          upcoming: pendientes,
+          completed: completadas,
+        });
+  
+      } catch (error) {
+        console.error("Error al cargar datos del prestador:", error);
+      }
     }
   };
+  
+  
+  
 
   useEffect(() => {
     loadProData();
@@ -74,35 +83,34 @@ const ProDashboard = () => {
   };
 
   // Función para confirmar la eliminación del servicio
-  const confirmDeleteService = () => {
+  const confirmDeleteService = async () => {
     if (serviceToDelete) {
-      // Encontrar el índice del servicio en el array original
-      const serviceIndex = services.findIndex(
-        (s) => s.id === serviceToDelete.id
-      );
-
-      if (serviceIndex !== -1) {
-        // Eliminar el servicio del array
-        services.splice(serviceIndex, 1);
-
-        // Actualizar el estado local
-        loadProData();
-        setShowDeleteModal(false);
+      try {
+        await fetch(`http://localhost:8080/api/servicios/eliminar/${serviceToDelete.id}`, {
+          method: "DELETE",
+        });
         setServiceToDelete(null);
+        setShowDeleteModal(false);
+        loadProData(); 
+      } catch (error) {
+        console.error("Error al eliminar el servicio:", error);
       }
     }
   };
 
-  // Redirigir si no hay usuario autenticado o no es un profesional
+
   if (!user) {
     return <Navigate to="/login" />;
   }
 
-  if (!user.isProfessional) {
+
+  if (user.rol !== "PRESTADOR") {
     return <Navigate to="/user-dashboard" />;
   }
+  
 
   return (
+    <>
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -110,13 +118,16 @@ const ProDashboard = () => {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
               <div className="flex items-center mb-4 md:mb-0">
                 <img
-                  src={user.image || "/placeholder.svg"}
-                  alt={user.name}
+
+                  src={user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nombre)}&background=0D8ABC&color=fff`}
+                  alt={user.nombre}
                   className="w-16 h-16 rounded-full mr-4"
                 />
                 <div>
-                  <h1 className="text-2xl font-bold">{user.name}</h1>
-                  <p className="text-gray-600">{user.profession}</p>
+                  <h1 className="text-2xl font-bold">{user.nombre}</h1>
+                  <p className="text-gray-600">{user.correo}</p>
+                  <p className="text-gray-600">{Array.isArray(user.categoria) ? user.categoria.join(", ") : "Sin categoría"}</p>
+
                 </div>
               </div>
               <Link to="/create-service" className="btn-primary">
@@ -168,48 +179,50 @@ const ProDashboard = () => {
                 {proServices.length > 0 ? (
                   <div className="space-y-4">
                     {proServices.map((service) => (
-                      <div
-                        key={service.id}
-                        className="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between"
-                      >
-                        <div className="flex items-start mb-4 md:mb-0">
-                          <img
-                            src={service.image || "/placeholder.svg"}
-                            alt={service.title}
-                            className="w-16 h-16 object-cover rounded-md mr-4"
-                          />
-                          <div>
-                            <h3 className="font-semibold">{service.title}</h3>
-                            <p className="text-sm text-gray-600">
-                              Categoría: {service.category}
-                            </p>
-                            <p className="text-sm font-medium text-green-600">
-                              ${service.price}/hora
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex space-x-2">
-                          <button
-                            className="px-3 py-1 border border-red-300 text-red-600 rounded-md text-sm hover:bg-red-50"
-                            onClick={() => handleDeleteService(service)}
-                          >
-                            Eliminar
-                          </button>
-                          <Link
-                            to={`/edit-service/${service.id}`}
-                            className="btn-secondary text-sm"
-                          >
-                            Editar
-                          </Link>
-                          <Link
-                            to={`/service/${service.id}`}
-                            className="btn-primary text-sm"
-                          >
-                            Ver
-                          </Link>
+
+                    <div
+                      key={service.id}
+                      className="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between"
+                    >
+                      <div className="flex items-start mb-4 md:mb-0">
+                      <img
+                        src={service.foto || "/placeholder.svg"}
+                        alt={service.nombre}
+                        className="w-16 h-16 object-cover rounded-md mr-4"
+                      />
+                        <div>
+                          <h3 className="font-semibold">{service.nombre}</h3>
+                          <p className="text-sm text-gray-600">
+                            Categoría: {service.categoria}
+                          </p>
+                          <p className="text-sm font-medium text-green-600">
+                            ${service.precio}/hora
+                          </p>
                         </div>
                       </div>
-                    ))}
+                      <div className="flex space-x-2">
+                        <button
+                          className="px-3 py-1 border border-red-300 text-red-600 rounded-md text-sm hover:bg-red-50"
+                          onClick={() => handleDeleteService(service)}
+                        >
+                          Eliminar
+                        </button>
+                        <Link
+                          to={`/edit-service/${service.id}`}
+                          className="btn-secondary text-sm"
+                        >
+                          Editar
+                        </Link>
+                        <Link
+                          to={`/service/${service.id}`}
+                          className="btn-primary text-sm"
+                        >
+                          Ver
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+
                   </div>
                 ) : (
                   <div className="text-center py-8 bg-gray-50 rounded-lg">
@@ -250,12 +263,16 @@ const ProDashboard = () => {
                             className="w-16 h-16 object-cover rounded-md mr-4"
                           />
                           <div>
-                            <h3 className="font-semibold">
-                              {booking.serviceDetails?.title}
-                            </h3>
-                            <p className="text-sm text-gray-600">
-                              Cliente: Usuario #{booking.userId}
-                            </p>
+
+                            <h3 className="font-semibold">{booking.serviceDetails.title}</h3>
+                            <div className="flex items-center space-x-2">
+                              <img
+                                src={booking.cliente?.imagen || `https://ui-avatars.com/api/?name=${encodeURIComponent(booking.cliente?.nombre || "Cliente")}&background=0D8ABC&color=fff`}
+                                alt={booking.cliente?.nombre || "Cliente"}
+                                className="w-8 h-8 rounded-full"
+                              />
+                              <p className="text-sm text-gray-600">Cliente: {booking.cliente?.nombre}</p>
+                            </div>
                             <div className="flex items-center mt-1">
                               <svg
                                 className="w-4 h-4 text-gray-500 mr-1"
@@ -270,9 +287,8 @@ const ProDashboard = () => {
                                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                                 />
                               </svg>
-                              <span className="text-sm text-gray-600">
-                                {booking.date}
-                              </span>
+
+                              <span className="text-sm text-gray-600">{booking.fecha}</span>
                               <span className="mx-2 text-gray-400">|</span>
                               <svg
                                 className="w-4 h-4 text-gray-500 mr-1"
@@ -287,9 +303,8 @@ const ProDashboard = () => {
                                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                                 />
                               </svg>
-                              <span className="text-sm text-gray-600">
-                                {booking.time}
-                              </span>
+
+                              <span className="text-sm text-gray-600">{booking.hora}</span>
                             </div>
                           </div>
                         </div>
@@ -337,12 +352,23 @@ const ProDashboard = () => {
                             className="w-16 h-16 object-cover rounded-md mr-4"
                           />
                           <div>
-                            <h3 className="font-semibold">
-                              {booking.serviceDetails?.title}
-                            </h3>
-                            <p className="text-sm text-gray-600">
-                              Cliente: Usuario #{booking.userId}
-                            </p>
+
+                            <h3 className="font-semibold">{booking.serviceDetails.title}</h3>
+                            <div className="flex items-center space-x-2 mt-1">
+                              <img
+                                src={
+                                  booking.cliente?.imagen ||
+                                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                    booking.cliente?.nombre || "Cliente"
+                                  )}&background=0D8ABC&color=fff`
+                                }
+                                alt={booking.cliente?.nombre || "Cliente"}
+                                className="w-8 h-8 rounded-full"
+                              />
+                              <p className="text-sm text-gray-600">
+                                Cliente: {booking.cliente?.nombre}
+                              </p>
+                            </div>
                             <div className="flex items-center mt-1">
                               <svg
                                 className="w-4 h-4 text-gray-500 mr-1"
@@ -357,9 +383,8 @@ const ProDashboard = () => {
                                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                                 />
                               </svg>
-                              <span className="text-sm text-gray-600">
-                                {booking.date}
-                              </span>
+
+                              <span className="text-sm text-gray-600">{booking.fecha}</span>
                               <span className="mx-2 text-gray-400">|</span>
                               <span className="text-sm text-green-600 font-medium">
                                 Completado
@@ -408,6 +433,7 @@ const ProDashboard = () => {
                 )}
               </div>
             )}
+
           </div>
         </div>
       </div>
@@ -425,7 +451,35 @@ const ProDashboard = () => {
         />
       )}
     </div>
-  );
-};
+
+
+    {/* Modal de confirmación de eliminación */}
+    {showDeleteModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+        <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+          <h2 className="text-lg font-semibold mb-4">¿Eliminar servicio?</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Esta acción no se puede deshacer. ¿Estás seguro que deseas eliminar el servicio <strong>{serviceToDelete?.nombre}</strong>?
+          </p>
+          <div className="flex justify-end space-x-2">
+            <button
+              onClick={() => setShowDeleteModal(false)}
+              className="px-4 py-2 text-sm bg-gray-200 rounded hover:bg-gray-300"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={confirmDeleteService}
+              className="px-4 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+            >
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
+  )
+}
 
 export default ProDashboard;

@@ -11,11 +11,13 @@ const RegisterProPage = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    profession: "",
-    description: "",
-    hourlyRate: "",
+    categoria: [],
+    descripcion: "",
+    zonaAtencion: "",
     availability: [],
   });
+  
+  
   const [error, setError] = useState("");
   const { register } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -56,47 +58,81 @@ const RegisterProPage = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
-    // Validaciones básicas
+  
     if (formData.password !== formData.confirmPassword) {
       setError("Las contraseñas no coinciden");
       return;
     }
-
+  
+    if (formData.categoria.length === 0) {
+      setError("Debes seleccionar al menos una categoría");
+      return;
+    }
+  
     if (formData.availability.length === 0) {
       setError("Debes seleccionar al menos un día de disponibilidad");
       return;
     }
-
-    // Verificar si el email ya está registrado
-    const existingUser = users.find((user) => user.email === formData.email);
-    if (existingUser) {
-      setError("Este correo electrónico ya está registrado");
-      return;
-    }
-
-    // Simulación de registro
-    const newUser = {
-      id: users.length + 1,
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-      isProfessional: true,
-      image: "https://randomuser.me/api/portraits/lego/2.jpg", // Imagen por defecto
-      profession: formData.profession,
-      description: formData.description,
-      hourlyRate: Number.parseFloat(formData.hourlyRate),
-      availability: formData.availability,
+  
+    const payload = {
+      nombre: formData.name,
+      correo: formData.email,
+      contrasena: formData.password,
+      rol: "PRESTADOR",
+      zonaAtencion: formData.zonaAtencion,
+      categoria: formData.categoria,
+      descripcion: formData.descripcion,
+      disponibilidad: formData.availability.map((id) => daysOfWeek[id].name),
     };
-
-    // Registrar usuario profesional
-    register(newUser);
-    navigate("/pro-dashboard");
+  
+    try {
+      const response = await fetch("http://localhost:8080/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      if (!response.ok) {
+        let errorMessage = "Error al registrar usuario";
+  
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          const text = await response.text();
+          if (text.toLowerCase().includes("ya existe")) {
+            errorMessage = "Ya existe una cuenta registrada con este correo.";
+          } else {
+            errorMessage = text;
+          }
+        }
+  
+        if (
+          response.status === 409 ||
+          errorMessage.toLowerCase().includes("ya existe")
+        ) {
+          setError("Ya existe una cuenta registrada con este correo.");
+        } else {
+          setError(errorMessage);
+        }
+        return;
+      }
+  
+      navigate("/login");
+    } catch (err) {
+      console.error("Error:", err);
+      setError("Error de conexión. Intenta nuevamente.");
+    }
   };
-
+  
+  
+  
+  
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -210,31 +246,68 @@ const RegisterProPage = () => {
             </div>
 
             <div>
-              <label
-                htmlFor="profession"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Profesión
+              <label className="block text-sm font-medium text-gray-700">
+                Categorías de servicio
               </label>
-              <div className="mt-1">
-                <select
-                  id="profession"
-                  name="profession"
-                  required
-                  value={formData.profession}
-                  onChange={handleChange}
-                  className="input-field"
-                >
-                  <option value="">Selecciona una profesión</option>
-                  <option value="Electricista">Electricista</option>
-                  <option value="Plomero">Plomero</option>
-                  <option value="Limpieza">Limpieza</option>
-                  <option value="Peluquero">Peluquero</option>
-                  <option value="Jardinero">Jardinero</option>
-                  <option value="Carpintero">Carpintero</option>
-                </select>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {["Electricista", "Plomero", "Limpieza", "Peluquero", "Jardinero", "Carpintero"].map((categoria) => (
+                  <label key={categoria} className="flex items-center text-sm">
+                    <input
+                      type="checkbox"
+                      name="categoria"
+                      value={categoria}
+                      checked={formData.categoria.includes(categoria)}
+                      onChange={(e) => {
+                        const selected = formData.categoria.includes(categoria)
+                          ? formData.categoria.filter((c) => c !== categoria)
+                          : [...formData.categoria, categoria];
+                        setFormData({ ...formData, categoria: selected });
+                      }}
+                      className="mr-2"
+                    />
+                    {categoria}
+                  </label>
+                ))}
               </div>
             </div>
+
+
+            <div>
+              <label
+                htmlFor="zonaAtencion"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Zona de atención
+              </label>
+              <select
+                id="zonaAtencion"
+                name="zonaAtencion"
+                required
+                value={formData.zonaAtencion}
+                onChange={handleChange}
+                className="input-field"
+              >
+                <option value="">Selecciona una región</option>
+                <option value="Arica y Parinacota">Arica y Parinacota</option>
+                <option value="Tarapacá">Tarapacá</option>
+                <option value="Antofagasta">Antofagasta</option>
+                <option value="Atacama">Atacama</option>
+                <option value="Coquimbo">Coquimbo</option>
+                <option value="Valparaíso">Valparaíso</option>
+                <option value="Región Metropolitana">Región Metropolitana</option>
+                <option value="O’Higgins">O’Higgins</option>
+                <option value="Maule">Maule</option>
+                <option value="Ñuble">Ñuble</option>
+                <option value="Biobío">Biobío</option>
+                <option value="La Araucanía">La Araucanía</option>
+                <option value="Los Ríos">Los Ríos</option>
+                <option value="Los Lagos">Los Lagos</option>
+                <option value="Aysén">Aysén</option>
+                <option value="Magallanes">Magallanes</option>
+              </select>
+            </div>
+
+
 
             <div>
               <label
@@ -244,38 +317,16 @@ const RegisterProPage = () => {
                 Descripción de tus servicios
               </label>
               <div className="mt-1">
-                <textarea
-                  id="description"
-                  name="description"
-                  rows={3}
-                  required
-                  value={formData.description}
-                  onChange={handleChange}
-                  className="input-field"
-                  placeholder="Describe tu experiencia y los servicios que ofreces..."
-                />
-              </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="hourlyRate"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Tarifa por hora (CLP)
-              </label>
-              <div className="mt-1">
-                <input
-                  id="hourlyRate"
-                  name="hourlyRate"
-                  type="number"
-                  min="1"
-                  step="0.01"
-                  required
-                  value={formData.hourlyRate}
-                  onChange={handleChange}
-                  className="input-field"
-                />
+              <textarea
+                id="description"
+                name="descripcion"  
+                rows={3}
+                required
+                value={formData.descripcion}
+                onChange={handleChange}
+                className="input-field"
+                placeholder="Describe tu experiencia y los servicios que ofreces..."
+              />
               </div>
             </div>
 

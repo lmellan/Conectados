@@ -28,39 +28,65 @@ const RegisterPage = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
+  
     if (formData.password !== formData.confirmPassword) {
       setError("Las contraseñas no coinciden");
       return;
     }
 
-    const existingUser = users.find((user) => user.email === formData.email);
-    if (existingUser) {
-      setError("Este correo electrónico ya está registrado");
-      return;
+  
+    try {
+      const response = await fetch("http://localhost:8080/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nombre: formData.name,
+          correo: formData.email,
+          contrasena: formData.password,
+          rol: "BUSCADOR",
+        }),
+      });
+  
+      if (!response.ok) {
+        let errorMessage = "Error al registrar usuario";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (jsonErr) {
+          const text = await response.text();
+          if (text.includes("ya existe")) {
+            errorMessage = "Ya existe una cuenta registrada con este correo.";
+          }
+        }
+  
+        // Mostrar error claro al usuario
+        if (
+          response.status === 409 ||
+          errorMessage.toLowerCase().includes("ya existe")
+        ) {
+          setError("Ya existe una cuenta registrada con este correo.");
+        } else {
+          setError(errorMessage);
+        }
+        return;
+      }
+  
+      const data = await response.json();
+      console.log("Usuario registrado:", data);
+      navigate("/user-dashboard");
+  
+    } catch (err) {
+      console.error("Error:", err);
+      setError("Error de conexión. Intenta nuevamente.");
     }
-
-    if (!termsAccepted) {
-      // Establece el error si los términos no han sido aceptados
-      setError("Debes aceptar los términos y condiciones");
-      return; // Detiene la ejecución de la función si no se aceptan los términos
-  }
-
-    const newUser = {
-      id: users.length + 1,
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-      isProfessional: false,
-      image: "https://randomuser.me/api/portraits/lego/1.jpg",
-    };
-
-    register(newUser);
-    navigate("/user-dashboard");
   };
+  
 
   return (
     <>
