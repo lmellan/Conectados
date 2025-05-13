@@ -75,7 +75,7 @@ describe("ProProfilePage", () => {
     renderPage();
 
     expect(await screen.findByText("Andrea López")).toBeInTheDocument();
-    expect(screen.getByText("Electricidad")).toBeInTheDocument();
+    expect(screen.getAllByText("Electricidad").length).toBeGreaterThan(0);
     expect(screen.getByText(/Soy una experta/i)).toBeInTheDocument();
     expect(screen.getByText("$25000/hora")).toBeInTheDocument();
   });
