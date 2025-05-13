@@ -147,7 +147,7 @@ const EditServicePage = () => {
             <p className="text-gray-600">Actualiza la información de tu servicio</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <form onSubmit={handleSubmit} className="p-6 space-y-6" aria-label="Formulario de edición de servicio">
             <div>
               <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-1">Título del servicio *</label>
               <input

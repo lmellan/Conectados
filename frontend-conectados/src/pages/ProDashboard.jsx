@@ -1,22 +1,22 @@
-"use client"
+"use client";
+
 
 import { useContext, useState, useEffect } from "react"
 import { Link, Navigate } from "react-router-dom"
 import { AuthContext } from "../context/AuthContext"
 
 const ProDashboard = () => {
-  const { user } = useContext(AuthContext)
-  const [activeTab, setActiveTab] = useState("services")
-  const [proServices, setProServices] = useState([])
+  const { user } = useContext(AuthContext);
+  const [activeTab, setActiveTab] = useState("services");
+  const [proServices, setProServices] = useState([]);
   const [proBookings, setProBookings] = useState({
     upcoming: [],
     completed: [],
-  })
+  });
 
   // Estado para el modal de confirmación de eliminación
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState(null);
-
   const loadProData = async () => {
     if (user && user.rol === "PRESTADOR") {
       try {
@@ -98,9 +98,11 @@ const ProDashboard = () => {
     }
   };
 
+
   if (!user) {
-    return <Navigate to="/login" />
+    return <Navigate to="/login" />;
   }
+
 
   if (user.rol !== "PRESTADOR") {
     return <Navigate to="/user-dashboard" />;
@@ -116,6 +118,7 @@ const ProDashboard = () => {
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
               <div className="flex items-center mb-4 md:mb-0">
                 <img
+
                   src={user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nombre)}&background=0D8ABC&color=fff`}
                   alt={user.nombre}
                   className="w-16 h-16 rounded-full mr-4"
@@ -176,6 +179,7 @@ const ProDashboard = () => {
                 {proServices.length > 0 ? (
                   <div className="space-y-4">
                     {proServices.map((service) => (
+
                     <div
                       key={service.id}
                       className="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between"
@@ -222,8 +226,13 @@ const ProDashboard = () => {
                   </div>
                 ) : (
                   <div className="text-center py-8 bg-gray-50 rounded-lg">
-                    <p className="text-gray-500">No tienes servicios publicados.</p>
-                    <Link to="/create-service" className="text-green-600 font-medium hover:underline mt-2">
+                    <p className="text-gray-500">
+                      No tienes servicios publicados.
+                    </p>
+                    <Link
+                      to="/create-service"
+                      className="text-green-600 font-medium hover:underline mt-2 inline-block"
+                    >
                       Añadir un servicio
                     </Link>
                   </div>
@@ -233,7 +242,9 @@ const ProDashboard = () => {
 
             {activeTab === "bookings" && (
               <div>
-                <h2 className="text-xl font-semibold mb-4">Citas Programadas</h2>
+                <h2 className="text-xl font-semibold mb-4">
+                  Citas Programadas
+                </h2>
 
                 {proBookings.upcoming.length > 0 ? (
                   <div className="space-y-4">
@@ -244,11 +255,15 @@ const ProDashboard = () => {
                       >
                         <div className="flex items-start mb-4 md:mb-0">
                           <img
-                            src={booking.serviceDetails.image || "/placeholder.svg"}
-                            alt={booking.serviceDetails.title}
+                            src={
+                              booking.serviceDetails?.image ||
+                              "/placeholder.svg"
+                            }
+                            alt={booking.serviceDetails?.title}
                             className="w-16 h-16 object-cover rounded-md mr-4"
                           />
                           <div>
+
                             <h3 className="font-semibold">{booking.serviceDetails.title}</h3>
                             <div className="flex items-center space-x-2">
                               <img
@@ -258,7 +273,6 @@ const ProDashboard = () => {
                               />
                               <p className="text-sm text-gray-600">Cliente: {booking.cliente?.nombre}</p>
                             </div>
-
                             <div className="flex items-center mt-1">
                               <svg
                                 className="w-4 h-4 text-gray-500 mr-1"
@@ -273,6 +287,7 @@ const ProDashboard = () => {
                                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                                 />
                               </svg>
+
                               <span className="text-sm text-gray-600">{booking.fecha}</span>
                               <span className="mx-2 text-gray-400">|</span>
                               <svg
@@ -288,20 +303,27 @@ const ProDashboard = () => {
                                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                                 />
                               </svg>
+
                               <span className="text-sm text-gray-600">{booking.hora}</span>
                             </div>
                           </div>
                         </div>
                         <div className="flex space-x-2">
-                          <button className="btn-secondary text-sm">Reprogramar</button>
-                          <button className="btn-primary text-sm">Contactar</button>
+                          <button className="btn-secondary text-sm">
+                            Reprogramar
+                          </button>
+                          <button className="btn-primary text-sm">
+                            Contactar
+                          </button>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="text-center py-8 bg-gray-50 rounded-lg">
-                    <p className="text-gray-500">No tienes citas programadas.</p>
+                    <p className="text-gray-500">
+                      No tienes citas programadas.
+                    </p>
                   </div>
                 )}
               </div>
@@ -309,7 +331,9 @@ const ProDashboard = () => {
 
             {activeTab === "history" && (
               <div>
-                <h2 className="text-xl font-semibold mb-4">Historial de Servicios</h2>
+                <h2 className="text-xl font-semibold mb-4">
+                  Historial de Servicios
+                </h2>
 
                 {proBookings.completed.length > 0 ? (
                   <div className="space-y-4">
@@ -320,11 +344,15 @@ const ProDashboard = () => {
                       >
                         <div className="flex items-start mb-4 md:mb-0">
                           <img
-                            src={booking.serviceDetails.image || "/placeholder.svg"}
-                            alt={booking.serviceDetails.title}
+                            src={
+                              booking.serviceDetails?.image ||
+                              "/placeholder.svg"
+                            }
+                            alt={booking.serviceDetails?.title}
                             className="w-16 h-16 object-cover rounded-md mr-4"
                           />
                           <div>
+
                             <h3 className="font-semibold">{booking.serviceDetails.title}</h3>
                             <div className="flex items-center space-x-2 mt-1">
                               <img
@@ -355,9 +383,12 @@ const ProDashboard = () => {
                                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                                 />
                               </svg>
+
                               <span className="text-sm text-gray-600">{booking.fecha}</span>
                               <span className="mx-2 text-gray-400">|</span>
-                              <span className="text-sm text-green-600 font-medium">Completado</span>
+                              <span className="text-sm text-green-600 font-medium">
+                                Completado
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -368,7 +399,11 @@ const ProDashboard = () => {
                                 {[...Array(5)].map((_, i) => (
                                   <svg
                                     key={i}
-                                    className={`w-4 h-4 ${i < 5 ? "text-yellow-400" : "text-gray-300"}`}
+                                    className={`w-4 h-4 ${
+                                      i < 5
+                                        ? "text-yellow-400"
+                                        : "text-gray-300"
+                                    }`}
                                     fill="currentColor"
                                     viewBox="0 0 20 20"
                                   >
@@ -376,10 +411,14 @@ const ProDashboard = () => {
                                   </svg>
                                 ))}
                               </div>
-                              <span className="text-sm text-gray-500">Reseña recibida</span>
+                              <span className="text-sm text-gray-500">
+                                Reseña recibida
+                              </span>
                             </div>
                           ) : (
-                            <span className="text-sm text-gray-500">Sin reseña</span>
+                            <span className="text-sm text-gray-500">
+                              Sin reseña
+                            </span>
                           )}
                         </div>
                       </div>
@@ -387,7 +426,9 @@ const ProDashboard = () => {
                   </div>
                 ) : (
                   <div className="text-center py-8 bg-gray-50 rounded-lg">
-                    <p className="text-gray-500">No tienes servicios completados.</p>
+                    <p className="text-gray-500">
+                      No tienes servicios completados.
+                    </p>
                   </div>
                 )}
               </div>
@@ -396,7 +437,21 @@ const ProDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal de confirmación para eliminar servicio */}
+      {showDeleteModal && (
+        <ConfirmationModal
+          title="Eliminar servicio"
+          message={`¿Estás seguro de que deseas eliminar el servicio "${serviceToDelete?.title}"? Esta acción no se puede deshacer.`}
+          confirmText="Sí, eliminar"
+          cancelText="No, cancelar"
+          onConfirm={confirmDeleteService}
+          onCancel={() => setShowDeleteModal(false)}
+          isDestructive={true}
+        />
+      )}
     </div>
+
 
     {/* Modal de confirmación de eliminación */}
     {showDeleteModal && (
@@ -427,4 +482,4 @@ const ProDashboard = () => {
   )
 }
 
-export default ProDashboard
+export default ProDashboard;

@@ -100,7 +100,7 @@ const Header = () => {
 
         {/* Menú móvil desplegable */}
         {isMenuOpen && (
-          <div className="md:hidden mt-2 py-2 space-y-2">
+          <div className="md:hidden mt-2 py-2 space-y-2" data-testid="mobile-menu">
             <Link
               to="/search"
               className="block px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-md"

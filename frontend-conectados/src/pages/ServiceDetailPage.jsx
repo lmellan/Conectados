@@ -17,6 +17,9 @@ const ServiceDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
+  const [errors, setErrors] = useState({});
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const [errors, setErrors] = useState({});
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -64,7 +67,6 @@ const ServiceDetailPage = () => {
       fecha: selectedDate,
       hora: selectedTime,
       estado: "Pendiente"
-
     };
   
     try {
@@ -197,7 +199,6 @@ const ServiceDetailPage = () => {
                 {provider && (
                   <AvailabilityCalendar availability={disponibilidadNumerica} />
                 )}
-
                 {user?.rol !== "PRESTADOR" && (
                   <div className="mt-6 space-y-4">
                     <div>
@@ -264,6 +265,7 @@ const ServiceDetailPage = () => {
           </div>
         </div>
       </div>
+
 
       {/* Modal de login */}
       {showLoginModal && (

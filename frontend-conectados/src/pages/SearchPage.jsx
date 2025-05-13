@@ -25,7 +25,6 @@ const SearchPage = () => {
     { id: "Peluquería", name: "Peluquería" },
     { id: "Carpintería", name: "Carpintería" },
   ];
-
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const query = queryParams.get("q") || "";

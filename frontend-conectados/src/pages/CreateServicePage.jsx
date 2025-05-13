@@ -107,7 +107,7 @@ const CreateServicePage = () => {
             <p className="text-gray-600">Completa el formulario para ofrecer un nuevo servicio a tus clientes</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <form role="form" onSubmit={handleSubmit} className="p-6 space-y-6">
             <div>
               <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-1">Título del servicio *</label>
               <input
