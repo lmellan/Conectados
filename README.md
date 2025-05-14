@@ -73,7 +73,6 @@ Con el siguiente contenido (ajustando las credenciales según tu entorno):
 spring.datasource.url=jdbc:mysql://localhost:3306/conectados
 spring.datasource.username=tu_usuario
 spring.datasource.password=tu_contraseña
-spring.jpa.hibernate.ddl-auto=update
 ```
 
 
@@ -132,9 +131,6 @@ Conectados/
 ├── README.md
 ```
 
----
-
-¿Deseas que te genere esto también en un archivo `README.md` actualizado o `wiki.md` para subirlo directamente?
 
 
 ## Cómo usar
