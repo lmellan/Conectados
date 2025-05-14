@@ -165,11 +165,38 @@ backend-conectados/
 
 > **Nota:** El módulo `servicio/` incluye tanto los archivos de servicios como de reseñas.
 
+### 2. Estructura del frontend ()
 
+```
+frontend-conectados/
+├── public/                        # Archivos públicos (favicon, index.html, etc.)
+├── src/                           # Código fuente principal del frontend
+│   ├── components/                
+│   ├── context/                   
+│   ├── data/                      
+│   ├── pages/                     
+│   ├── App.js                     # Componente principal que define la estructura general de la app
+│   ├── App.css                    # Estilos globales para App.js
+│   ├── App.test.js                # Pruebas del componente App
+│   ├── index.js                   # Punto de entrada de la aplicación React
+│   ├── index.css                  # Estilos base del proyecto
+│   ├── logo.svg                   # Logo u otros recursos SVG
+│   ├── reportWebVitals.js         # Medición del rendimiento (opcional)
+│   └── setupTests.js              # Configuración para pruebas unitarias con testing-library o jest
+│
+├── .gitignore                     # Archivos/paths ignorados por git
+├── package.json                   # Dependencias y scripts del proyecto React
+├── package-lock.json              # Versión exacta de dependencias instaladas
+├── README.md                      # Documentación básica del proyecto
+└── tailwind.config.js             # Configuración personalizada de TailwindCSS
+```
 
+* `components/`: Componentes reutilizables de interfaz de usuario como botones, tarjetas, formularios, modales, etc. Cada componente tiene su archivo `.jsx` y `.test.jsx`.
+* `context/`: Contiene definiciones de React Context para manejar estado global de la aplicación (por ejemplo, autenticación, temas, carrito de compras, etc.).
+* `data/`: Archivos de datos estáticos, listas, constantes, mocks para pruebas o datos temporales que no provienen de una API.
+* `pages/`: Vistas principales o pantallas completas del sistema (como Login, Home, Perfil). Cada archivo `.jsx` representa una ruta si se usa React Router, e incluye su archivo de prueba `.test.jsx`.
 
 ## Cómo usar
-
 
 ### 1. Vista de inicio
 
