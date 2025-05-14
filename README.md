@@ -135,6 +135,76 @@ Conectados/
 
 ## Cómo usar
 
+### 1. Registro de usuarios
+
+Existen **dos tipos de registro**:
+
+#### a) Registro como buscador
+
+Accede a la opción "Registrarse" y completa el formulario con:
+
+* Nombre completo
+* Correo electrónico
+* Contraseña y confirmación
+* Aceptación de los términos y condiciones
+
+Luego podrás iniciar sesión y acceder a funcionalidades como búsqueda de servicios, gestión de citas y calificación (Dejar reseña).
+
+#### b) Registro como profesional (prestador)
+
+Accede a la opción "Ofrecer Servicios" y completa un formulario extendido que incluye:
+
+* Datos personales: nombre, correo, contraseña
+* **Categorías de servicio** ofrecido (ej. Electricista, Peluquero, Jardinero, etc.)
+* **Zona de atención** geográfica
+* **Descripción de los servicios** ofrecidos
+* **Disponibilidad semanal** (selección de días laborales)
+
+Este registro habilita un panel especial para gestionar tus servicios y citas.
+
+
+### 2. Búsqueda y exploración de servicios
+
+Una vez logueado como buscador:
+
+* Dirígete a la vista principal.
+* Usa los filtros (categoría, precio, zona) para refinar la búsqueda.
+* Haz clic en "Ver detalles" para revisar:
+
+  * Nombre del prestador
+  * Precio
+  * Descripción
+  * Reseñas
+  * Días disponibles para agendar
+
+### 3. Agendar un servicio
+
+Desde la vista del detalle del servicio:
+
+* Selecciona una fecha y hora disponible
+* Haz clic en "Solicitar Servicio"
+* El sistema agenda automáticamente la cita y la registra en los dashboards de ambos usuarios
+
+### 4. Panel del usuario (Buscador)
+
+Accede a "Mi Panel" y gestiona:
+
+* Próximas citas
+* Historial de servicios
+* Cancelación de citas
+* Dejar reseñas con comentarios y calificación (1–5 estrellas)
+
+### 5. Panel del profesional (Prestador)
+
+En el dashboard personalizado puedes:
+
+* Ver tus servicios publicados
+* Crear, editar o eliminar servicios
+* Revisar tus citas próximas y finalizadas
+* Ver comentarios y reputación
+
+
+
 ## Cómo contribuir
 
 Si deseas contribuir al proyecto, sigue estos pasos utilizando **GitFlow** de para mantener una estructura organizada en el desarrollo:
