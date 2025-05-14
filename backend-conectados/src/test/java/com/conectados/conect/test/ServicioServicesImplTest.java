@@ -123,16 +123,16 @@ class ServicioServicesImplTest {
         assertNull(resultado);
     }
 
-    // 5 obtener todos los servicios
     @Test
     void obtenerTodosLosServicios_peticion_deberiaListarServicios() {
         Servicio servicio = new Servicio();
         when(servicioRepository.findAll()).thenReturn(List.of(servicio));
 
-        List<ServicioDto> servicios = servicioServices.obtenerTodosLosServicios();
+        List<Servicio> servicios = servicioServices.obtenerTodosLosServicios();
 
         assertEquals(1, servicios.size());
     }
+
 
     // 6 servicio por categoria
     @Test
