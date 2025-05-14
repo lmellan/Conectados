@@ -165,7 +165,7 @@ backend-conectados/
 
 > **Nota:** El módulo `servicio/` incluye tanto los archivos de servicios como de reseñas.
 
-### 2. Estructura del frontend ()
+### 2. Estructura del frontend (`frontend-conectados/`)
 
 ```
 frontend-conectados/
