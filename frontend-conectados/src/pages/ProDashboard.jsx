@@ -4,6 +4,7 @@
 import { useContext, useState, useEffect } from "react"
 import { Link, Navigate } from "react-router-dom"
 import { AuthContext } from "../context/AuthContext"
+import ConfirmationModal from "../components/ConfirmationModal";
 
 const ProDashboard = () => {
   const { user } = useContext(AuthContext);
