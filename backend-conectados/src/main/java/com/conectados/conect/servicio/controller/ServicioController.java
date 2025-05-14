@@ -1,7 +1,6 @@
 package com.conectados.conect.servicio.controller;
 
 import com.conectados.conect.servicio.entities.Dto.ServicioDto;
-import com.conectados.conect.servicio.ServicioConstantes;
 import com.conectados.conect.servicio.entities.Servicio;
 import com.conectados.conect.servicio.services.ServicioServices;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,11 +32,10 @@ public class ServicioController {
 
 
     @GetMapping("/todos")
-    public ResponseEntity<List<ServicioDto>> obtenerTodos() {
+
+    public ResponseEntity<List<Servicio>> obtenerTodos() {
         return ResponseEntity.ok(servicioService.obtenerTodosLosServicios());
     }
-
-
 
     @PutMapping("/actualizar/{id}")
     public ResponseEntity<ServicioDto> actualizarServicio(@PathVariable Long id, @RequestBody ServicioDto servicioDto) {
@@ -52,7 +50,8 @@ public class ServicioController {
         servicioExistente.setPrecio(servicioDto.getPrecio());
         servicioExistente.setZonaAtencion(servicioDto.getZonaAtencion());
         servicioExistente.setCategoria(servicioDto.getCategoria());
-        servicioExistente.setFoto(servicioDto.getFoto());
+        servicioExistente.setFotos(servicioDto.getFotos());
+
         servicioExistente.setDescripcion(servicioDto.getDescripcion());
 
         Servicio actualizado = servicioService.actualizarServicio(id, servicioExistente);
@@ -77,18 +76,4 @@ public class ServicioController {
         List<Servicio> servicios = servicioService.obtenerServiciosPorPrestadorId(id);
         return ResponseEntity.ok(ServicioDto.fromEntityList(servicios));
     }
-
-     @GetMapping("/listar")
-    public ResponseEntity<List<Servicio>> listarServiciosOrdenados(
-            @RequestParam(required = false, defaultValue = "id") String sortBy) {
-        List<Servicio> servicios = servicioService.obtenerServiciosOrdenados(sortBy);
-        return ResponseEntity.ok(servicios);
-    }
-
-
-    @GetMapping("/categorias")
-    public ResponseEntity<List<String>> listarCategoriasDisponibles() {
-        return ResponseEntity.ok(ServicioConstantes.CATEGORIAS_VALIDAS);
-}
-
 }

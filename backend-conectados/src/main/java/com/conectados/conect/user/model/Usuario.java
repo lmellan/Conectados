@@ -14,7 +14,7 @@ public class Usuario {
     private String nombre;
     private String correo;
     private String contrasena;
-    private String imagen;
+
 
     @Enumerated(EnumType.STRING)
     private Rol rol;
@@ -62,13 +62,6 @@ public class Usuario {
 
     public void setContrasena(String contrasena) {
         this.contrasena = contrasena;
-    }
-    public String getImagen() {
-        return imagen;
-    }
-
-    public void setImagen(String imagen) {
-        this.imagen = imagen;
     }
 
     public Rol getRol() {

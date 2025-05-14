@@ -1,8 +1,6 @@
 package com.conectados.conect.servicio.entities;
 
 import com.conectados.conect.user.model.Usuario;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -22,10 +20,8 @@ public class Servicio {
 
     private String descripcion;
 
-    @Lob
-    @Column(columnDefinition = "LONGTEXT")
-    private String foto;
-
+    @ElementCollection
+    private List<String> fotos;
 
 
     private String categoria;
@@ -37,7 +33,7 @@ public class Servicio {
     private Usuario prestador;
 
     @OneToMany(mappedBy = "servicio", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
+  
     private List<Resena> resenas;
 
 
@@ -88,12 +84,13 @@ public class Servicio {
         this.categoria = categoria;
     }
 
-    public String getFoto() {
-        return foto;
+    public List<String> getFotos() {
+        return fotos;
     }
 
-    public void setFoto(String foto) {
-        this.foto = foto;
+    public void setFotos(List<String> fotos) {
+        this.fotos = fotos;
+
     }
 
     public String getZonaAtencion() {

@@ -2,15 +2,19 @@ package com.conectados.conect.servicio.entities;
 
 import com.conectados.conect.servicio.entities.Dto.ResenaDto;
 import com.conectados.conect.user.model.Usuario;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
 import jakarta.persistence.*;
-import com.conectados.conect.cita.entities.Cita;
+
 
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "resenas")
+@Table(
+        name = "resenas",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"buscador_id", "servicio_id"})
+        }
+)
+
 public class Resena {
 
     @Id
@@ -19,9 +23,7 @@ public class Resena {
 
     @ManyToOne
     @JoinColumn(name = "servicio_id", nullable = false)
-    @JsonBackReference
     private Servicio servicio;
-
 
     @ManyToOne
     @JoinColumn(name = "prestador_id", nullable = false)
@@ -34,10 +36,6 @@ public class Resena {
     private String comentario;
     private LocalDate fecha;
     private Integer valoracion; // valor entre 1 y 10
-
-    @ManyToOne
-    @JoinColumn(name = "cita_id", nullable = false)
-    private Cita cita;
 
     // --- Getters y Setters ---
 
@@ -96,15 +94,6 @@ public class Resena {
     public void setServicio(Servicio servicio) {
         this.servicio = servicio;
     }
-
-    public Cita getCita() {
-    return cita;
-    }
-
-    public void setCita(Cita cita) {
-    this.cita = cita;
-    }   
-
 
 }
 

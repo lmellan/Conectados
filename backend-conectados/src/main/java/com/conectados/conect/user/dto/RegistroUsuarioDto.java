@@ -8,7 +8,7 @@ public class RegistroUsuarioDto {
     private String correo;
     private String contrasena;
     private Rol rol;
-    private String imagen;
+
 
     // Solo para prestadores
     private String zonaAtencion;
@@ -42,7 +42,5 @@ public class RegistroUsuarioDto {
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
-    public String getImagen() { return imagen; }
-    public void setImagen(String imagen) { this.imagen = imagen; }
 }
 

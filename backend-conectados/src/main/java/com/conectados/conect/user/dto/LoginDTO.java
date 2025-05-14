@@ -1,6 +1,6 @@
 package com.conectados.conect.user.dto;
 
-public class LoginDTO {
+public class LoginDto {
     private String correo;
     private String contrasena;
 

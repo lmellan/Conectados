@@ -18,17 +18,13 @@ public class UsuarioServicesImpl implements UsuarioServices {
 
     @Override
     public Usuario registrarUsuario(RegistroUsuarioDto dto) {
-        Optional<Usuario> existente = usuarioRepository.findByCorreo(dto.getCorreo());
-        if (existente.isPresent()) {
-            throw new RuntimeException("Ya existe una cuenta con este correo");
-        }
 
         Usuario usuario = new Usuario();
         usuario.setNombre(dto.getNombre());
         usuario.setCorreo(dto.getCorreo());
         usuario.setContrasena(dto.getContrasena());
         usuario.setRol(dto.getRol());
-        usuario.setImagen(dto.getImagen());
+
 
         if (dto.getRol().name().equals("PRESTADOR")) {
             usuario.setZonaAtencion(dto.getZonaAtencion());
@@ -55,7 +51,6 @@ public class UsuarioServicesImpl implements UsuarioServices {
             usuario.setCorreo(dto.getCorreo());
             usuario.setContrasena(dto.getContrasena());
             usuario.setRol(dto.getRol());
-            usuario.setImagen(dto.getImagen());
 
 
             if (dto.getRol().name().equals("PRESTADOR")) {
@@ -92,19 +87,5 @@ public class UsuarioServicesImpl implements UsuarioServices {
     public List<Usuario> listarUsuarios() {
         return usuarioRepository.findAll();
     }
-
-    @Override
-public Usuario actualizarUsuario(Long id, Usuario usuarioActualizado) {
-    return usuarioRepository.findById(id)
-            .map(usuarioExistente -> {
-                usuarioExistente.setNombre(usuarioActualizado.getNombre());
-                usuarioExistente.setCorreo(usuarioActualizado.getCorreo());
-                usuarioExistente.setContrasena(usuarioActualizado.getContrasena());
-                usuarioExistente.setZonaAtencion(usuarioActualizado.getZonaAtencion());
-                usuarioExistente.setImagen(usuarioActualizado.getImagen());
-                return usuarioRepository.save(usuarioExistente);
-            })
-            .orElse(null);
-}
 
 }

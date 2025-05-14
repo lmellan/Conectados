@@ -7,10 +7,4 @@ import java.util.List;
 public interface ServicioRepository extends JpaRepository<Servicio, Long> {
     List<Servicio> findByCategoria(String categoria);
     List<Servicio> findByPrestador_Id(Long prestadorId);
-
-
-    List<Servicio> findAllByOrderByNombreAsc();
-
-    List<Servicio> findAllByOrderByPrecioAsc();
-
 }
