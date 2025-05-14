@@ -9,6 +9,7 @@ Puede acceder a la Wiki del proyecto mediante el siguiente [enlace](https://gith
 ## Instalación
 Para instalar dependencias ejecuta:
 ```bash
+cd frontend-conectados
 npm install
 ```
 
