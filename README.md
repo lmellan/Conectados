@@ -132,6 +132,47 @@ Conectados/
 ```
 
 
+### Estructura del backend (`backend-conectados/`)
+
+
+```
+backend-conectados/
+├── src/
+│   └── main/
+│       ├── java/
+│       │   └── com.conectados.conect/
+│       │       ├── cita/              # Módulo de citas 
+│       │       ├── servicio/          # Módulo de servicios y reseñas de prestadores
+│       │       ├── user/              # Módulo de usuarios 
+│       │       └── ConectadosApplication.java  # Clase principal que lanza la aplicación
+│       └── resources/
+│           └── application.properties # Archivo de configuración general (DB, puerto, JPA, etc.)
+│
+├── target/               # Archivos compilados (generados por Maven)
+├── pom.xml               # Configuración de dependencias y plugins del proyecto (Maven)
+```
+
+#### Subestructura típica de cada módulo (`cita`, `servicio`, `user`):
+
+* `controller/`: Controladores REST que exponen los endpoints públicos.
+* `entities/`: Clases que representan entidades persistentes (tablas de la base de datos).
+* `repositories/`: Interfaces que gestionan el acceso a datos usando Spring Data JPA.
+* `services/`: Contiene la lógica de negocio de cada entidad.
+
+> **Nota:** El módulo `servicio/` incluye tanto los archivos de servicios como de reseñas.
+
+
+
+### Comentarios adicionales
+
+* La **modularización por dominio** (`cita`, `servicio`, `user`) permite un desarrollo más claro, escalable y mantenible.
+* La carpeta `resources/` incluye el archivo de configuración `application.properties` donde se definen los parámetros clave como la conexión a MySQL.
+* El archivo `pom.xml` incluye las dependencias necesarias como Spring Web, Spring Data JPA, MySQL Connector, entre otros.
+
+¿Quieres que integre esta explicación directamente en tu README como una sección expandida?
+
+
+
 
 ## Cómo usar
 
