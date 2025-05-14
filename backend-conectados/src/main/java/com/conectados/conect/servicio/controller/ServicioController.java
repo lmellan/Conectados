@@ -32,9 +32,9 @@ public class ServicioController {
 
 
     @GetMapping("/todos")
-
-    public ResponseEntity<List<Servicio>> obtenerTodos() {
-        return ResponseEntity.ok(servicioService.obtenerTodosLosServicios());
+    public ResponseEntity<List<ServicioDto>> obtenerTodos() {
+        List<Servicio> servicios = servicioService.obtenerTodosLosServicios();
+        return ResponseEntity.ok(ServicioDto.fromEntityList(servicios));
     }
 
     @PutMapping("/actualizar/{id}")
