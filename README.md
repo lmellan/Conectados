@@ -1,65 +1,124 @@
+
 # Conectados
 
-"Conectados" es una plataforma web pensada para conectar a personas que ofrecen servicios (como peluquería, electricidad, jardinería y más) con quienes los necesitan, de forma rápida, segura y confiable. El código fuente está disponible bajo la **MIT License**, lo que permite su uso, modificación y distribución de manera abierta.
+"Conectados" es una plataforma web que conecta a personas que ofrecen servicios a domicilio (como peluquería, electricidad, jardinería, etc.) con quienes los necesitan, de forma rápida, segura y confiable.  
+El proyecto está licenciado bajo **MIT License**.
+
+
 
 ## Wiki
 
-Puede acceder a la Wiki del proyecto mediante el siguiente [enlace](https://github.com/lmellan/Conectados/wiki).  
+Puedes acceder a la Wiki del proyecto desde el siguiente [enlace](https://github.com/lmellan/Conectados/wiki).
 
-## Instalación
+## Instalación del Proyecto
 
-### 1. Instalación de la Base de Datos
+### 0. Clonar el repositorio
 
-Este proyecto utiliza **MySQL** como base de datos. Así se puede configurar localmente:
+Abre tu terminal o línea de comandos y clona el repositorio:
 
-- **Instala MySQL**: Si no lo tienes instalado, descárgalo desde [MySQL Community Server](https://dev.mysql.com/downloads/) e instálalo siguiendo las instrucciones correspondientes.
+```bash
+git clone https://github.com/ConectadoTeam/Conectados.git
+cd Conectados
+````
 
-- **Inicia MySQL**: Asegúrate de que el servicio de MySQL esté corriendo. Puedes iniciarlo con:
 
-linux:
-  ```bash
-  sudo service mysql start
-  ```
-windows:
-  ```bash
-  mysql -u root -p
-  ```
-  
-- **Crea una base de datos**: Abre MySQL desde la terminal o una herramienta como MySQL Workbench y ejecuta:
-  
-  ```sql
-  CREATE DATABASE conectados;
-  ```
-  
-- **Usa la base de datos**: Ejecuta el siguiente comando para trabajar dentro de la base de datos:
+### 1. Configuración de la base de datos MySQL
 
-  ```sql
-  USE conectados;
-  ```
-### 2. Configurar la Conexión a la Base de Datos
+Este proyecto usa **MySQL** como base de datos. Asegúrate de tenerlo instalado.
 
-Antes de ejecutar el proyecto, configura la conexión a la base de datos en el archivo `src/main/resources/application.properties`:
+#### En Linux:
+
+```bash
+sudo service mysql start
+mysql -u root -p
+```
+
+#### En Windows:
+
+Abre `MySQL Command Line Client` o tu herramienta de gestión y ejecuta:
+
+```sql
+CREATE DATABASE conectados;
+USE conectados;
+```
+
+### 2. Configurar la conexión en el backend
+
+Edita el archivo:
+
+```bash
+backend-conectados/src/main/resources/application.properties
+```
+
+Con el siguiente contenido (ajustando las credenciales según tu entorno):
 
 ```properties
 spring.datasource.url=jdbc:mysql://localhost:3306/conectados
 spring.datasource.username=tu_usuario
 spring.datasource.password=tu_contraseña
+spring.jpa.hibernate.ddl-auto=update
 ```
 
-Reemplaza `tu_usuario` y `tu_contraseña` con tus credenciales de MySQL.
 
+### 3. Instalación de dependencias
 
+#### Frontend
 
-Para instalar dependencias ejecuta:
 ```bash
 cd frontend-conectados
 npm install
 ```
 
-## Levantar el Proyecto
+#### Backend
+
+Asegúrate de tener **Java 17+** y **Maven**. Puedes compilar con:
+
+```bash
+cd backend-conectados
+./mvnw clean install
+```
+
+##  Levantar el Proyecto
+
+### Backend
+
+Desde la carpeta `backend-conectados`, ejecuta:
+
+```bash
+./mvnw spring-boot:run
+```
+
+### Frontend
+
+Desde la carpeta `frontend-conectados`, ejecuta:
+
 ```bash
 npm start
 ```
+
+La app estará disponible por defecto en:
+[http://localhost:3000](http://localhost:3000)
+
+
+
+## Estructura del Proyecto
+
+```
+Conectados/
+├── backend-conectados/       # Proyecto Java Spring Boot
+├── frontend-conectados/      # Aplicación React.js
+├── .git/                     # Carpeta de control de versiones
+├── .gitignore
+├── LICENSE
+├── package.json              # Metadata general del proyecto (React)
+├── package-lock.json
+├── README.md
+```
+
+---
+
+¿Deseas que te genere esto también en un archivo `README.md` actualizado o `wiki.md` para subirlo directamente?
+
 
 ## Cómo usar
 
