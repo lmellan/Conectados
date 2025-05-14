@@ -42,6 +42,7 @@ public class ResenaController {
     }
 
     @GetMapping("/todas")
+
     public ResponseEntity<List<Resena>> obtenerTodas() {
         return ResponseEntity.ok(resenaService.obtenerTodasLasResenas());
     }

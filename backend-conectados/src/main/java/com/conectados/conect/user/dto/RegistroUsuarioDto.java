@@ -9,6 +9,7 @@ public class RegistroUsuarioDto {
     private String contrasena;
     private Rol rol;
 
+
     // Solo para prestadores
     private String zonaAtencion;
     private List<String> categoria;
@@ -40,5 +41,6 @@ public class RegistroUsuarioDto {
 
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
+
 }
 

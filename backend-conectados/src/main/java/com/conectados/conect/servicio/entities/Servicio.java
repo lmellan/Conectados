@@ -23,6 +23,7 @@ public class Servicio {
     @ElementCollection
     private List<String> fotos;
 
+
     private String categoria;
 
     private Double valoracionPromedio; // Se actualiza según las reseñas
@@ -32,7 +33,9 @@ public class Servicio {
     private Usuario prestador;
 
     @OneToMany(mappedBy = "servicio", cascade = CascadeType.ALL, orphanRemoval = true)
+  
     private List<Resena> resenas;
+
 
     public Long getId() {
         return id;
@@ -87,6 +90,7 @@ public class Servicio {
 
     public void setFotos(List<String> fotos) {
         this.fotos = fotos;
+
     }
 
     public String getZonaAtencion() {

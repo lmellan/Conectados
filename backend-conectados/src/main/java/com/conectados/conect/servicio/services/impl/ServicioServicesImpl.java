@@ -8,6 +8,7 @@ import com.conectados.conect.user.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +31,7 @@ public class ServicioServicesImpl implements ServicioServices {
             }
             servicio.setPrestador(prestadorCompleto);
         }
+
         return servicioRepository.save(servicio);
     }
 
@@ -41,6 +43,7 @@ public class ServicioServicesImpl implements ServicioServices {
     @Override
     public List<Servicio> obtenerTodosLosServicios() {
         return servicioRepository.findAll();
+
     }
 
     @Override
@@ -61,6 +64,7 @@ public class ServicioServicesImpl implements ServicioServices {
             s.setDescripcion(servicio.getDescripcion());
             return servicioRepository.save(s);
         }
+
         return null;
     }
 
@@ -74,5 +78,6 @@ public class ServicioServicesImpl implements ServicioServices {
     public List<Servicio> obtenerServiciosPorPrestadorId(Long prestadorId) {
         return servicioRepository.findByPrestador_Id(prestadorId);
     }
+
 
 }

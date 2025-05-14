@@ -4,6 +4,7 @@ import com.conectados.conect.servicio.entities.Dto.ResenaDto;
 import com.conectados.conect.user.model.Usuario;
 import jakarta.persistence.*;
 
+
 import java.time.LocalDate;
 
 @Entity
@@ -13,6 +14,7 @@ import java.time.LocalDate;
                 @UniqueConstraint(columnNames = {"buscador_id", "servicio_id"})
         }
 )
+
 public class Resena {
 
     @Id

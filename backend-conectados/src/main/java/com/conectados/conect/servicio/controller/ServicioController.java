@@ -32,6 +32,7 @@ public class ServicioController {
 
 
     @GetMapping("/todos")
+
     public ResponseEntity<List<Servicio>> obtenerTodos() {
         return ResponseEntity.ok(servicioService.obtenerTodosLosServicios());
     }
@@ -50,6 +51,7 @@ public class ServicioController {
         servicioExistente.setZonaAtencion(servicioDto.getZonaAtencion());
         servicioExistente.setCategoria(servicioDto.getCategoria());
         servicioExistente.setFotos(servicioDto.getFotos());
+
         servicioExistente.setDescripcion(servicioDto.getDescripcion());
 
         Servicio actualizado = servicioService.actualizarServicio(id, servicioExistente);
@@ -74,5 +76,4 @@ public class ServicioController {
         List<Servicio> servicios = servicioService.obtenerServiciosPorPrestadorId(id);
         return ResponseEntity.ok(ServicioDto.fromEntityList(servicios));
     }
-
 }
