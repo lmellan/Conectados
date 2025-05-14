@@ -163,16 +163,6 @@ backend-conectados/
 
 
 
-### Comentarios adicionales
-
-* La **modularización por dominio** (`cita`, `servicio`, `user`) permite un desarrollo más claro, escalable y mantenible.
-* La carpeta `resources/` incluye el archivo de configuración `application.properties` donde se definen los parámetros clave como la conexión a MySQL.
-* El archivo `pom.xml` incluye las dependencias necesarias como Spring Web, Spring Data JPA, MySQL Connector, entre otros.
-
-¿Quieres que integre esta explicación directamente en tu README como una sección expandida?
-
-
-
 
 ## Cómo usar
 
