@@ -20,9 +20,7 @@ public class Servicio {
 
     private String descripcion;
 
-    @ElementCollection
-    private List<String> fotos;
-
+    private String foto;
 
     private String categoria;
 
@@ -84,13 +82,12 @@ public class Servicio {
         this.categoria = categoria;
     }
 
-    public List<String> getFotos() {
-        return fotos;
+    public String getFoto() {
+        return foto;
     }
 
-    public void setFotos(List<String> fotos) {
-        this.fotos = fotos;
-
+    public void setFoto(String foto) {
+        this.foto = foto;
     }
 
     public String getZonaAtencion() {

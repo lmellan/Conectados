@@ -13,7 +13,7 @@ public class ServicioDto {
     private Double precio;
     private String zonaAtencion;
     private String descripcion;
-    private List<String> fotos;
+    private String foto;
 
     private String categoria;
     private Double valoracionPromedio;
@@ -36,8 +36,8 @@ public class ServicioDto {
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
 
-    public List<String> getFotos() { return fotos; }
-    public void setFotos(List<String> fotos) { this.fotos = fotos; }
+    public String getFoto() { return foto; }
+    public void setFoto(String foto) { this.foto = foto; }
 
 
     public String getCategoria() { return categoria; }
@@ -60,7 +60,7 @@ public class ServicioDto {
         dto.setPrecio(servicio.getPrecio());
         dto.setZonaAtencion(servicio.getZonaAtencion());
         dto.setDescripcion(servicio.getDescripcion());
-        dto.setFotos(servicio.getFotos());
+        dto.setFoto(servicio.getFoto());
 
         dto.setCategoria(servicio.getCategoria());
         dto.setValoracionPromedio(servicio.getValoracionPromedio());
