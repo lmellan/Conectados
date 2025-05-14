@@ -204,7 +204,6 @@ Una vez logueado como **buscador**:
   * Días disponibles
   * Reseñas de otros usuarios
 
----
 
 ### 4. Agendar un servicio
 
@@ -214,7 +213,6 @@ Desde la vista de detalle del servicio:
 * Haz clic en **"Solicitar Servicio"**
 * El sistema agenda automáticamente la cita, visible tanto para el buscador como para el prestador
 
----
 
 ### 5. Panel del usuario (Buscador)
 
