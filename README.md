@@ -7,6 +7,49 @@
 Puede acceder a la Wiki del proyecto mediante el siguiente [enlace](https://github.com/lmellan/Conectados/wiki).  
 
 ## Instalación
+
+### 1. Instalación de la Base de Datos
+
+Este proyecto utiliza **MySQL** como base de datos. Así se puede configurar localmente:
+
+- **Instala MySQL**: Si no lo tienes instalado, descárgalo desde [MySQL Community Server](https://dev.mysql.com/downloads/) e instálalo siguiendo las instrucciones correspondientes.
+
+- **Inicia MySQL**: Asegúrate de que el servicio de MySQL esté corriendo. Puedes iniciarlo con:
+
+linux:
+  ```bash
+  sudo service mysql start
+  ```
+windows:
+  ```bash
+  mysql -u root -p
+  ```
+  
+- **Crea una base de datos**: Abre MySQL desde la terminal o una herramienta como MySQL Workbench y ejecuta:
+  
+  ```sql
+  CREATE DATABASE conectados;
+  ```
+  
+- **Usa la base de datos**: Ejecuta el siguiente comando para trabajar dentro de la base de datos:
+
+  ```sql
+  USE conectados;
+  ```
+### 2. Configurar la Conexión a la Base de Datos
+
+Antes de ejecutar el proyecto, configura la conexión a la base de datos en el archivo `src/main/resources/application.properties`:
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/conectados
+spring.datasource.username=tu_usuario
+spring.datasource.password=tu_contraseña
+```
+
+Reemplaza `tu_usuario` y `tu_contraseña` con tus credenciales de MySQL.
+
+
+
 Para instalar dependencias ejecuta:
 ```bash
 cd frontend-conectados
