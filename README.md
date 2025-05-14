@@ -132,7 +132,7 @@ Conectados/
 ```
 
 
-### Estructura del backend (`backend-conectados/`)
+### 1. Estructura del backend (`backend-conectados/`)
 
 
 ```
