@@ -7,9 +7,15 @@
 Puede acceder a la Wiki del proyecto mediante el siguiente [enlace](https://github.com/lmellan/Conectados/wiki).  
 
 ## Instalación
-
+Para instalar dependencias ejecuta:
+```bash
+npm install
+```
 
 ## Levantar el Proyecto
+```bash
+npm start
+```
 
 ## Cómo usar
 
