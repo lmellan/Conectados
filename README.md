@@ -135,73 +135,108 @@ Conectados/
 
 ## Cómo usar
 
-### 1. Registro de usuarios
 
-Existen **dos tipos de registro**:
+### 1. Vista de inicio
 
-#### a) Registro como buscador
+Al ingresar a localhost:3000, verás la pantalla de bienvenida con acceso a funcionalidades clave. Desde esta vista puedes:
 
-Accede a la opción "Registrarse" y completa el formulario con:
+* Registrarte como prestador usando el botón “Ofrecer Servicios”
+
+* Registrarte como buscador usando el botón “Registrarse” o el de “Buscar Servicios”
+
+* Iniciar sesión si ya tienes una cuenta, usando el botón “Iniciar Sesión”
+
+La página también muestra:
+
+* Categorías destacadas (Limpieza, Electricidad, etc.)
+
+* Servicios destacados (si los hay)
+
+* Un buscador de servicios no funcional en esta etapa (requiere sesión iniciada)
+
+ > **Nota:** La barra de búsqueda inicial **no está funcional** en esta etapa pública. Para hacer búsquedas reales, debes ingresar como usuario registrado y acceder al buscador desde el panel correspondiente.
+
+
+### 2. Registro de usuarios
+
+Existen **dos tipos de registro**, cada uno habilita funcionalidades distintas dentro de la plataforma:
+
+#### a) Registro como profesional (prestador)
+
+Accede a la opción **"Ofrecer Servicios"** y completa un formulario extendido que incluye:
+
+* Nombre completo
+* Correo electrónico
+* Contraseña y confirmación
+* **Categorías de servicio** ofrecido (ej. Electricista, Peluquero, Jardinero, etc.)
+* **Zona de atención** geográfica
+* **Descripción de los servicios** ofrecidos
+* **Disponibilidad semanal** (selección de días laborales)
+* Aceptación de los términos y condiciones
+
+> **Importante:** Para que un servicio esté disponible al público, primero debe haberse registrado como profesional y creado el servicio correspondiente.
+
+Una vez registrado, se habilita un panel especial donde podrás crear, editar o eliminar servicios, y gestionar citas recibidas.
+
+#### b) Registro como buscador
+
+Accede a la opción **"Registrarse"** y completa el formulario con:
 
 * Nombre completo
 * Correo electrónico
 * Contraseña y confirmación
 * Aceptación de los términos y condiciones
 
-Luego podrás iniciar sesión y acceder a funcionalidades como búsqueda de servicios, gestión de citas y calificación (Dejar reseña).
-
-#### b) Registro como profesional (prestador)
-
-Accede a la opción "Ofrecer Servicios" y completa un formulario extendido que incluye:
-
-* Datos personales: nombre, correo, contraseña
-* **Categorías de servicio** ofrecido (ej. Electricista, Peluquero, Jardinero, etc.)
-* **Zona de atención** geográfica
-* **Descripción de los servicios** ofrecidos
-* **Disponibilidad semanal** (selección de días laborales)
-
-Este registro habilita un panel especial para gestionar tus servicios y citas.
+Este tipo de cuenta permite buscar servicios, agendar citas y dejar reseñas, pero **no permite publicar servicios**.
 
 
-### 2. Búsqueda y exploración de servicios
+### 3. Búsqueda y exploración de servicios
 
-Una vez logueado como buscador:
+Una vez logueado como **buscador**:
 
-* Dirígete a la vista principal.
-* Usa los filtros (categoría, precio, zona) para refinar la búsqueda.
-* Haz clic en "Ver detalles" para revisar:
+* Dirígete a la sección "Buscar Servicios"
+* Usa filtros como **categoría**, **precio** y **región** para encontrar lo que necesitas
+* Haz clic en **"Ver detalles"** para revisar información completa del servicio:
 
   * Nombre del prestador
-  * Precio
+  * Precio por hora
   * Descripción
-  * Reseñas
-  * Días disponibles para agendar
+  * Días disponibles
+  * Reseñas de otros usuarios
 
-### 3. Agendar un servicio
+---
 
-Desde la vista del detalle del servicio:
+### 4. Agendar un servicio
+
+Desde la vista de detalle del servicio:
 
 * Selecciona una fecha y hora disponible
-* Haz clic en "Solicitar Servicio"
-* El sistema agenda automáticamente la cita y la registra en los dashboards de ambos usuarios
+* Haz clic en **"Solicitar Servicio"**
+* El sistema agenda automáticamente la cita, visible tanto para el buscador como para el prestador
 
-### 4. Panel del usuario (Buscador)
+---
 
-Accede a "Mi Panel" y gestiona:
+### 5. Panel del usuario (Buscador)
 
-* Próximas citas
-* Historial de servicios
-* Cancelación de citas
-* Dejar reseñas con comentarios y calificación (1–5 estrellas)
+Desde **"Mi Panel"** puedes:
 
-### 5. Panel del profesional (Prestador)
+* Consultar tus próximas citas
+* Acceder a tu historial de servicios
+* Cancelar citas programadas
+* **Dejar reseñas**, siempre que se cumpla lo siguiente:
 
-En el dashboard personalizado puedes:
+> **Restricción:** Solo se puede dejar una reseña **si la cita fue completada**. Esto ocurre automáticamente cuando la fecha agendada ya pasó y la cita **no fue cancelada**.
+> Las reseñas se realizan desde el **historial de servicios**, seleccionando la opción disponible para cada cita completada.
 
-* Ver tus servicios publicados
-* Crear, editar o eliminar servicios
-* Revisar tus citas próximas y finalizadas
-* Ver comentarios y reputación
+
+### 6. Panel del profesional (Prestador)
+
+El dashboard profesional permite:
+
+* Publicar nuevos servicios
+* Modificar o eliminar servicios existentes
+* Revisar citas agendadas
+* Ver comentarios y calificaciones recibidas
 
 
 
