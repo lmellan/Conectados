@@ -115,7 +115,11 @@ npm start
 La app estará disponible por defecto en:
 [http://localhost:3000](http://localhost:3000)
 
-
+## Correr los tests unitarios de backend:
+```bash
+cd backend-conectados
+mvn test
+```
 
 ## Estructura del Proyecto
 
