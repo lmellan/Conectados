@@ -26,21 +26,38 @@ cd Conectados
 
 Este proyecto usa **MySQL** como base de datos. Asegúrate de tenerlo instalado.
 
-#### En Linux:
+#### En **Linux** (terminal Bash):
 
 ```bash
+# 1. Inicia el servicio de MySQL (si no está corriendo)
 sudo service mysql start
+
+# 2. Conéctate como root (o tu usuario)
 mysql -u root -p
 ```
 
-#### En Windows:
-
-Abre `MySQL Command Line Client` o tu herramienta de gestión y ejecuta:
+Luego, dentro de la consola de MySQL:
 
 ```sql
 CREATE DATABASE conectados;
 USE conectados;
 ```
+
+#### En **Windows** (CMD o PowerShell):
+
+1. Abre el cliente de MySQL (por ejemplo: `MySQL Command Line Client` o CMD con MySQL en el PATH).
+
+```bash
+mysql -u root -p
+```
+
+2. Luego, dentro de la consola de MySQL:
+
+```sql
+CREATE DATABASE conectados;
+USE conectados;
+```
+
 
 ### 2. Configurar la conexión en el backend
 
