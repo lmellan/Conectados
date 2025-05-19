@@ -3,12 +3,16 @@ package com.conectados.conect.cita.services.impl;
 import com.conectados.conect.cita.entities.Cita;
 import com.conectados.conect.cita.repositories.CitaRepository;
 import com.conectados.conect.cita.services.CitaServices;
+import com.conectados.conect.user.model.Usuario;
+import com.conectados.conect.user.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,26 +22,65 @@ public class CitaServicesImpl implements CitaServices {
     @Autowired
     private CitaRepository citaRepository;
 
-    // @Override
-    // public Cita crearCita(Cita cita) {
-    //     return citaRepository.save(cita);
-    // }
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     @Override
     public Cita crearCita(Cita cita) {
+        // Verifica si ya existe una cita para ese prestador en esa fecha y hora
         Long conteo = citaRepository.contarCitasPorPrestadorFechaHora(
-            cita.getIdPrestador(),
-            cita.getFecha(),
-            cita.getHora()
+                cita.getIdPrestador(),
+                cita.getFecha(),
+                cita.getHora()
         );
 
         if (conteo > 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El prestador ya tiene una cita en ese horario.");
         }
 
+        // Verifica que el prestador exista
+        Optional<Usuario> prestadorOpt = usuarioRepository.findById(cita.getIdPrestador());
+        if (prestadorOpt.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Prestador no encontrado.");
+        }
+
+        Usuario prestador = prestadorOpt.get();
+
+        // Traduce el día a español capitalizado y verifica disponibilidad
+        String diaSemana = traducirDiaADisponibilidad(cita.getFecha().getDayOfWeek());
+        List<String> diasDisponibles = prestador.getDisponibilidad();
+
+        boolean trabajaEseDia = diasDisponibles != null &&
+                diasDisponibles.stream().anyMatch(d -> d.equalsIgnoreCase(diaSemana));
+
+        if (!trabajaEseDia) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El prestador no trabaja ese día.");
+        }
+
+        // Valida que la hora esté dentro del horario permitido
+        LocalTime horaCita = cita.getHora();
+        if (prestador.getHoraInicio() == null || prestador.getHoraFin() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El prestador no tiene definido su horario.");
+        }
+
+        if (horaCita.isBefore(prestador.getHoraInicio()) || horaCita.isAfter(prestador.getHoraFin())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La hora está fuera del horario del prestador.");
+        }
+
         return citaRepository.save(cita);
     }
 
+    private String traducirDiaADisponibilidad(DayOfWeek dia) {
+        return switch (dia) {
+            case MONDAY -> "Lunes";
+            case TUESDAY -> "Martes";
+            case WEDNESDAY -> "Miércoles";
+            case THURSDAY -> "Jueves";
+            case FRIDAY -> "Viernes";
+            case SATURDAY -> "Sábado";
+            case SUNDAY -> "Domingo";
+        };
+    }
 
     @Override
     public Cita obtenerCitaPorId(Long id) {

@@ -1,9 +1,8 @@
 package com.conectados.conect.servicio.entities;
 
-import com.conectados.conect.servicio.entities.Dto.ResenaDto;
+import com.conectados.conect.cita.entities.Cita;
 import com.conectados.conect.user.model.Usuario;
 import jakarta.persistence.*;
-
 
 import java.time.LocalDate;
 
@@ -14,7 +13,6 @@ import java.time.LocalDate;
                 @UniqueConstraint(columnNames = {"buscador_id", "servicio_id"})
         }
 )
-
 public class Resena {
 
     @Id
@@ -33,9 +31,13 @@ public class Resena {
     @JoinColumn(name = "buscador_id", nullable = false)
     private Usuario buscador;
 
+    @ManyToOne
+    @JoinColumn(name = "cita_id", nullable = false)
+    private Cita cita;
+
     private String comentario;
     private LocalDate fecha;
-    private Integer valoracion; // valor entre 1 y 10
+    private Integer valoracion;
 
     // --- Getters y Setters ---
 
@@ -45,6 +47,14 @@ public class Resena {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Servicio getServicio() {
+        return servicio;
+    }
+
+    public void setServicio(Servicio servicio) {
+        this.servicio = servicio;
     }
 
     public Usuario getPrestador() {
@@ -61,6 +71,14 @@ public class Resena {
 
     public void setBuscador(Usuario buscador) {
         this.buscador = buscador;
+    }
+
+    public Cita getCita() {
+        return cita;
+    }
+
+    public void setCita(Cita cita) {
+        this.cita = cita;
     }
 
     public String getComentario() {
@@ -86,14 +104,4 @@ public class Resena {
     public void setValoracion(Integer valoracion) {
         this.valoracion = valoracion;
     }
-
-    public Servicio getServicio() {
-        return servicio;
-    }
-
-    public void setServicio(Servicio servicio) {
-        this.servicio = servicio;
-    }
-
 }
-

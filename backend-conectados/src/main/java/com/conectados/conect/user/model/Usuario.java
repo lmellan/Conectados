@@ -2,6 +2,7 @@ package com.conectados.conect.user.model;
 
 import jakarta.persistence.*;
 
+import java.time.LocalTime;
 import java.util.List;
 
 @Entity
@@ -24,6 +25,9 @@ public class Usuario {
     private List<String> categoria;
     private String descripcion;
     private List<String> disponibilidad;
+    private LocalTime horaInicio;
+    private LocalTime horaFin;
+
 
     // Atributos solo para admin
     @ElementCollection
@@ -113,5 +117,12 @@ public class Usuario {
         this.permisos = permisos;
     }
 
+    public LocalTime getHoraInicio() {return horaInicio;}
+
+    public void setHoraInicio(LocalTime horaInicio) {this.horaInicio = horaInicio;}
+
+    public LocalTime getHoraFin() {return horaFin;}
+
+    public void setHoraFin(LocalTime horaFin) {this.horaFin = horaFin;}
 
 }

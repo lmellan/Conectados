@@ -31,6 +31,8 @@ public class UsuarioServicesImpl implements UsuarioServices {
             usuario.setCategoria(dto.getCategoria());
             usuario.setDescripcion(dto.getDescripcion());
             usuario.setDisponibilidad(dto.getDisponibilidad());
+            usuario.setHoraInicio(dto.getHoraInicio());  // <--- nuevo
+            usuario.setHoraFin(dto.getHoraFin());        // <--- nuevo
         }
 
         return usuarioRepository.save(usuario);
@@ -58,6 +60,8 @@ public class UsuarioServicesImpl implements UsuarioServices {
                 usuario.setCategoria(dto.getCategoria());
                 usuario.setDescripcion(dto.getDescripcion());
                 usuario.setDisponibilidad(dto.getDisponibilidad());
+                usuario.setHoraInicio(dto.getHoraInicio());  // <--- nuevo
+                usuario.setHoraFin(dto.getHoraFin());        // <--- nuevo
             }
 
             return usuarioRepository.save(usuario);
