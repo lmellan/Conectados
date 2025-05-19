@@ -313,8 +313,20 @@ const ProDashboard = () => {
                           <button className="btn-secondary text-sm">
                             Reprogramar
                           </button>
-                          <button className="btn-primary text-sm">
-                            Contactar
+
+                          <button
+                            onClick={() => {
+                              if (booking.cliente?.numero) {
+                                const numero = booking.cliente.numero.replace("+", "");
+                                const mensaje = `Hola ${booking.cliente.nombre}, soy ${user.nombre} de Conectados. Confirmo tu cita para el ${booking.fecha} a las ${booking.hora}.`;
+                                window.open(`https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`, "_blank");
+                              } else {
+                                alert("Este usuario no tiene un número registrado.");
+                              }
+                            }}
+                            className="btn-primary text-sm"
+                          >
+                            Contactar por WhatsApp
                           </button>
                         </div>
                       </div>
