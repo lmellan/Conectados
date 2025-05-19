@@ -25,19 +25,21 @@ public class UsuarioServicesImpl implements UsuarioServices {
         usuario.setContrasena(dto.getContrasena());
         usuario.setRol(dto.getRol());
 
+        // Nuevos campos
+        usuario.setFoto(dto.getFoto());
+        usuario.setNumero(dto.getNumero());
 
         if (dto.getRol().name().equals("PRESTADOR")) {
             usuario.setZonaAtencion(dto.getZonaAtencion());
             usuario.setCategoria(dto.getCategoria());
             usuario.setDescripcion(dto.getDescripcion());
             usuario.setDisponibilidad(dto.getDisponibilidad());
-            usuario.setHoraInicio(dto.getHoraInicio());  // <--- nuevo
-            usuario.setHoraFin(dto.getHoraFin());        // <--- nuevo
+            usuario.setHoraInicio(dto.getHoraInicio());
+            usuario.setHoraFin(dto.getHoraFin());
         }
 
         return usuarioRepository.save(usuario);
     }
-
 
     @Override
     public Optional<Usuario> obtenerUsuarioPorId(Long id) {
@@ -54,14 +56,17 @@ public class UsuarioServicesImpl implements UsuarioServices {
             usuario.setContrasena(dto.getContrasena());
             usuario.setRol(dto.getRol());
 
+            // Nuevos campos
+            usuario.setFoto(dto.getFoto());
+            usuario.setNumero(dto.getNumero());
 
             if (dto.getRol().name().equals("PRESTADOR")) {
                 usuario.setZonaAtencion(dto.getZonaAtencion());
                 usuario.setCategoria(dto.getCategoria());
                 usuario.setDescripcion(dto.getDescripcion());
                 usuario.setDisponibilidad(dto.getDisponibilidad());
-                usuario.setHoraInicio(dto.getHoraInicio());  // <--- nuevo
-                usuario.setHoraFin(dto.getHoraFin());        // <--- nuevo
+                usuario.setHoraInicio(dto.getHoraInicio());
+                usuario.setHoraFin(dto.getHoraFin());
             }
 
             return usuarioRepository.save(usuario);
@@ -75,12 +80,11 @@ public class UsuarioServicesImpl implements UsuarioServices {
         if (usuarioOpt.isPresent()) {
             Usuario usuario = usuarioOpt.get();
             if (usuario.getContrasena().equals(contrasena)) {
-                return Optional.of(usuario); // autenticación exitosa
+                return Optional.of(usuario);
             }
         }
-        return Optional.empty(); // falló login
+        return Optional.empty();
     }
-
 
     @Override
     public void eliminarUsuario(Long id) {
@@ -91,5 +95,4 @@ public class UsuarioServicesImpl implements UsuarioServices {
     public List<Usuario> listarUsuarios() {
         return usuarioRepository.findAll();
     }
-
 }

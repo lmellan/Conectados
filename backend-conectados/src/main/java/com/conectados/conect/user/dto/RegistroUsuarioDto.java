@@ -10,7 +10,9 @@ public class RegistroUsuarioDto {
     private String correo;
     private String contrasena;
     private Rol rol;
-
+    
+    private String foto;
+    private String numero;
 
     // Solo para prestadores
     private String zonaAtencion;
@@ -19,7 +21,8 @@ public class RegistroUsuarioDto {
     private List<String> disponibilidad;
     private LocalTime horaInicio;
     private LocalTime horaFin;
-    // Getters y Setters
+
+    // --- Getters y Setters ---
 
     public String getNombre() { return nombre; }
     public void setNombre(String nombre) { this.nombre = nombre; }
@@ -44,14 +47,18 @@ public class RegistroUsuarioDto {
 
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
-    public LocalTime getHoraInicio() {return horaInicio;}
 
-    public void setHoraInicio(LocalTime horaInicio) {this.horaInicio = horaInicio;}
+    public LocalTime getHoraInicio() { return horaInicio; }
+    public void setHoraInicio(LocalTime horaInicio) { this.horaInicio = horaInicio; }
 
-    public LocalTime getHoraFin() {return horaFin;}
+    public LocalTime getHoraFin() { return horaFin; }
+    public void setHoraFin(LocalTime horaFin) { this.horaFin = horaFin; }
 
-    public void setHoraFin(LocalTime horaFin) {this.horaFin = horaFin;}
+    public String getFoto() { return foto; }
+    public void setFoto(String foto) { this.foto = foto; }
 
-
+    public String getNumero() { return numero; }
+    public void setNumero(String numero) { this.numero = numero; }
 }
+
 

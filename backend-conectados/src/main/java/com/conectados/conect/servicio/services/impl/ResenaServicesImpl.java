@@ -36,7 +36,7 @@ public class ResenaServicesImpl implements ResenaServices {
     @Override
     public ResenaDto crearResenaDesdeDto(ResenaRequestDto dto) {
 
-        System.out.println("🚀 DTO recibido:");
+        System.out.println("DTO recibido:");
         System.out.println("servicioId: " + dto.getServicioId());
         System.out.println("buscadorId: " + dto.getBuscadorId());
         System.out.println("prestadorId: " + dto.getPrestadorId());
@@ -61,7 +61,9 @@ public class ResenaServicesImpl implements ResenaServices {
         }
 
         Resena resena = new Resena();
-        resena.setServicio(servicioOpt.get());
+        Servicio servicio = servicioOpt.get();
+
+        resena.setServicio(servicio);
         resena.setBuscador(buscadorOpt.get());
         resena.setPrestador(prestadorOpt.get());
         resena.setComentario(dto.getComentario());
@@ -70,12 +72,23 @@ public class ResenaServicesImpl implements ResenaServices {
         resena.setCita(citaOpt.get());
 
         Resena guardada = resenaRepository.save(resena);
+
+        // Recalcular la valoración promedio del servicio
+        List<Resena> resenasDelServicio = resenaRepository.findByServicio(servicio);
+        double promedio = resenasDelServicio.stream()
+                .mapToInt(Resena::getValoracion)
+                .average()
+                .orElse(0.0);
+
+        servicio.setValoracionPromedio(promedio);
+        servicioRepository.save(servicio);
+
         return ResenaDto.fromEntity(guardada);
     }
 
 
     @Override
-    public ResenaDto crearResena(Resena resena) {
+    public ResenaDto crearResena(Resena resena) { // ya no se usa
         Optional<Servicio> servicioOpt = servicioRepository.findById(resena.getServicio().getId());
         Optional<Usuario> buscadorOpt = usuarioRepository.findById(resena.getBuscador().getId());
         Optional<Usuario> prestadorOpt = usuarioRepository.findById(resena.getPrestador().getId());

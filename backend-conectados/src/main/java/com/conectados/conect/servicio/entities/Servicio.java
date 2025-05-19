@@ -13,17 +13,11 @@ public class Servicio {
     private Long id;
 
     private String nombre;
-
     private Double precio;
-
     private String zonaAtencion;
-
     private String descripcion;
-
     private String foto;
-
     private String categoria;
-
     private Double valoracionPromedio; // Se actualiza según las reseñas
 
     @ManyToOne
@@ -31,14 +25,12 @@ public class Servicio {
     private Usuario prestador;
 
     @OneToMany(mappedBy = "servicio", cascade = CascadeType.ALL, orphanRemoval = true)
-  
     private List<Resena> resenas;
 
 
     public Long getId() {
         return id;
     }
-
     public void setId(Long id) {
         this.id = id;
     }
@@ -46,14 +38,13 @@ public class Servicio {
     public String getNombre() {
         return nombre;
     }
-
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
+
     public String getDescripcion() {
         return descripcion;
     }
-
     public void setDescripcion(String descripcion) {
         this.descripcion = descripcion;
     }
@@ -61,7 +52,6 @@ public class Servicio {
     public Double getPrecio() {
         return precio;
     }
-
     public void setPrecio(Double precio) {
         this.precio = precio;
     }
@@ -69,7 +59,6 @@ public class Servicio {
     public Usuario getPrestador() {
         return prestador;
     }
-
     public void setPrestador(Usuario prestador) {
         this.prestador = prestador;
     }
@@ -77,7 +66,6 @@ public class Servicio {
     public String getCategoria() {
         return categoria;
     }
-
     public void setCategoria(String categoria) {
         this.categoria = categoria;
     }
@@ -85,7 +73,6 @@ public class Servicio {
     public String getFoto() {
         return foto;
     }
-
     public void setFoto(String foto) {
         this.foto = foto;
     }
@@ -93,7 +80,6 @@ public class Servicio {
     public String getZonaAtencion() {
         return zonaAtencion;
     }
-
     public void setZonaAtencion(String zonaAtencion) {
         this.zonaAtencion = zonaAtencion;
     }
@@ -101,7 +87,6 @@ public class Servicio {
     public Double getValoracionPromedio() {
         return valoracionPromedio;
     }
-
     public void setValoracionPromedio(Double valoracionPromedio) {
         this.valoracionPromedio = valoracionPromedio;
     }
@@ -109,7 +94,6 @@ public class Servicio {
     public List<Resena> getResenas() {
         return resenas;
     }
-
     public void setResenas(List<Resena> resenas) {
         this.resenas = resenas;
     }
