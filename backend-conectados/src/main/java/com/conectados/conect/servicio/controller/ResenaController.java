@@ -1,6 +1,7 @@
 package com.conectados.conect.servicio.controller;
 
 import com.conectados.conect.servicio.entities.Dto.ResenaDto;
+import com.conectados.conect.servicio.entities.Dto.ResenaRequestDto;
 import com.conectados.conect.servicio.entities.Dto.ServicioDto;
 import com.conectados.conect.servicio.entities.Resena;
 import com.conectados.conect.servicio.entities.Servicio;
@@ -20,9 +21,9 @@ public class ResenaController {
     private ResenaServices resenaService;
 
     @PostMapping("/crear")
-    public ResponseEntity<ResenaDto> crear(@RequestBody Resena resena) {
-        ResenaDto creada = resenaService.crearResena(resena);
-        return ResponseEntity.ok(creada);
+    public ResponseEntity<ResenaDto> crearResena(@RequestBody ResenaRequestDto dto) {
+        ResenaDto resenaDto = resenaService.crearResenaDesdeDto(dto);
+        return ResponseEntity.ok(resenaDto);
     }
 
 

@@ -1,6 +1,8 @@
 package com.conectados.conect.user.dto;
 
 import com.conectados.conect.user.model.Rol;
+
+import java.time.LocalTime;
 import java.util.List;
 
 public class RegistroUsuarioDto {
@@ -15,7 +17,8 @@ public class RegistroUsuarioDto {
     private List<String> categoria;
     private String descripcion;
     private List<String> disponibilidad;
-
+    private LocalTime horaInicio;
+    private LocalTime horaFin;
     // Getters y Setters
 
     public String getNombre() { return nombre; }
@@ -41,6 +44,14 @@ public class RegistroUsuarioDto {
 
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
+    public LocalTime getHoraInicio() {return horaInicio;}
+
+    public void setHoraInicio(LocalTime horaInicio) {this.horaInicio = horaInicio;}
+
+    public LocalTime getHoraFin() {return horaFin;}
+
+    public void setHoraFin(LocalTime horaFin) {this.horaFin = horaFin;}
+
 
 }
 

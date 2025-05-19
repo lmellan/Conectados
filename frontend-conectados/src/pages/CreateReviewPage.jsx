@@ -56,18 +56,25 @@ const CreateReviewPage = () => {
 
     setIsSubmitting(true);
     try {
+      const payload = {
+        citaId: cita.id,
+        servicioId: cita.idServicio,
+        buscadorId: cita.idBuscador,
+        prestadorId: cita.idPrestador,
+        comentario: formData.comentario,
+        valoracion: Number(formData.valoracion),
+        fecha: new Date().toISOString().split("T")[0],
+      };
+      
+
+      console.log("Enviando reseña con datos planos:", payload);
+
       const response = await fetch("http://localhost:8080/api/resenas/crear", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            servicio: { id: cita.idServicio },
-            buscador: { id: cita.idBuscador },
-            prestador: { id: cita.idPrestador },
-            comentario: formData.comentario,
-            valoracion: Number(formData.valoracion),
-            fecha: new Date().toISOString().split("T")[0], // "YYYY-MM-DD"
-          }),
+        body: JSON.stringify(payload),
       });
+
       if (!response.ok) throw new Error("Error al crear reseña");
       navigate("/user-dashboard");
     } catch (err) {
@@ -76,6 +83,7 @@ const CreateReviewPage = () => {
       setIsSubmitting(false);
     }
   };
+
 
   if (!user || user.rol !== "BUSCADOR") {
     navigate("/login");

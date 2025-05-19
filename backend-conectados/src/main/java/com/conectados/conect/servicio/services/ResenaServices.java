@@ -1,6 +1,7 @@
 package com.conectados.conect.servicio.services;
 
 import com.conectados.conect.servicio.entities.Dto.ResenaDto;
+import com.conectados.conect.servicio.entities.Dto.ResenaRequestDto;
 import com.conectados.conect.servicio.entities.Resena;
 import com.conectados.conect.servicio.entities.Servicio;
 import java.util.List;
@@ -12,5 +13,6 @@ public interface ResenaServices {
     List<Resena> obtenerResenasPorServicio(Servicio servicio);
     Resena actualizarResena(Long id, Resena resena);
     void eliminarResena(Long id);
+    ResenaDto crearResenaDesdeDto(ResenaRequestDto dto);
 }
 

@@ -1,6 +1,9 @@
 package com.conectados.conect.servicio.services.impl;
 
+import com.conectados.conect.cita.entities.Cita;
+import com.conectados.conect.cita.repositories.CitaRepository;
 import com.conectados.conect.servicio.entities.Dto.ResenaDto;
+import com.conectados.conect.servicio.entities.Dto.ResenaRequestDto;
 import com.conectados.conect.servicio.entities.Resena;
 import com.conectados.conect.servicio.entities.Servicio;
 import com.conectados.conect.servicio.repositories.ResenaRepository;
@@ -26,6 +29,51 @@ public class ResenaServicesImpl implements ResenaServices {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private CitaRepository citaRepository;
+
+
+    @Override
+    public ResenaDto crearResenaDesdeDto(ResenaRequestDto dto) {
+
+        System.out.println("🚀 DTO recibido:");
+        System.out.println("servicioId: " + dto.getServicioId());
+        System.out.println("buscadorId: " + dto.getBuscadorId());
+        System.out.println("prestadorId: " + dto.getPrestadorId());
+        System.out.println("citaId: " + dto.getCitaId());
+
+        Optional<Servicio> servicioOpt = servicioRepository.findById(dto.getServicioId());
+        Optional<Usuario> buscadorOpt = usuarioRepository.findById(dto.getBuscadorId());
+        Optional<Usuario> prestadorOpt = usuarioRepository.findById(dto.getPrestadorId());
+        Optional<Cita> citaOpt = citaRepository.findById(dto.getCitaId());
+
+        if (servicioOpt.isEmpty()) {
+            throw new RuntimeException("Servicio no encontrado");
+        }
+        if (buscadorOpt.isEmpty()) {
+            throw new RuntimeException("Buscador no encontrado");
+        }
+        if (prestadorOpt.isEmpty()) {
+            throw new RuntimeException("Prestador no encontrado");
+        }
+        if (citaOpt.isEmpty()) {
+            throw new RuntimeException("Cita no encontrada");
+        }
+
+        Resena resena = new Resena();
+        resena.setServicio(servicioOpt.get());
+        resena.setBuscador(buscadorOpt.get());
+        resena.setPrestador(prestadorOpt.get());
+        resena.setComentario(dto.getComentario());
+        resena.setFecha(dto.getFecha());
+        resena.setValoracion(dto.getValoracion());
+        resena.setCita(citaOpt.get());
+
+        Resena guardada = resenaRepository.save(resena);
+        return ResenaDto.fromEntity(guardada);
+    }
+
+
     @Override
     public ResenaDto crearResena(Resena resena) {
         Optional<Servicio> servicioOpt = servicioRepository.findById(resena.getServicio().getId());
@@ -43,8 +91,6 @@ public class ResenaServicesImpl implements ResenaServices {
 
         throw new RuntimeException("Entidad relacionada no encontrada");
     }
-
-
 
     @Override
     public Resena obtenerResenaPorId(Long id) {
