@@ -13,15 +13,21 @@ public class ResenaDto {
     private Long buscadorId;
     private String nombreBuscador;
 
+    private Long citaId;
+
 
     // Getters y setters
     public Long getId() {
         return id;
     }
-
     public void setId(Long id) {
         this.id = id;
     }
+
+
+
+    public Long getCitaId() {return citaId;}
+    public void setCitaId(Long citaId) {this.citaId = citaId;}
 
     public String getComentario() {
         return comentario;

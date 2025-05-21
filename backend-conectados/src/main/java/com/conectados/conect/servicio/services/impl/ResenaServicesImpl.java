@@ -12,7 +12,9 @@ import com.conectados.conect.servicio.services.ResenaServices;
 import com.conectados.conect.user.model.Usuario;
 import com.conectados.conect.user.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -32,10 +34,8 @@ public class ResenaServicesImpl implements ResenaServices {
     @Autowired
     private CitaRepository citaRepository;
 
-
     @Override
     public ResenaDto crearResenaDesdeDto(ResenaRequestDto dto) {
-
         System.out.println("DTO recibido:");
         System.out.println("servicioId: " + dto.getServicioId());
         System.out.println("buscadorId: " + dto.getBuscadorId());
@@ -86,9 +86,8 @@ public class ResenaServicesImpl implements ResenaServices {
         return ResenaDto.fromEntity(guardada);
     }
 
-
     @Override
-    public ResenaDto crearResena(Resena resena) { // ya no se usa
+    public ResenaDto crearResena(Resena resena) {
         Optional<Servicio> servicioOpt = servicioRepository.findById(resena.getServicio().getId());
         Optional<Usuario> buscadorOpt = usuarioRepository.findById(resena.getBuscador().getId());
         Optional<Usuario> prestadorOpt = usuarioRepository.findById(resena.getPrestador().getId());
@@ -111,13 +110,19 @@ public class ResenaServicesImpl implements ResenaServices {
     }
 
     @Override
-    public List<Resena> obtenerTodasLasResenas() {
-        return resenaRepository.findAll();
+    public List<ResenaDto> obtenerTodasLasResenas() {
+        List<Resena> resenas = resenaRepository.findAll();
+        return resenas.stream()
+                .map(ResenaDto::fromEntity)
+                .toList();
     }
 
     @Override
-    public List<Resena> obtenerResenasPorServicio(Servicio servicio) {
-        return resenaRepository.findByServicio(servicio);
+    public List<ResenaDto> obtenerResenasPorServicio(Servicio servicio) {
+        List<Resena> resenas = resenaRepository.findByServicio(servicio);
+        return resenas.stream()
+                .map(ResenaDto::fromEntity)
+                .toList();
     }
 
     @Override
@@ -137,4 +142,18 @@ public class ResenaServicesImpl implements ResenaServices {
     public void eliminarResena(Long id) {
         resenaRepository.deleteById(id);
     }
+
+    @Override
+    public ResenaDto obtenerResenaPorCitaId(Long id) {
+        Optional<Cita> citaOpt = citaRepository.findById(id);
+        if (citaOpt.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Cita no encontrada.");
+        }
+
+        Optional<Resena> resenaOpt = resenaRepository.findByCita(citaOpt.get());
+
+        return resenaOpt.map(ResenaDto::fromEntity).orElse(null);
+    }
+
+
 }

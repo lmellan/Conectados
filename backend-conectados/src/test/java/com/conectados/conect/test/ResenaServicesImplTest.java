@@ -112,22 +112,49 @@ class ResenaServicesImplTest {
 
     @Test
     void obtenerTodasLasResenas_peticion_deberiaListarResenas() {
-        when(resenaRepository.findAll()).thenReturn(List.of(new Resena()));
+        Resena resenaMock = new Resena();
+        Servicio servicio = new Servicio();
+        servicio.setId(1L);
+        Usuario buscador = new Usuario();
+        buscador.setId(2L);
+        buscador.setNombre("Pedro");
+        resenaMock.setServicio(servicio);
+        resenaMock.setBuscador(buscador);
+        resenaMock.setComentario("Muy bueno");
+        resenaMock.setFecha(LocalDate.now());
+        resenaMock.setValoracion(9);
 
-        List<Resena> resenas = resenaServices.obtenerTodasLasResenas();
+        when(resenaRepository.findAll()).thenReturn(List.of(resenaMock));
+
+        List<ResenaDto> resenas = resenaServices.obtenerTodasLasResenas();
 
         assertEquals(1, resenas.size());
+        assertEquals("Muy bueno", resenas.get(0).getComentario());
     }
 
     @Test
     void obtenerResenasPorServicio_peticion_deberiaListarResenas() {
         Servicio servicio = new Servicio();
-        when(resenaRepository.findByServicio(servicio)).thenReturn(List.of(new Resena()));
+        servicio.setId(1L);
 
-        List<Resena> resenas = resenaServices.obtenerResenasPorServicio(servicio);
+        Resena resenaMock = new Resena();
+        resenaMock.setServicio(servicio);
+        Usuario buscador = new Usuario();
+        buscador.setId(2L);
+        buscador.setNombre("Lucía");
+        resenaMock.setBuscador(buscador);
+        resenaMock.setComentario("Excelente");
+        resenaMock.setFecha(LocalDate.now());
+        resenaMock.setValoracion(10);
+
+        when(resenaRepository.findByServicio(servicio)).thenReturn(List.of(resenaMock));
+
+        List<ResenaDto> resenas = resenaServices.obtenerResenasPorServicio(servicio);
 
         assertEquals(1, resenas.size());
+        assertEquals("Excelente", resenas.get(0).getComentario());
     }
+
 
     @Test
     void actualizarResena_existente_deberiaActualizarCampos() {
