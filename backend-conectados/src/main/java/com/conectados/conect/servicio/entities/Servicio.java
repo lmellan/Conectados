@@ -16,6 +16,7 @@ public class Servicio {
     private Double precio;
     private String zonaAtencion;
     private String descripcion;
+    @Column(columnDefinition = "LONGTEXT")
     private String foto;
     private String categoria;
     private Double valoracionPromedio; // Se actualiza según las reseñas

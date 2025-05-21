@@ -90,18 +90,63 @@ public class CitaServicesImpl implements CitaServices {
     @Override
     public Cita actualizarCita(Long id, Cita cita) {
         Optional<Cita> existente = citaRepository.findById(id);
-        if (existente.isPresent()) {
-            Cita c = existente.get();
-            c.setIdBuscador(cita.getIdBuscador());
-            c.setIdPrestador(cita.getIdPrestador());
-            c.setIdServicio(cita.getIdServicio());
-            c.setFecha(cita.getFecha());
-            c.setHora(cita.getHora());
-            c.setEstado(cita.getEstado());
-            return citaRepository.save(c);
+        if (existente.isEmpty()) {
+            return null;
         }
-        return null;
+
+        // Verifica si ya existe otra cita en ese horario (excluyendo esta misma)
+        Long conteo = citaRepository.contarCitasPorPrestadorFechaHoraExceptoId(
+                id,
+                cita.getIdPrestador(),
+                cita.getFecha(),
+                cita.getHora()
+        );
+
+        if (conteo > 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ya tienes una cita programada en ese horario.");
+        }
+
+        // Verifica que el prestador exista
+        Optional<Usuario> prestadorOpt = usuarioRepository.findById(cita.getIdPrestador());
+        if (prestadorOpt.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró tu perfil como prestador.");
+        }
+
+        Usuario prestador = prestadorOpt.get();
+
+        // Traduce día de la semana y verifica disponibilidad
+        String diaSemana = traducirDiaADisponibilidad(cita.getFecha().getDayOfWeek());
+        List<String> diasDisponibles = prestador.getDisponibilidad();
+
+        boolean trabajaEseDia = diasDisponibles != null &&
+                diasDisponibles.stream().anyMatch(d -> d.equalsIgnoreCase(diaSemana));
+
+        if (!trabajaEseDia) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ese día no estás disponible según tu configuración.");
+        }
+
+        // Verifica que esté dentro del horario definido
+        LocalTime horaCita = cita.getHora();
+        if (prestador.getHoraInicio() == null || prestador.getHoraFin() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No tienes definido tu horario de atención.");
+        }
+
+        if (horaCita.isBefore(prestador.getHoraInicio()) || horaCita.isAfter(prestador.getHoraFin())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La hora está fuera de tu horario de atención.");
+        }
+
+        // Actualiza la cita
+        Cita c = existente.get();
+        c.setIdBuscador(cita.getIdBuscador());
+        c.setIdPrestador(cita.getIdPrestador());
+        c.setIdServicio(cita.getIdServicio());
+        c.setFecha(cita.getFecha());
+        c.setHora(cita.getHora());
+        c.setEstado(cita.getEstado());
+
+        return citaRepository.save(c);
     }
+
 
     @Override
     public void eliminarCita(Long id) {
