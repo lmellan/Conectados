@@ -37,7 +37,7 @@ class UsuarioServicesImplTest {
         dto.setNombre("Test");
         dto.setCorreo("test@example.com");
         dto.setContrasena("password");
-        dto.setRol(Rol.BUSCADOR);
+        dto.setRoles(List.of(Rol.BUSCADOR));
 
         when(usuarioRepository.findByCorreo(dto.getCorreo())).thenReturn(Optional.empty());
         when(usuarioRepository.save(any(Usuario.class))).thenReturn(new Usuario());
@@ -84,7 +84,7 @@ class UsuarioServicesImplTest {
         dto.setNombre("Nuevo Nombre");
         dto.setCorreo("nuevo@example.com");
         dto.setContrasena("nuevaPassword");
-        dto.setRol(Rol.PRESTADOR);
+        dto.setRoles(List.of(Rol.PRESTADOR));
 
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioExistente));
         when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuarioExistente);

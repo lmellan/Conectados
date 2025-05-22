@@ -2,6 +2,8 @@ package com.conectados.conect.user.dto;
 
 import com.conectados.conect.user.model.Rol;
 
+
+
 import java.time.LocalTime;
 import java.util.List;
 
@@ -9,7 +11,9 @@ public class RegistroUsuarioDto {
     private String nombre;
     private String correo;
     private String contrasena;
-    private Rol rol;
+
+    private List<Rol> roles;
+
     
     private String foto;
     private String numero;
@@ -33,8 +37,14 @@ public class RegistroUsuarioDto {
     public String getContrasena() { return contrasena; }
     public void setContrasena(String contrasena) { this.contrasena = contrasena; }
 
-    public Rol getRol() { return rol; }
-    public void setRol(Rol rol) { this.rol = rol; }
+    public List<Rol> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<Rol> roles) {
+        this.roles = roles;
+    }
+
 
     public String getZonaAtencion() { return zonaAtencion; }
     public void setZonaAtencion(String zonaAtencion) { this.zonaAtencion = zonaAtencion; }

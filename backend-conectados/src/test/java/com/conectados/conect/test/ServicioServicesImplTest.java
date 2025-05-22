@@ -63,18 +63,6 @@ class ServicioServicesImplTest {
         verify(servicioRepository, times(1)).save(servicio);
     }
 
-    // @Test
-    // void crearServicio_validAtributos_deberiaGuardarServicio() {
-    //     Servicio servicio = new Servicio();
-    //     when(servicioRepository.save(any(Servicio.class))).thenReturn(servicio);
-
-    //     Servicio resultado = servicioServices.crearServicio(servicio);
-
-    //     assertNotNull(resultado);
-    //     verify(servicioRepository, times(1)).save(servicio);
-    // }
-
-
     //2 test categoria no valida
         @Test
     void crearServicio_categoriaNoValida_deberiaLanzarExcepcion() {

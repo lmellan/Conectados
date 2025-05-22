@@ -3,6 +3,7 @@ package com.conectados.conect.user.model;
 import jakarta.persistence.*;
 
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -20,8 +21,12 @@ public class Usuario {
     private String numero;   // Teléfono celular
 
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "usuario_roles", joinColumns = @JoinColumn(name = "usuario_id"))
+    @Column(name = "rol")
     @Enumerated(EnumType.STRING)
-    private Rol rol;
+    private List<Rol> roles = new ArrayList<>();
+
 
     // Atributos solo para prestadores
     private String zonaAtencion;
@@ -51,8 +56,15 @@ public class Usuario {
     public String getContrasena() {return contrasena;}
     public void setContrasena(String contrasena) {this.contrasena = contrasena;}
 
-    public Rol getRol() {return rol;}
-    public void setRol(Rol rol) {this.rol = rol;}
+
+    public List<Rol> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<Rol> roles) {
+        this.roles = roles;
+    }
+
 
     public String getZonaAtencion() {return zonaAtencion;}
     public void setZonaAtencion(String zonaAtencion) {this.zonaAtencion = zonaAtencion;}

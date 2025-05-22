@@ -1,6 +1,7 @@
 package com.conectados.conect.user.service.impl;
 
 import com.conectados.conect.user.dto.RegistroUsuarioDto;
+import com.conectados.conect.user.model.Rol;
 import com.conectados.conect.user.model.Usuario;
 import com.conectados.conect.user.repository.UsuarioRepository;
 import com.conectados.conect.user.service.UsuarioServices;
@@ -23,13 +24,13 @@ public class UsuarioServicesImpl implements UsuarioServices {
         usuario.setNombre(dto.getNombre());
         usuario.setCorreo(dto.getCorreo());
         usuario.setContrasena(dto.getContrasena());
-        usuario.setRol(dto.getRol());
+        usuario.setRoles(dto.getRoles());
 
-        // Nuevos campos
+        //Nuevos campos
         usuario.setFoto(dto.getFoto());
         usuario.setNumero(dto.getNumero());
 
-        if (dto.getRol().name().equals("PRESTADOR")) {
+        if (dto.getRoles().contains(Rol.PRESTADOR)) {
             usuario.setZonaAtencion(dto.getZonaAtencion());
             usuario.setCategoria(dto.getCategoria());
             usuario.setDescripcion(dto.getDescripcion());
@@ -54,13 +55,13 @@ public class UsuarioServicesImpl implements UsuarioServices {
             usuario.setNombre(dto.getNombre());
             usuario.setCorreo(dto.getCorreo());
             usuario.setContrasena(dto.getContrasena());
-            usuario.setRol(dto.getRol());
+            usuario.setRoles(dto.getRoles());
 
             // Nuevos campos
             usuario.setFoto(dto.getFoto());
             usuario.setNumero(dto.getNumero());
 
-            if (dto.getRol().name().equals("PRESTADOR")) {
+            if (dto.getRoles().contains(Rol.PRESTADOR)) {
                 usuario.setZonaAtencion(dto.getZonaAtencion());
                 usuario.setCategoria(dto.getCategoria());
                 usuario.setDescripcion(dto.getDescripcion());
@@ -95,4 +96,31 @@ public class UsuarioServicesImpl implements UsuarioServices {
     public List<Usuario> listarUsuarios() {
         return usuarioRepository.findAll();
     }
+
+    @Override
+    public Usuario actualizarUsuario(Long id, Usuario usuarioActualizado) {
+        Optional<Usuario> usuarioOpt = usuarioRepository.findById(id);
+        if (usuarioOpt.isPresent()) {
+            Usuario usuario = usuarioOpt.get();
+
+            // Solo actualizamos algunos campos que pueden cambiar libremente
+            usuario.setNombre(usuarioActualizado.getNombre());
+            usuario.setCorreo(usuarioActualizado.getCorreo());
+            usuario.setContrasena(usuarioActualizado.getContrasena());
+            usuario.setFoto(usuarioActualizado.getFoto());
+            usuario.setNumero(usuarioActualizado.getNumero());
+            usuario.setZonaAtencion(usuarioActualizado.getZonaAtencion());
+            usuario.setCategoria(usuarioActualizado.getCategoria());
+            usuario.setDescripcion(usuarioActualizado.getDescripcion());
+            usuario.setDisponibilidad(usuarioActualizado.getDisponibilidad());
+            usuario.setHoraInicio(usuarioActualizado.getHoraInicio());
+            usuario.setHoraFin(usuarioActualizado.getHoraFin());
+
+            usuario.setRolActivo(usuarioActualizado.getRolActivo());
+
+            return usuarioRepository.save(usuario);
+        }
+        return null;
+    }
+
 }

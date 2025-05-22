@@ -21,4 +21,8 @@ public interface UsuarioServices {
 
     List<Usuario> listarUsuarios();
 
+    // UsuarioServices.java
+
+    Usuario actualizarUsuario(Long id, Usuario usuario);
+
 }
