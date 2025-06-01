@@ -384,4 +384,4 @@ Si deseas contribuir al proyecto, sigue estos pasos utilizando **GitFlow** de pa
 Este proyecto está bajo la **MIT License** - ver el archivo [LICENSE](https://github.com/lmellan/Tarea_1-INF331/blob/main/LICENSE) para más detalles.
 
 
-Última prueba: integración con Slack ✅
+
