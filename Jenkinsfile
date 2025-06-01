@@ -30,6 +30,19 @@ pipeline {
             }
         }
 
+        stage('Test Slack Manual') {
+            steps {
+                withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_URL')]) {
+                    sh '''
+                        echo "Probando mensaje manual a Slack..."
+                        curl -X POST -H 'Content-type: application/json' \
+                        --data '{"text":"Prueba directa desde Jenkins con curl."}' \
+                        "$SLACK_URL"
+                    '''
+                }
+            }
+        }
+
         // stage('Desplegar') {
         //     steps {
         //         echo 'Aquí puedes copiar archivos o reiniciar servicios en tu servidor'
@@ -43,7 +56,7 @@ pipeline {
             withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_URL')]) {
                 sh '''
                     curl -X POST -H 'Content-type: application/json' \
-                    --data '{"text":" Build exitoso del proyecto Conectados."}' \
+                    --data '{"text":"Build exitoso del proyecto Conectados."}' \
                     "$SLACK_URL"
                 '''
             }
@@ -54,7 +67,7 @@ pipeline {
             withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_URL')]) {
                 sh '''
                     curl -X POST -H 'Content-type: application/json' \
-                    --data '{"text":" Build fallido en Jenkins (Conectados)."}' \
+                    --data '{"text":"Build fallido en Jenkins (Conectados)."}' \
                     "$SLACK_URL"
                 '''
             }
