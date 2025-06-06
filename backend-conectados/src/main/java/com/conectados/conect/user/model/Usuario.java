@@ -30,7 +30,11 @@ public class Usuario {
 
     // Atributos solo para prestadores
     private String zonaAtencion;
+
+    @ElementCollection
     private List<String> categoria;
+
+    @ElementCollection
     private String descripcion;
     private List<String> disponibilidad;
     private LocalTime horaInicio;
@@ -57,6 +61,7 @@ public class Usuario {
     public void setContrasena(String contrasena) {this.contrasena = contrasena;}
 
 
+
     public List<Rol> getRoles() {
         return roles;
     }
@@ -64,6 +69,10 @@ public class Usuario {
     public void setRoles(List<Rol> roles) {
         this.roles = roles;
     }
+
+    @Transient
+    private Rol rolActivo;
+
 
 
     public String getZonaAtencion() {return zonaAtencion;}
@@ -94,4 +103,13 @@ public class Usuario {
     public String getNumero() { return numero; }
     public void setNumero(String numero) { this.numero = numero;}
 
+
+
+    public Rol getRolActivo() {
+        return rolActivo;
+    }
+
+    public void setRolActivo(Rol rolActivo) {
+        this.rolActivo = rolActivo;
+    }
 }
