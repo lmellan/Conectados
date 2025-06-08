@@ -1,5 +1,10 @@
+
 pipeline {
     agent any
+
+    options {
+        skipDefaultCheckout(true)
+    }
 
     environment {
         BACKEND_DIR = 'backend-conectados'
@@ -7,47 +12,52 @@ pipeline {
     }
 
     stages {
-        stage('Clonar repositorio') {
+        stage('Filtrar ramas') {
             steps {
-                git branch: 'main', url: 'https://github.com/ConectadosTeam/Conectados.git'
-            }
-        }
-
-        stage('Construir Backend') {
-            steps {
-                dir("${BACKEND_DIR}") {
-                    sh './mvnw clean package -DskipTests'
+                script {
+                    def branchName = env.GIT_BRANCH?.replaceFirst(/^origin\//, '')
+                    echo "Rama detectada: ${branchName}"
+                    if (!(branchName == 'main' || branchName == 'develop')) {
+                        echo "Rama '${branchName}' no está autorizada para ejecutar el pipeline."
+                        currentBuild.result = 'NOT_BUILT'
+                        error("Abortando pipeline.")
+                    }
                 }
             }
         }
 
-        stage('Construir Frontend') {
+        stage('Clonar repositorio') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Test y Build Backend') {
+            steps {
+                dir("${BACKEND_DIR}") {
+                    echo "Ejecutando tests y construyendo backend..."
+                    sh './mvnw clean verify' // incluye tests y empaquetado
+                }
+            }
+        }
+
+        stage('Test y Build Frontend') {
             steps {
                 dir("${FRONTEND_DIR}") {
+                    echo "Ejecutando tests de frontend..."
                     sh 'npm install'
+                    sh 'npm test -- --watchAll=false' // ejecuta todos los tests una vez
+                    echo "Construyendo frontend..."
                     sh 'CI="" npm run build'
                 }
             }
         }
 
-        stage('Test Slack Manual') {
+        stage('Guardar artefacto') {
             steps {
-                withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_URL')]) {
-                    sh '''
-                        echo "Probando mensaje manual a Slack..."
-                        curl -X POST -H 'Content-type: application/json' \
-                        --data '{"text":"Prueba directa desde Jenkins con curl."}' \
-                        "$SLACK_URL"
-                    '''
-                }
+                archiveArtifacts artifacts: "${BACKEND_DIR}/target/*.jar", fingerprint: true
             }
         }
-
-        // stage('Desplegar') {
-        //     steps {
-        //         echo 'Aquí puedes copiar archivos o reiniciar servicios en tu servidor'
-        //     }
-        // }
     }
 
     post {
@@ -56,18 +66,17 @@ pipeline {
             withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_URL')]) {
                 sh '''
                     curl -X POST -H 'Content-type: application/json' \
-                    --data '{"text":"Build exitoso del proyecto Conectados."}' \
+                    --data '{"text":"*Conectados*: Build exitoso."}' \
                     "$SLACK_URL"
                 '''
             }
         }
-
         failure {
             echo 'Ocurrió un error durante el build.'
             withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_URL')]) {
                 sh '''
                     curl -X POST -H 'Content-type: application/json' \
-                    --data '{"text":"Build fallido en Jenkins (Conectados)."}' \
+                    --data '{"text":"*Conectados*: Build fallido."}' \
                     "$SLACK_URL"
                 '''
             }
