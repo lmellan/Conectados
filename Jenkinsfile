@@ -153,6 +153,7 @@ pipeline {
         }
     }
 
+
     post {
         always {
             echo "Deteniendo contenedores..."
