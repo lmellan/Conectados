@@ -98,9 +98,10 @@ pipeline {
     stages {
         stage('Clonar repositorio') {
             steps {
-                git branch: 'main', url: 'https://github.com/ConectadosTeam/Conectados.git'
+                git branch: "${env.BRANCH_NAME ?: 'main'}", url: 'https://github.com/ConectadosTeam/Conectados.git'
             }
         }
+
         stage('Levantar MySQL') {
             steps {
                 dir("${DOCKER_COMPOSE_DIR}") {
@@ -123,7 +124,14 @@ pipeline {
         stage('Test y Build Backend') {
             steps {
                 dir("${BACKEND_DIR}") {
-                    sh './mvnw clean verify'
+                    script {
+                        try {
+                            sh './mvnw clean verify'
+                        } catch (err) {
+                            writeFile file: 'error.log', text: err.getMessage()
+                            throw err
+                        }
+                    }
                 }
             }
         }
@@ -154,12 +162,35 @@ pipeline {
 
             echo "Build finalizado con estado: ${currentBuild.currentResult}"
 
-            withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_URL')]) {
-                sh '''
-                    curl -X POST -H 'Content-type: application/json' \
-                    --data '{"text":"*Conectados*: Resultado del build: ''' + "${currentBuild.currentResult}" + '''"}' \
-                    "$SLACK_URL"
-                '''
+            script {
+                def icon = currentBuild.currentResult == 'SUCCESS' ? '✅' : '❌'
+                def branch = env.BRANCH_NAME ?: 'Desconocida'
+                def jobName = env.JOB_NAME
+                def buildNum = env.BUILD_NUMBER
+                def buildUrl = env.BUILD_URL
+                def duration = currentBuild.durationString.replace(' and counting', '')
+                def errorSummary = ''
+
+                if (fileExists("${BACKEND_DIR}/error.log")) {
+                    def raw = readFile("${BACKEND_DIR}/error.log")
+                    errorSummary = raw.split('\n')[0..2].join('\\n')
+                }
+
+                def message = """${icon} *Conectados* - Build *#${buildNum}*
+*Estado:* ${currentBuild.currentResult}
+*Rama:* ${branch}
+*Job:* ${jobName}
+*Duración:* ${duration}
+${errorSummary ? "*Error:*\\n```${errorSummary}```" : ""}
+🔗 <${buildUrl}|Ver build en Jenkins>"""
+
+                withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_URL')]) {
+                    sh """
+                        curl -X POST -H 'Content-type: application/json' \
+                        --data '{"text": ${groovy.json.JsonOutput.toJson(message)}}' \
+                        "$SLACK_URL"
+                    """
+                }
             }
         }
     }
