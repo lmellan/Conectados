@@ -84,31 +84,34 @@ pipeline {
 
 
 */
-
 pipeline {
     agent any
 
     environment {
         BACKEND_DIR = 'backend-conectados'
         FRONTEND_DIR = 'frontend-conectados'
+        REPO_URL = 'https://github.com/ConectadosTeam/Conectados.git'
+        DEFAULT_BRANCH = 'main'  
     }
 
     stages {
-        stage('Filtrar ramas') {
+        stage('Clonar repositorio') {
             steps {
                 script {
-                    def branchName = env.BRANCH_NAME
-                    echo "Rama detectada: ${branchName}"
-                    if (!(branchName == 'main' || branchName == 'develop')) {
-                        error("Abortando pipeline: rama no autorizada.")
-                    }
+                    sh "git clone --depth 1 -b ${DEFAULT_BRANCH} ${REPO_URL} ."
                 }
             }
         }
 
-        stage('Clonar repositorio') {
+        stage('Detectar y filtrar rama') {
             steps {
-                checkout scm
+                script {
+                    def branchName = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+                    echo "Rama detectada: ${branchName}"
+                    if (!(branchName == 'main' || branchName == 'develop')) {
+                        error("Abortando pipeline: rama '${branchName}' no está autorizada.")
+                    }
+                }
             }
         }
 
@@ -141,11 +144,11 @@ pipeline {
         always {
             echo "Build finalizado con estado: ${currentBuild.currentResult}"
             withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_URL')]) {
-                sh """
+                sh '''
                     curl -X POST -H 'Content-type: application/json' \
-                    --data '{"text":"*Conectados (${env.BRANCH_NAME})*: Resultado del build: ${currentBuild.currentResult}"}' \
+                    --data '{"text":"*Conectados*: Resultado del build: ''' + "${currentBuild.currentResult}" + '''"}' \
                     "$SLACK_URL"
-                """
+                '''
             }
         }
     }
