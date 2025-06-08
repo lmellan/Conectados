@@ -99,10 +99,16 @@ pipeline {
     }
 
     stages {
+        stage('Clonar repositorio') {
+            steps {
+                checkout scm
+            }
+        }
+
         stage('Filtrar ramas') {
             steps {
                 script {
-                    def branchName = env.BRANCH_NAME
+                    def branchName = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
                     echo "Rama detectada: ${branchName}"
                     if (!(branchName == 'main' || branchName == 'develop')) {
                         echo "Rama '${branchName}' no está autorizada para ejecutar el pipeline."
@@ -110,12 +116,6 @@ pipeline {
                         error("Abortando pipeline.")
                     }
                 }
-            }
-        }
-
-        stage('Clonar repositorio') {
-            steps {
-                checkout scm
             }
         }
 
@@ -148,24 +148,14 @@ pipeline {
     }
 
     post {
-        success {
-            echo 'Build completado con éxito.'
+        always {
+            echo "Build finalizado con estado: ${currentBuild.currentResult}"
             withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_URL')]) {
-                sh '''
+                sh """
                     curl -X POST -H 'Content-type: application/json' \
-                    --data '{"text":"*Conectados*: Build exitoso."}' \
+                    --data '{"text":"*Conectados*: Resultado del build: ${currentBuild.currentResult}"}' \
                     "$SLACK_URL"
-                '''
-            }
-        }
-        failure {
-            echo 'Ocurrió un error durante el build.'
-            withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_URL')]) {
-                sh '''
-                    curl -X POST -H 'Content-type: application/json' \
-                    --data '{"text":"*Conectados*: Build fallido."}' \
-                    "$SLACK_URL"
-                '''
+                """
             }
         }
     }
