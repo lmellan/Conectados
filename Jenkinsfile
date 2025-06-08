@@ -173,16 +173,16 @@ pipeline {
 
                 if (fileExists("${BACKEND_DIR}/error.log")) {
                     def raw = readFile("${BACKEND_DIR}/error.log")
-                    errorSummary = raw.split('\n')[0..2].join('\\n')
+                    errorSummary = raw.readLines().take(3).join('\\n')
                 }
 
                 def message = """${icon} *Conectados* - Build *#${buildNum}*
-*Estado:* ${currentBuild.currentResult}
-*Rama:* ${branch}
-*Job:* ${jobName}
-*Duración:* ${duration}
-${errorSummary ? "*Error:*\\n```${errorSummary}```" : ""}
-🔗 <${buildUrl}|Ver build en Jenkins>"""
+    *Estado:* ${currentBuild.currentResult}
+    *Rama:* ${branch}
+    *Job:* ${jobName}
+    *Duración:* ${duration}
+    ${errorSummary ? "*Error:*\\n```${errorSummary}```" : ""}
+    🔗 <${buildUrl}|Ver build en Jenkins>"""
 
                 withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_URL')]) {
                     sh """
@@ -194,4 +194,5 @@ ${errorSummary ? "*Error:*\\n```${errorSummary}```" : ""}
             }
         }
     }
+
 }
