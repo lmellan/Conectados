@@ -88,33 +88,36 @@ pipeline {
 pipeline {
     agent any
 
+    options {
+        skipDefaultCheckout(true) // Usamos 'checkout scm' para tener control
+    }
+
     environment {
         BACKEND_DIR = 'backend-conectados'
         FRONTEND_DIR = 'frontend-conectados'
-        REPO_URL = 'https://github.com/ConectadosTeam/Conectados.git'
-        DEFAULT_BRANCH = 'main'  
     }
 
     stages {
-        stage('Clonar repositorio') {
+        stage('Filtrar ramas') {
             steps {
                 script {
-                    sh "git clone --depth 1 -b ${DEFAULT_BRANCH} ${REPO_URL} ."
-                }
-            }
-        }
-
-        stage('Detectar y filtrar rama') {
-            steps {
-                script {
-                    def branchName = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+                    def branchName = env.GIT_BRANCH?.replaceFirst(/^origin\//, '')
                     echo "Rama detectada: ${branchName}"
                     if (!(branchName == 'main' || branchName == 'develop')) {
-                        error("Abortando pipeline: rama '${branchName}' no está autorizada.")
+                        echo "Rama '${branchName}' no está autorizada para ejecutar el pipeline."
+                        currentBuild.result = 'NOT_BUILT'
+                        error("Abortando pipeline.")
                     }
                 }
             }
         }
+        stage('Clonar repositorio') {
+            steps {
+                checkout scm
+            }
+        }
+
+
 
         stage('Test y Build Backend') {
             steps {
