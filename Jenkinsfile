@@ -87,10 +87,6 @@ pipeline {
 pipeline {
     agent any
 
-    options {
-        skipDefaultCheckout(true)
-    }
-
     environment {
         BACKEND_DIR = 'backend-conectados'
         FRONTEND_DIR = 'frontend-conectados'
@@ -99,9 +95,10 @@ pipeline {
     stages {
         stage('Clonar repositorio') {
             steps {
-                checkout scm
+                git branch: 'main', url: 'https://github.com/ConectadosTeam/Conectados.git'
             }
         }
+
 
         stage('Filtrar ramas') {
             steps {
