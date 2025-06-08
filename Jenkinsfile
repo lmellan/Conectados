@@ -85,13 +85,8 @@ pipeline {
 
 */
 
-
 pipeline {
     agent any
-
-    options {
-        skipDefaultCheckout(true)
-    }
 
     environment {
         BACKEND_DIR = 'backend-conectados'
@@ -99,30 +94,27 @@ pipeline {
     }
 
     stages {
+        stage('Filtrar ramas') {
+            steps {
+                script {
+                    def branchName = env.BRANCH_NAME
+                    echo "Rama detectada: ${branchName}"
+                    if (!(branchName == 'main' || branchName == 'develop')) {
+                        error("Abortando pipeline: rama no autorizada.")
+                    }
+                }
+            }
+        }
+
         stage('Clonar repositorio') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Filtrar ramas') {
-            steps {
-                script {
-                    def branchName = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
-                    echo "Rama detectada: ${branchName}"
-                    if (!(branchName == 'main' || branchName == 'develop')) {
-                        echo "Rama '${branchName}' no está autorizada para ejecutar el pipeline."
-                        currentBuild.result = 'NOT_BUILT'
-                        error("Abortando pipeline.")
-                    }
-                }
-            }
-        }
-
         stage('Test y Build Backend') {
             steps {
                 dir("${BACKEND_DIR}") {
-                    echo "Ejecutando tests y construyendo backend..."
                     sh './mvnw clean verify'
                 }
             }
@@ -131,10 +123,8 @@ pipeline {
         stage('Test y Build Frontend') {
             steps {
                 dir("${FRONTEND_DIR}") {
-                    echo "Ejecutando tests de frontend..."
                     sh 'npm install'
                     sh 'npm test -- --watchAll=false'
-                    echo "Construyendo frontend..."
                     sh 'CI="" npm run build'
                 }
             }
@@ -153,7 +143,7 @@ pipeline {
             withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_URL')]) {
                 sh """
                     curl -X POST -H 'Content-type: application/json' \
-                    --data '{"text":"*Conectados*: Resultado del build: ${currentBuild.currentResult}"}' \
+                    --data '{"text":"*Conectados (${env.BRANCH_NAME})*: Resultado del build: ${currentBuild.currentResult}"}' \
                     "$SLACK_URL"
                 """
             }
