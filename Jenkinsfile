@@ -84,12 +84,10 @@ pipeline {
 
 
 */
+
+
 pipeline {
     agent any
-
-    options {
-        skipDefaultCheckout(true)
-    }
 
     environment {
         BACKEND_DIR = 'backend-conectados'
@@ -98,15 +96,9 @@ pipeline {
     }
 
     stages {
-        stage('Filtrar ramas') {
+        stage('Clonar repositorio') {
             steps {
-                script {
-                    def branchName = env.GIT_BRANCH?.replaceFirst(/^origin\//, '')
-                    echo "Rama detectada: ${branchName}"
-                    if (!(branchName == 'main' || branchName == 'develop')) {
-                        error("Abortando pipeline: rama '${branchName}' no está autorizada.")
-                    }
-                }
+                git branch: 'main', url: 'https://github.com/ConectadosTeam/Conectados.git'
             }
         }
 
