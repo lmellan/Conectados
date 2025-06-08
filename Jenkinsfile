@@ -84,12 +84,11 @@ pipeline {
 
 
 */
-
 pipeline {
     agent any
 
     options {
-        skipDefaultCheckout(true) // Usamos 'checkout scm' para tener control
+        skipDefaultCheckout(true)
     }
 
     environment {
@@ -98,26 +97,23 @@ pipeline {
     }
 
     stages {
-        stage('Filtrar ramas') {
-            steps {
-                script {
-                    def branchName = env.GIT_BRANCH?.replaceFirst(/^origin\//, '')
-                    echo "Rama detectada: ${branchName}"
-                    if (!(branchName == 'main' || branchName == 'develop')) {
-                        echo "Rama '${branchName}' no está autorizada para ejecutar el pipeline."
-                        currentBuild.result = 'NOT_BUILT'
-                        error("Abortando pipeline.")
-                    }
-                }
-            }
-        }
         stage('Clonar repositorio') {
             steps {
                 checkout scm
             }
         }
 
-
+        stage('Filtrar ramas') {
+            steps {
+                script {
+                    def branchName = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+                    echo "Rama detectada: ${branchName}"
+                    if (!(branchName == 'main' || branchName == 'develop')) {
+                        error("Abortando pipeline: rama '${branchName}' no está autorizada.")
+                    }
+                }
+            }
+        }
 
         stage('Test y Build Backend') {
             steps {
