@@ -101,13 +101,6 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/ConectadosTeam/Conectados.git'
             }
         }
-
-        stage('Clonar repositorio') {
-            steps {
-                checkout scm
-            }
-        }
-
         stage('Levantar MySQL') {
             steps {
                 dir("${DOCKER_COMPOSE_DIR}") {
