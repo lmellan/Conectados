@@ -1,17 +1,22 @@
 package com.conectados.conect.cita.services;
 
-import com.conectados.conect.cita.entities.Cita;
-
+import com.conectados.conect.cita.entities.dto.CitaDTO;
 import java.util.List;
+import java.util.Optional;
 
 public interface CitaServices {
-    Cita crearCita(Cita cita);
-    Cita obtenerCitaPorId(Long id);
-    Cita actualizarCita(Long id, Cita cita);
+
+    CitaDTO crearCita(CitaDTO citaDTO);
+
+    Optional<CitaDTO> obtenerCitaPorId(Long id);
+
+    List<CitaDTO> obtenerCitasPorBuscador(Long idBuscador);
+
+    List<CitaDTO> obtenerCitasPorPrestador(Long idPrestador);
+    
+    CitaDTO actualizarEstadoCita(Long id, String estado);
+
     void eliminarCita(Long id);
-    List<Cita> obtenerCitasPorBuscador(Long idBuscador);
-    List<Cita> obtenerCitasPorPrestador(Long idPrestador);
+    
     void actualizarEstadosDeCitas();
-
-
 }

@@ -1,79 +1,47 @@
 package com.conectados.conect.cita.entities;
 
+import com.conectados.conect.servicio.entities.Resena;
+import com.conectados.conect.servicio.entities.Servicio;
+import com.conectados.conect.user.model.Usuario;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Entity
+@Data // Asegura que todos los getters (como getBuscador(), getPrestador()) y setters existan.
 public class Cita {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long idBuscador;
-    private Long idPrestador;
-    private Long idServicio;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_servicio", nullable = false)
+    @JsonIgnore
+    private Servicio servicio;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_buscador", nullable = false)
+    @JsonIgnore
+    private Usuario buscador;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_prestador", nullable = false)
+    @JsonIgnore
+    private Usuario prestador;
+
+    @Column(nullable = false)
     private LocalDate fecha;
+
+    @Column(nullable = false)
     private LocalTime hora;
 
+    @Column(nullable = false)
     private String estado;
 
-    // Getters y Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getIdBuscador() {
-        return idBuscador;
-    }
-
-    public void setIdBuscador(Long idBuscador) {
-        this.idBuscador = idBuscador;
-    }
-
-    public Long getIdPrestador() {
-        return idPrestador;
-    }
-
-    public void setIdPrestador(Long idPrestador) {
-        this.idPrestador = idPrestador;
-    }
-
-    public Long getIdServicio() {
-        return idServicio;
-    }
-
-    public void setIdServicio(Long idServicio) {
-        this.idServicio = idServicio;
-    }
-
-    public LocalDate getFecha() {
-        return fecha;
-    }
-
-    public void setFecha(LocalDate fecha) {
-        this.fecha = fecha;
-    }
-
-    public LocalTime getHora() {
-        return hora;
-    }
-
-    public void setHora(LocalTime hora) {
-        this.hora = hora;
-    }
-
-    public String getEstado() {
-        return estado;
-    }
-
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
+    @OneToOne(mappedBy = "cita", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Resena resena;
 }

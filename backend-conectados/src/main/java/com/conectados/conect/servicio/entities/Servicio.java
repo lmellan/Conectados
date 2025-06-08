@@ -1,11 +1,15 @@
 package com.conectados.conect.servicio.entities;
 
+import com.conectados.conect.cita.entities.Cita;
 import com.conectados.conect.user.model.Usuario;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.Data; // NUEVO: Importamos Data de Lombok
 
 import java.util.List;
 
 @Entity
+@Data // NUEVO: Genera todos los getters, setters, toString, etc. automáticamente.
 public class Servicio {
 
     @Id
@@ -15,88 +19,34 @@ public class Servicio {
     private String nombre;
     private Double precio;
     private String zonaAtencion;
+    
+    // MEJORA: Se define como TEXT para permitir descripciones largas.
+    @Column(columnDefinition = "TEXT")
     private String descripcion;
+
+    // MEJORA: Se usa @Lob para indicar un Objeto Grande, ideal para Base64.
+    @Lob
     @Column(columnDefinition = "LONGTEXT")
     private String foto;
-    private String categoria;
-    private Double valoracionPromedio; // Se actualiza según las reseñas
 
-    @ManyToOne
+    private String categoria;
+    
+    // MEJORA: Se inicializa para evitar valores nulos.
+    @Column(columnDefinition = "DOUBLE DEFAULT 0.0")
+    private Double valoracionPromedio = 0.0;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "prestador_id", nullable = false)
+    @JsonIgnore // MEJORA: Evita bucles infinitos al convertir a JSON.
     private Usuario prestador;
 
     @OneToMany(mappedBy = "servicio", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // MEJORA: Evita bucles infinitos al convertir a JSON.
     private List<Resena> resenas;
 
+    @OneToMany(mappedBy = "servicio", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // MEJORA: Evita bucles infinitos al convertir a JSON.
+    private List<Cita> citas;
 
-    public Long getId() {
-        return id;
-    }
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public String getDescripcion() {
-        return descripcion;
-    }
-    public void setDescripcion(String descripcion) {
-        this.descripcion = descripcion;
-    }
-
-    public Double getPrecio() {
-        return precio;
-    }
-    public void setPrecio(Double precio) {
-        this.precio = precio;
-    }
-
-    public Usuario getPrestador() {
-        return prestador;
-    }
-    public void setPrestador(Usuario prestador) {
-        this.prestador = prestador;
-    }
-
-    public String getCategoria() {
-        return categoria;
-    }
-    public void setCategoria(String categoria) {
-        this.categoria = categoria;
-    }
-
-    public String getFoto() {
-        return foto;
-    }
-    public void setFoto(String foto) {
-        this.foto = foto;
-    }
-
-    public String getZonaAtencion() {
-        return zonaAtencion;
-    }
-    public void setZonaAtencion(String zonaAtencion) {
-        this.zonaAtencion = zonaAtencion;
-    }
-
-    public Double getValoracionPromedio() {
-        return valoracionPromedio;
-    }
-    public void setValoracionPromedio(Double valoracionPromedio) {
-        this.valoracionPromedio = valoracionPromedio;
-    }
-
-    public List<Resena> getResenas() {
-        return resenas;
-    }
-    public void setResenas(List<Resena> resenas) {
-        this.resenas = resenas;
-    }
-
+    // Con @Data de Lombok, ya no es necesario escribir los getters y setters manualmente.
 }

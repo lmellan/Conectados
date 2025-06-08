@@ -30,7 +30,8 @@ const HomePage = () => {
           <Link to="/register" className="btn-primary mr-4">
             Buscar Servicios
           </Link>
-          <Link to="/register-pro" className="btn-secondary">
+          {/* MODIFICADO: Este enlace ahora apunta a /register */}
+          <Link to="/register" className="btn-secondary">
             Ofrecer mis Servicios
           </Link>
         </div>
@@ -87,8 +88,9 @@ const HomePage = () => {
             Únete a nuestra plataforma y comienza a ofrecer tus servicios a
             miles de usuarios.
           </p>
+          {/* MODIFICADO: Este enlace también apunta a /register */}
           <Link
-            to="/register-pro"
+            to="/register"
             className="bg-white text-green-600 hover:bg-gray-100 font-medium py-3 px-8 rounded-md transition-colors"
           >
             Registrarme como profesional

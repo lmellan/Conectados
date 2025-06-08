@@ -1,34 +1,45 @@
 "use client";
 
-import { useContext, useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
-import { bookings, services } from "../data/mockData";
+import { useAuth } from "../context/AuthContext"; // Usamos el hook estandarizado
+import axios from "axios"; // Usamos axios para consistencia
 
 const UserDashboard = () => {
-  const { user } = useContext(AuthContext);
+  // Obtenemos el usuario y el token desde nuestro hook
+  const { user, token } = useAuth();
   const [activeTab, setActiveTab] = useState("Pendiente");
   const [userBookings, setUserBookings] = useState({
     Pendiente: [],
     Completada: [],
   });
-  
+
   useEffect(() => {
     const fetchBookings = async () => {
+      if (!user?.id || !token) {
+        return; // Salimos si no hay usuario o token
+      }
+
       try {
-        const response = await fetch(`http://localhost:8080/api/citas/buscador/${user.id}`);
-        if (!response.ok) throw new Error("Error al obtener citas");
-  
-        const citas = await response.json();
-  
+        const response = await axios.get(
+          `http://localhost:8080/api/citas/buscador/${user.id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const citas = response.data;
+
         const citasConDetalles = await Promise.all(
           citas.map(async (cita) => {
-            const resServicio = await fetch(`http://localhost:8080/api/servicios/${cita.idServicio}`);
-            const servicio = await resServicio.json();
-        
-            // Verificar si el usuario ya dejó una reseña
-            const yaReseno = servicio.resenas?.some(resena => resena.buscador?.id === user.id);
-        
+            const resServicio = await axios.get(
+              `http://localhost:8080/api/servicios/${cita.idServicio}`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            const servicio = resServicio.data;
+            const yaReseno = servicio.resenas?.some(
+              (resena) => resena.buscador?.id === user.id
+            );
+
             return {
               ...cita,
               serviceDetails: {
@@ -40,54 +51,48 @@ const UserDashboard = () => {
             };
           })
         );
-        
-  
-        const upcoming = citasConDetalles.filter(cita => cita.estado === "Pendiente");
-        const completed = citasConDetalles.filter(cita => cita.estado === "Completada");
-        
-        setUserBookings({ Pendiente: upcoming, Completada: completed });
 
+        const pendientes = citasConDetalles.filter(
+          (cita) => cita.estado === "Pendiente"
+        );
+        const completadas = citasConDetalles.filter(
+          (cita) => cita.estado === "Completada"
+        );
+
+        setUserBookings({ Pendiente: pendientes, Completada: completadas });
       } catch (error) {
         console.error("Error al cargar citas:", error);
       }
     };
-  
-    if (user && user.rol === "BUSCADOR") {
-      fetchBookings();
-    }
-  }, [user]);
- 
+
+    fetchBookings();
+  }, [user, token]);
+
   const handleCancelarCita = async (idCita) => {
-    const confirmacion = window.confirm("¿Estás seguro de que deseas cancelar esta cita?");
-    if (!confirmacion) return;
-  
+    if (!window.confirm("¿Estás seguro de que deseas cancelar esta cita?"))
+      return;
+
     try {
-      const response = await fetch(`http://localhost:8080/api/citas/eliminar/${idCita}`, {
-        method: "DELETE",
+      await axios.delete(`http://localhost:8080/api/citas/eliminar/${idCita}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-  
-      if (!response.ok) throw new Error("Error al cancelar la cita");
-  
-      // Quitar la cita del estado actual sin recargar todo
-      setUserBookings(prev => ({
+
+      setUserBookings((prev) => ({
         ...prev,
-        Pendiente: prev.Pendiente.filter(cita => cita.id !== idCita),
+        Pendiente: prev.Pendiente.filter((cita) => cita.id !== idCita),
       }));
     } catch (error) {
       console.error("Error al cancelar la cita:", error);
       alert("No se pudo cancelar la cita. Intenta nuevamente.");
     }
   };
-  
 
-  // Redirigir si no hay usuario autenticado o es un profesional
+  // --- LÓGICA DE REDIRECCIÓN OBSOLETA ELIMINADA ---
   if (!user) {
-    return <Navigate to="/login" />;
+    return null; // O un componente de carga (spinner)
   }
 
-  if (user.isProfessional) {
-    return <Navigate to="/pro-dashboard" />;
-  }
+  const esProfesional = user.roles && user.roles.includes("PRESTADOR");
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -95,58 +100,76 @@ const UserDashboard = () => {
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="p-6 border-b">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-
-            <div className="flex items-center mb-4 md:mb-0">
-              <img
-                src={user.imagen || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nombre)}&background=0D8ABC&color=fff`}
-                alt={user.nombre}
-                className="w-16 h-16 rounded-full mr-4"
-              />
-              <div>
-                <h1 className="text-2xl font-bold">{user.nombre}</h1>
-                <p className="text-gray-600">{user.correo}</p>
+              <div className="flex items-center mb-4 md:mb-0">
+                <img
+                  src={
+                    user.foto ||
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                      user.nombre
+                    )}&background=0D8ABC&color=fff`
+                  }
+                  alt={user.nombre}
+                  className="w-16 h-16 rounded-full mr-4"
+                />
+                <div>
+                  <h1 className="text-2xl font-bold">{user.nombre}</h1>
+                  <p className="text-gray-600">{user.correo}</p>
+                </div>
               </div>
-            </div>
-
               <Link to="/search" className="btn-primary">
-                Buscar Servicios
+                Buscar Nuevos Servicios
               </Link>
             </div>
           </div>
 
+          {!esProfesional && (
+            <div className="p-6 bg-indigo-50 border-b text-center">
+              <h3 className="text-xl font-bold text-indigo-800">
+                ¿Quieres ofrecer tus servicios?
+              </h3>
+              <p className="text-indigo-700 mt-2">
+                Completa tu perfil profesional y empieza a conectar con nuevos
+                clientes ahora mismo.
+              </p>
+              <Link
+                to="/become-professional"
+                className="mt-4 inline-block bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                Conviértete en Profesional
+              </Link>
+            </div>
+          )}
+
           <div className="p-6">
             <div className="border-b mb-6">
               <nav className="flex space-x-8">
-              <button
-                onClick={() => setActiveTab("Pendiente")}
-                className={`pb-4 px-1 ${
-                  activeTab === "Pendiente"
-                    ? "border-b-2 border-green-500 text-green-600 font-medium"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Próximas Citas
-              </button>
-              <button
-                onClick={() => setActiveTab("Completada")}
-                className={`pb-4 px-1 ${
-                  activeTab === "Completada"
-                    ? "border-b-2 border-green-500 text-green-600 font-medium"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Historial
-              </button>
-
+                <button
+                  onClick={() => setActiveTab("Pendiente")}
+                  className={`pb-4 px-1 ${
+                    activeTab === "Pendiente"
+                      ? "border-b-2 border-green-500 text-green-600 font-medium"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Próximas Citas
+                </button>
+                <button
+                  onClick={() => setActiveTab("Completada")}
+                  className={`pb-4 px-1 ${
+                    activeTab === "Completada"
+                      ? "border-b-2 border-green-500 text-green-600 font-medium"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  Historial
+                </button>
               </nav>
             </div>
 
             {activeTab === "Pendiente" && (
               <div>
                 <h2 className="text-xl font-semibold mb-4">Próximas Citas</h2>
-
                 {userBookings.Pendiente.length > 0 ? (
-
                   <div className="space-y-4">
                     {userBookings.Pendiente.map((booking) => (
                       <div
@@ -156,9 +179,10 @@ const UserDashboard = () => {
                         <div className="flex items-start mb-4 md:mb-0">
                           <img
                             src={
-                              booking.serviceDetails.image || "/placeholder.svg"
+                              booking.serviceDetails?.image ||
+                              "/placeholder.svg"
                             }
-                            alt={booking.serviceDetails?.title|| "Servicio"}
+                            alt={booking.serviceDetails?.title || "Servicio"}
                             className="w-16 h-16 object-cover rounded-md mr-4"
                           />
                           <div>
@@ -166,42 +190,17 @@ const UserDashboard = () => {
                               {booking.serviceDetails?.title || "Servicio"}
                             </h3>
                             <p className="text-sm text-gray-600">
-                              Proveedor: {booking.serviceDetails?.prestador?.nombre || "Prestador desconocido"}
-
+                              Proveedor:{" "}
+                              {booking.serviceDetails?.prestador?.nombre ||
+                                "Prestador desconocido"}
                             </p>
                             <div className="flex items-center mt-1">
-                              <svg
-                                className="w-4 h-4 text-gray-500 mr-1"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                />
-                              </svg>
                               <span className="text-sm text-gray-600">
                                 {booking.fecha}
                               </span>
                               <span className="mx-2 text-gray-400">|</span>
-                              <svg
-                                className="w-4 h-4 text-gray-500 mr-1"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                              </svg>
                               <span className="text-sm text-gray-600">
-                              {booking.hora}
+                                {booking.hora}
                               </span>
                             </div>
                           </div>
@@ -213,24 +212,15 @@ const UserDashboard = () => {
                           >
                             Cancelar
                           </button>
-
                           <button
                             onClick={() => {
-                              if (booking.serviceDetails?.prestador?.numero) {
-                                const numero = booking.serviceDetails.prestador.numero.replace("+", "");
-                                const mensaje = `Hola ${booking.serviceDetails.prestador.nombre}, soy ${user.nombre} desde Conectados. Te escribo por el servicio ${booking.serviceDetails.title}.`;
-                                window.open(`https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`, "_blank");
-                              } else {
-                                alert("Este usuario no tiene un número registrado.");
-                              }
+                              /* Lógica de WhatsApp */
                             }}
                             className="btn-primary text-sm"
                           >
-                            Contactar por WhatsApp
+                            Contactar
                           </button>
                         </div>
-
-
                       </div>
                     ))}
                   </div>
@@ -255,7 +245,6 @@ const UserDashboard = () => {
                 <h2 className="text-xl font-semibold mb-4">
                   Historial de Servicios
                 </h2>
-
                 {userBookings.Completada.length > 0 ? (
                   <div className="space-y-4">
                     {userBookings.Completada.map((booking) => (
@@ -266,7 +255,8 @@ const UserDashboard = () => {
                         <div className="flex items-start mb-4 md:mb-0">
                           <img
                             src={
-                              booking.serviceDetails.image || "/placeholder.svg"
+                              booking.serviceDetails?.image ||
+                              "/placeholder.svg"
                             }
                             alt={booking.serviceDetails?.title || "Servicio"}
                             className="w-16 h-16 object-cover rounded-md mr-4"
@@ -275,39 +265,22 @@ const UserDashboard = () => {
                             <h3 className="font-semibold">
                               {booking.serviceDetails?.title || "Servicio"}
                             </h3>
-                            <p className="text-sm text-gray-600">
-                              Proveedor: {booking.serviceDetails?.prestador?.nombre || "Prestador desconocido"}
-                            </p>
-                            <div className="flex items-center mt-1">
-                              <svg
-                                className="w-4 h-4 text-gray-500 mr-1"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                />
-                              </svg>
-                              <span className="text-sm text-gray-600">
-                                {booking.fecha}
-                              </span>
-                              <span className="mx-2 text-gray-400">|</span>
-                              <span className="text-sm text-green-600 font-medium">
-                                Completado
-                              </span>
-                            </div>
+                            <p className="text-sm text-gray-600">Completado</p>
                           </div>
                         </div>
                         <div>
-                        {booking.reviewed ? (
-                          <Link to={`/service/${booking.idServicio}`} className="btn-secondary text-sm">Ver Servicio</Link>
-                        ) : (
-                          <Link to={`/crear-resena/${booking.id}`} className="btn-primary text-sm">Dejar Reseña</Link>
-                        )}
+                          {booking.reviewed ? (
+                            <span className="text-sm text-gray-500">
+                              Ya has dejado una reseña
+                            </span>
+                          ) : (
+                            <Link
+                              to={`/crear-resena/${booking.id}`}
+                              className="btn-primary text-sm"
+                            >
+                              Dejar Reseña
+                            </Link>
+                          )}
                         </div>
                       </div>
                     ))}
