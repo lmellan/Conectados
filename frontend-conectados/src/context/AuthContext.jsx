@@ -1,3 +1,120 @@
+// // src/context/AuthContext.jsx
+// import React, { createContext, useState, useContext, useEffect } from "react";
+// import axios from "axios";
+// import { useNavigate } from "react-router-dom";
+
+// export const AuthContext = createContext();
+// export const useAuth = () => useContext(AuthContext);
+
+// export const AuthProvider = ({ children }) => {
+//   const navigate = useNavigate();
+//   const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/api";
+
+//   // Estado inicial: token y user vienen de localStorage (si existen)
+//   const [token, setToken] = useState(() => localStorage.getItem("token"));
+//   const [user, setUser]   = useState(() => {
+//     const u = localStorage.getItem("user");
+//     return u ? JSON.parse(u) : null;
+//   });
+//   // Inicializamos rolActivo bien del user guardado
+//   const [rolActivo, setRolActivo] = useState(() => {
+//     const u = localStorage.getItem("user");
+//     if (u) {
+//       try {
+//         return JSON.parse(u).rolActivo || null;
+//       } catch {
+//         return null;
+//       }
+//     }
+//     return null;
+//   });
+
+//   // Cualquier cambio de token -> configura axios
+//   useEffect(() => {
+//     if (token) {
+//       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+//     } else {
+//       delete axios.defaults.headers.common["Authorization"];
+//     }
+//   }, [token]);
+
+//   // --- LOGIN ---
+//   const login = (userData, userToken) => {
+//     // userData debe incluir userData.rolActivo
+//     localStorage.setItem("user", JSON.stringify(userData));
+//     localStorage.setItem("token", userToken);
+
+//     setUser(userData);
+//     setToken(userToken);
+//     setRolActivo(userData.rolActivo);
+
+//     axios.defaults.headers.common["Authorization"] = `Bearer ${userToken}`;
+//     navigate(`/dashboard/${userData.rolActivo.toLowerCase()}`, { replace: true });
+//   };
+
+//   // --- LOGOUT ---
+//   const logout = () => {
+//     localStorage.removeItem("user");
+//     localStorage.removeItem("token");
+//     setUser(null);
+//     setToken(null);
+//     setRolActivo(null);
+//     delete axios.defaults.headers.common["Authorization"];
+//     navigate("/login", { replace: true });
+//   };
+
+//   // --- SWITCH ROLE ---
+//   const switchRole = async (newRole) => {
+//     console.log("--- Iniciando cambio de rol ---", newRole);
+
+//     if (!user?.correo || !token) {
+//       console.error("Datos insuficientes para cambiar rol", { user, token });
+//       alert("No se pudo cambiar de rol. Sesión inválida.");
+//       return;
+//     }
+
+//     const url     = `${API_URL}/usuarios/${encodeURIComponent(
+//       user.correo
+//     )}/cambiar-rol`;
+//     const payload = { nuevoRol: newRole };
+
+//     try {
+//       const { data: updatedUser } = await axios.put(url, payload);
+//       console.log("Cambio de rol OK:", updatedUser);
+
+//       // Actualiza usuario, token y rolActivo en estado y localStorage
+//       localStorage.setItem("user", JSON.stringify(updatedUser));
+//       setUser(updatedUser);
+//       setRolActivo(newRole);
+
+//       // La navegación la hará RoleRedirector automáticamente
+//     } catch (err) {
+//       console.error("Error al cambiar rol:", err.response || err);
+//       const msg =
+//         err.response?.data?.message ||
+//         err.response?.data ||
+//         err.message ||
+//         "Error inesperado";
+//       alert("No se pudo cambiar el rol: " + msg);
+//     }
+//   };
+
+//   const value = {
+//     user,
+//     token,
+//     rolActivo,
+//     login,
+//     logout,
+//     switchRole,
+//     setRolActivo,     // por si lo necesitas directamente
+//     isAuthenticated: !!token,
+//   };
+
+//   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+// };
+
+
+// src/context/AuthContext.jsx
 import React, { createContext, useState, useContext, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -5,99 +122,78 @@ import { useNavigate } from "react-router-dom";
 export const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem("token"));
+export function AuthProvider({ children }) {
   const navigate = useNavigate();
+  const API_URL  = process.env.REACT_APP_API_URL || "http://localhost:8080/api";
 
-  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/api";
+  const [token, setToken]     = useState(localStorage.getItem("token"));
+  const [user, setUser]       = useState(() => JSON.parse(localStorage.getItem("user") || "null"));
+  const [rolActivo, setRolActivo] = useState(user?.rolActivo || "BUSCADOR");
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser && token) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      } catch (error) {
-        console.error(
-          "Error al parsear datos de usuario desde localStorage",
-          error
-        );
-        logout();
-      }
+    if (token) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    } else {
+      delete axios.defaults.headers.common["Authorization"];
     }
   }, [token]);
 
   const login = (userData, userToken) => {
     localStorage.setItem("user", JSON.stringify(userData));
     localStorage.setItem("token", userToken);
+
     setUser(userData);
     setToken(userToken);
-    axios.defaults.headers.common["Authorization"] = `Bearer ${userToken}`;
+    setRolActivo(userData.rolActivo || "BUSCADOR");
+
+    navigate(`/dashboard/${(userData.rolActivo||"BUSCADOR").toLowerCase()}`, { replace: true });
   };
 
   const logout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    localStorage.clear();
     setUser(null);
     setToken(null);
-    delete axios.defaults.headers.common["Authorization"];
-    navigate("/login");
+    setRolActivo("BUSCADOR");
+    navigate("/login", { replace: true });
   };
 
-  // --- FUNCIÓN switchRole CORREGIDA ---
   const switchRole = async (newRole) => {
-    // --- INICIO DE DEPURACIÓN ---
-    console.log("--- Iniciando cambio de rol ---");
-    console.log("Rol seleccionado:", newRole);
-
-    if (!user || !token || !user.correo) {
-      console.error(
-        "ERROR: No se puede cambiar el rol. Datos de usuario incompletos.",
-        { user, token }
-      );
-      alert("Error: Faltan datos de usuario para cambiar el rol.");
+    if (!user?.correo || !token) {
+      alert("Sesión inválida. Por favor vuelve a iniciar sesión.");
       return;
     }
 
-    // Construimos la URL y el cuerpo de la petición para revisarlos.
-    const url = `${API_URL}/usuarios/${user.correo}/cambiar-rol`;
-    const payload = { nuevoRol: newRole };
-
-    console.log("Enviando petición PUT a:", url);
-    console.log("Con el siguiente cuerpo (payload):", payload);
-    // --- FIN DE DEPURACIÓN ---
-
     try {
-      const response = await axios.put(url, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const { data: updatedUser } = await axios.put(
+        `${API_URL}/usuarios/${encodeURIComponent(user.correo)}/cambiar-rol`,
+        { nuevoRol: newRole }
+      );
 
-      console.log("Respuesta exitosa del servidor:", response.data);
-
-      const updatedUser = response.data;
-      setUser(updatedUser);
+      // Actualiza estado y storage
+      updatedUser.rolActivo = newRole;
       localStorage.setItem("user", JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      setRolActivo(newRole);
 
-      window.location.reload();
-    } catch (error) {
-      // Esto nos dará toda la información del error si la petición falla.
-      console.error("¡La petición falló! Detalles del error:", error.response);
-      const errorMessage =
-        error.response?.data?.message || error.response?.data || error.message;
-      alert("No se pudo cambiar el rol: " + errorMessage);
+      // ¡Redirige aquí mismo!
+      navigate(`/dashboard/${newRole.toLowerCase()}`, { replace: true });
+    } catch (err) {
+      console.error("Error al cambiar rol:", err.response || err);
+      alert("No se pudo cambiar el rol.");
     }
   };
 
-  const value = {
-    user,
-    token,
-    login,
-    logout,
-    switchRole,
-    isAuthenticated: !!token,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+  return (
+    <AuthContext.Provider value={{
+      user,
+      token,
+      rolActivo,
+      login,
+      logout,
+      switchRole,
+      isAuthenticated: !!token,
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}

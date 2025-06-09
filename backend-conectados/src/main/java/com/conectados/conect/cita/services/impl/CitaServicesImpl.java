@@ -2,6 +2,7 @@ package com.conectados.conect.cita.services.impl;
 
 import com.conectados.conect.cita.entities.Cita;
 import com.conectados.conect.cita.entities.dto.CitaDTO;
+import com.conectados.conect.cita.entities.dto.CitaRequestDTO;
 import com.conectados.conect.cita.repositories.CitaRepository;
 import com.conectados.conect.cita.services.CitaServices;
 import com.conectados.conect.servicio.entities.Servicio;
@@ -94,4 +95,29 @@ public class CitaServicesImpl implements CitaServices {
             }
         }
     }
+
+   @Override
+public CitaDTO crearCitaDesdeServicio(CitaRequestDTO req, Long buscadorId) {
+
+    Servicio svc = servicioRepository.findById(req.getServicioId())
+        .orElseThrow(() -> new RuntimeException("Servicio no existe"));
+
+    Usuario buscador = usuarioRepository.findById(buscadorId)
+        .orElseThrow(() -> new RuntimeException("Buscador no encontrado"));
+
+    Cita cita = new Cita();
+    cita.setServicio(svc);
+    cita.setBuscador(buscador);
+    cita.setPrestador(svc.getPrestador()); 
+    cita.setFecha(req.getFecha());
+    cita.setHora(req.getHora());
+    cita.setEstado("PENDIENTE");
+
+    Cita guardada = citaRepository.save(cita);
+    return new CitaDTO(guardada);
+}
+
+
+
+    
 }

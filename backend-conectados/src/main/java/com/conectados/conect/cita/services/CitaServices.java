@@ -1,6 +1,7 @@
 package com.conectados.conect.cita.services;
 
 import com.conectados.conect.cita.entities.dto.CitaDTO;
+import com.conectados.conect.cita.entities.dto.CitaRequestDTO;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,4 +20,7 @@ public interface CitaServices {
     void eliminarCita(Long id);
     
     void actualizarEstadosDeCitas();
+
+    CitaDTO crearCitaDesdeServicio(CitaRequestDTO req, Long buscadorId);
+
 }

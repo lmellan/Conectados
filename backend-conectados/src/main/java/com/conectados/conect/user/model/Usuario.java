@@ -13,14 +13,14 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Se mantienen tus nombres de campos originales
+
     private String nombre;
     private String correo;
     private String contrasena;
     private String foto;
     private String numero;
 
-    // Se mantiene tu estructura de Roles con Enum
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "usuario_roles", joinColumns = @JoinColumn(name = "usuario_id"))
     @Column(name = "rol")
@@ -50,7 +50,6 @@ public class Usuario {
 
 
     // --- Getters y Setters ---
-    // (Se omiten por brevedad, pero deben estar todos los tuyos)
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
