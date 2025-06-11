@@ -1,18 +1,11 @@
 package com.conectados.conect.cita.controller;
 
-import com.conectados.conect.cita.entities.dto.CitaDTO;
+import com.conectados.conect.cita.entities.Cita;
 import com.conectados.conect.cita.services.CitaServices;
-import com.conectados.conect.cita.entities.dto.CitaRequestDTO;
-
-import jakarta.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.access.prepost.PreAuthorize;
 
-import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -23,18 +16,19 @@ public class CitaController {
     @Autowired
     private CitaServices citaServices;
 
-    @GetMapping("/{id}")
-    public ResponseEntity<CitaDTO> obtenerCitaPorId(@PathVariable Long id) {
-        return citaServices.obtenerCitaPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @PostMapping("/crear")
+    public ResponseEntity<Cita> crearCita(@RequestBody Cita cita) {
+        return ResponseEntity.ok(citaServices.crearCita(cita));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Cita> obtenerCita(@PathVariable Long id) {
+        return ResponseEntity.ok(citaServices.obtenerCitaPorId(id));
+    }
 
-    @PutMapping("/{id}/actualizar-estado")
-    public ResponseEntity<CitaDTO> actualizarEstadoCita(@PathVariable Long id, @RequestBody String estado) {
-        CitaDTO citaActualizada = citaServices.actualizarEstadoCita(id, estado.replace("\"", "")); // Limpia comillas si vienen del JSON
-        return ResponseEntity.ok(citaActualizada);
+    @PutMapping("/editar/{id}")
+    public ResponseEntity<Cita> editarCita(@PathVariable Long id, @RequestBody Cita cita) {
+        return ResponseEntity.ok(citaServices.actualizarCita(id, cita));
     }
 
     @DeleteMapping("/eliminar/{id}")
@@ -43,30 +37,27 @@ public class CitaController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping
-    @PreAuthorize("hasAuthority('ROL_ACTIVO_BUSCADOR')")
-    public ResponseEntity<CitaDTO> reservar(@Valid @RequestBody CitaRequestDTO req,
-                                            Principal principal) {
-        Long buscadorId = Long.valueOf(principal.getName());
-        CitaDTO nuevaCita = citaServices.crearCitaDesdeServicio(req, buscadorId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevaCita);
+    @GetMapping("/buscador/{idBuscador}")
+    public ResponseEntity<List<Cita>> obtenerPorBuscador(@PathVariable Long idBuscador) {
+        return ResponseEntity.ok(citaServices.obtenerCitasPorBuscador(idBuscador));
     }
-
-    @GetMapping("/me")
-    @PreAuthorize("hasAuthority('ROL_ACTIVO_BUSCADOR')")
-    public ResponseEntity<List<CitaDTO>> misCitas(Principal principal) {
-        Long buscadorId = Long.valueOf(principal.getName());
-        var lista = citaServices.obtenerCitasPorBuscador(buscadorId);
-        return ResponseEntity.ok(lista);
-    }
-
 
     @GetMapping("/prestador/{idPrestador}")
-    @PreAuthorize("hasAuthority('ROL_ACTIVO_PRESTADOR')")
-    public ResponseEntity<List<CitaDTO>> citasDelPrestador(@PathVariable Long idPrestador) {
-        List<CitaDTO> lista = citaServices.obtenerCitasPorPrestador(idPrestador);
-        return ResponseEntity.ok(lista);
+    public ResponseEntity<List<Cita>> obtenerPorPrestador(@PathVariable Long idPrestador) {
+        return ResponseEntity.ok(citaServices.obtenerCitasPorPrestador(idPrestador));
+    }
+
+    @PutMapping("/citas/finalizar/{id}")
+    public ResponseEntity<?> finalizarCita(@PathVariable Long id) {
+        // Add implementation for finalizarCita here
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/actualizar-automatica")
+    public ResponseEntity<String> actualizarCitasAutomaticamente() {
+        citaServices.actualizarEstadosDeCitas();
+        return ResponseEntity.ok("Estados de las citas actualizados automáticamente.");
     }
 
 
-}
+    }

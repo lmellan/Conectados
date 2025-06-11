@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-// MODIFICADO: Importa useAuth en lugar de AuthContext directamente
 import { useAuth } from "../context/AuthContext";
 
 const RegisterPage = () => {
@@ -11,6 +10,7 @@ const RegisterPage = () => {
     email: "",
     password: "",
     confirmPassword: "",
+    numero: "", // Cambié 'phoneNumber' a 'numero'
   });
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -31,24 +31,29 @@ const RegisterPage = () => {
       return;
     }
 
+    // Verificación del formato del número de celular
+    const phoneRegex = /^569\d{8}$/;
+    if (!phoneRegex.test(formData.numero)) { // Usando 'numero' en lugar de 'phoneNumber'
+      setError("El número de celular debe ser en el formato 569XXXXXXXX");
+      return;
+    }
+
     try {
-      // MODIFICACIÓN CLAVE 1: La URL ahora incluye "/api"
       const response = await fetch("http://localhost:8080/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        // MODIFICACIÓN CLAVE 2: Se elimina el campo 'rol', el backend lo asigna solo.
         body: JSON.stringify({
           nombre: formData.name,
           correo: formData.email,
           contrasena: formData.password,
+          numero: formData.numero, // Enviando el 'numero' al backend
         }),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        // Intenta parsear como JSON si es posible, si no, usa el texto.
         try {
           const errorJson = JSON.parse(errorText);
           setError(errorJson.message || "Error al registrar.");
@@ -58,7 +63,6 @@ const RegisterPage = () => {
         return;
       }
 
-      // Si el registro es exitoso, redirige al login para que el usuario inicie sesión.
       navigate("/login");
     } catch (err) {
       console.error("Error de conexión:", err);
@@ -91,7 +95,6 @@ const RegisterPage = () => {
             </div>
           )}
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* El resto del formulario JSX permanece igual */}
             <div>
               <label
                 htmlFor="name"
@@ -111,6 +114,7 @@ const RegisterPage = () => {
                 />
               </div>
             </div>
+
             <div>
               <label
                 htmlFor="email"
@@ -130,6 +134,28 @@ const RegisterPage = () => {
                 />
               </div>
             </div>
+
+            <div>
+              <label
+                htmlFor="numero"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Número de celular (Formato: 569XXXXXXXX)
+              </label>
+              <div className="mt-1">
+                <input
+                  id="numero"
+                  name="numero"
+                  type="text"
+                  required
+                  value={formData.numero}
+                  onChange={handleChange}
+                  className="input-field"
+                  placeholder="56912345678"
+                />
+              </div>
+            </div>
+
             <div>
               <label
                 htmlFor="password"
@@ -149,6 +175,7 @@ const RegisterPage = () => {
                 />
               </div>
             </div>
+
             <div>
               <label
                 htmlFor="confirmPassword"
@@ -168,6 +195,7 @@ const RegisterPage = () => {
                 />
               </div>
             </div>
+
             <div>
               <button
                 type="submit"

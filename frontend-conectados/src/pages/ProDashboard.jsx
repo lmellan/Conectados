@@ -186,9 +186,7 @@ const ProDashboard = () => {
                               className="w-16 h-16 object-cover rounded-md mr-4"
                             />
                             <div>
-                              <h3 className="font-semibold">
-                                {service.nombre}
-                              </h3>
+                              <h3 className="font-semibold">{service.nombre}</h3>
                               <p className="text-sm text-gray-600">
                                 Categoría: {service.categoria}
                               </p>
@@ -244,36 +242,86 @@ const ProDashboard = () => {
                   {proBookings.upcoming.length > 0 ? (
                     <div className="space-y-4">
                       {proBookings.upcoming.map((booking) => (
-                        <div key={booking.id} className="border rounded-lg p-4">
-                          {/* ... Contenido de una cita pendiente ... */}
+                        <div key={booking.id} className="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between">
+                          <div className="flex items-start mb-4 md:mb-0">
+                            <img
+                              src={booking.serviceDetails?.image || "/placeholder.svg"}
+                              alt={booking.serviceDetails?.title}
+                              className="w-16 h-16 object-cover rounded-md mr-4"
+                            />
+                            <div>
+                              <h3 className="font-semibold">{booking.serviceDetails.title}</h3>
+                              <div className="flex items-center space-x-2">
+                                <img
+                                  src={booking.cliente?.imagen || `https://ui-avatars.com/api/?name=${encodeURIComponent(booking.cliente?.nombre || "Cliente")}&background=0D8ABC&color=fff`}
+                                  alt={booking.cliente?.nombre || "Cliente"}
+                                  className="w-8 h-8 rounded-full"
+                                />
+                                <p className="text-sm text-gray-600">Cliente: {booking.cliente?.nombre}</p>
+                              </div>
+                              <div className="flex items-center mt-1">
+                                <span className="text-sm text-gray-600">{booking.fecha}</span>
+                                <span className="mx-2 text-gray-400">|</span>
+                                <span className="text-sm text-green-600 font-medium">{booking.hora}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex space-x-2">
+                            <button className="btn-secondary text-sm">Reprogramar</button>
+                            <button
+                              onClick={() => {
+                                if (booking.cliente?.numero) {
+                                  const numero = booking.cliente.numero.replace("+", "");
+                                  const mensaje = `Hola ${booking.cliente.nombre}, soy ${user.nombre} de Conectados. Confirmo tu cita para el ${booking.fecha} a las ${booking.hora}.`;
+                                  window.open(`https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`, "_blank");
+                                } else {
+                                  alert("Este usuario no tiene un número registrado.");
+                                }
+                              }}
+                              className="btn-primary text-sm"
+                            >
+                              Contactar por WhatsApp
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-gray-500">
-                      No tienes citas programadas.
-                    </p>
+                    <p className="text-gray-500">No tienes citas programadas.</p>
                   )}
                 </div>
               )}
 
               {activeTab === "history" && (
                 <div>
-                  <h2 className="text-xl font-semibold mb-4">
-                    Historial de Servicios
-                  </h2>
+                  <h2 className="text-xl font-semibold mb-4">Historial de Servicios</h2>
                   {proBookings.completed.length > 0 ? (
                     <div className="space-y-4">
                       {proBookings.completed.map((booking) => (
-                        <div key={booking.id} className="border rounded-lg p-4">
-                          {/* ... Contenido de una cita completada ... */}
+                        <div key={booking.id} className="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between">
+                          <div className="flex items-start mb-4 md:mb-0">
+                            <img
+                              src={booking.serviceDetails?.image || "/placeholder.svg"}
+                              alt={booking.serviceDetails?.title}
+                              className="w-16 h-16 object-cover rounded-md mr-4"
+                            />
+                            <div>
+                              <h3 className="font-semibold">{booking.serviceDetails.title}</h3>
+                              <p className="text-sm text-gray-600">Cliente: {booking.cliente?.nombre}</p>
+                              <div className="flex items-center mt-1">
+                                <span className="text-sm text-gray-600">{booking.fecha}</span>
+                                <span className="mx-2 text-gray-400">|</span>
+                                <span className="text-sm text-green-600 font-medium">Completado</span>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-gray-500">
-                      No tienes servicios completados.
-                    </p>
+                    <div className="text-center py-8 bg-gray-50 rounded-lg">
+                      <p className="text-gray-500">No tienes servicios completados.</p>
+                    </div>
                   )}
                 </div>
               )}

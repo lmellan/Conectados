@@ -3,22 +3,16 @@ package com.conectados.conect.servicio.services;
 import com.conectados.conect.servicio.entities.Dto.ResenaDto;
 import com.conectados.conect.servicio.entities.Dto.ResenaRequestDto;
 import com.conectados.conect.servicio.entities.Resena;
+import com.conectados.conect.servicio.entities.Servicio;
 import java.util.List;
-import java.util.Optional;
 
 public interface ResenaServices {
-
-    Resena crearResena(ResenaRequestDto resenaRequestDto);
-
-    Optional<Resena> obtenerResenaPorId(Long id);
-
-    List<Resena> obtenerTodasLasResenas();
-
-    List<Resena> obtenerResenasPorServicio(Long servicioId);
-
-    Resena actualizarResena(Long id, ResenaDto resenaDto);
-
+    ResenaDto crearResena(Resena resena);
+    Resena obtenerResenaPorId(Long id);
+    List<ResenaDto> obtenerTodasLasResenas();
+    List<ResenaDto> obtenerResenasPorServicio(Servicio servicio);
+    Resena actualizarResena(Long id, Resena resena);
     void eliminarResena(Long id);
-
-    Optional<Resena> obtenerResenaPorCitaId(Long citaId);
+    ResenaDto crearResenaDesdeDto(ResenaRequestDto dto);
+    ResenaDto obtenerResenaPorCitaId(Long id);
 }

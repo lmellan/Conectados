@@ -27,6 +27,12 @@ public class UsuarioServicesImpl implements UsuarioServices {
 
     @Override
     public Usuario registrarUsuario(RegistroUsuarioDto dto) {
+        // Verificar si el correo ya está registrado
+        Optional<Usuario> usuarioExistente = usuarioRepository.findByCorreo(dto.getCorreo());
+        if (usuarioExistente.isPresent()) {
+            throw new RuntimeException("El correo electrónico ya está registrado"); // Excepción si el correo ya existe
+        }
+
         Usuario usuario = new Usuario();
         usuario.setNombre(dto.getNombre());
         usuario.setCorreo(dto.getCorreo());

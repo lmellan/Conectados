@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext"; // Usamos el hook estandarizado
@@ -23,7 +22,6 @@ const CreateServicePage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const categories = [
-    // Lista de categorías simplificada
     "Limpieza",
     "Electricidad",
     "Plomería",
@@ -79,19 +77,24 @@ const CreateServicePage = () => {
 
     setIsSubmitting(true);
     try {
-      // Usamos axios y enviamos el token de autenticación para seguridad
-      await axios.post(
+      // Verificamos los datos antes de enviarlos al backend
+      const dataToSend = {
+        nombre: formData.nombre,
+        categoria: formData.categoria,
+        descripcion: formData.descripcion,
+        precio: parseFloat(formData.precio),
+        zonaAtencion: formData.zonaAtencion,
+        foto: formData.foto,
+        prestador: { id: user.id },  // Se envía el ID del prestador
+      };
+      
+      // Imprimir los datos enviados al backend
+      console.log("Datos enviados al backend:", dataToSend);
+
+      // Usamos axios para hacer la solicitud POST
+      const response = await axios.post(
         "http://localhost:8080/api/servicios/crear",
-        {
-          // El payload ahora envía 'prestadorId' y los datos correctos
-          nombre: formData.nombre,
-          categoria: formData.categoria,
-          descripcion: formData.descripcion,
-          precio: parseFloat(formData.precio),
-          zonaAtencion: formData.zonaAtencion,
-          foto: formData.foto, // Se envía la imagen en base64
-          prestadorId: user.id, // Se envía solo el ID del prestador
-        },
+        dataToSend,
         {
           headers: {
             "Content-Type": "application/json",
@@ -102,23 +105,27 @@ const CreateServicePage = () => {
 
       // Si todo sale bien, volvemos al panel
       navigate("/dashboard");
+
     } catch (err) {
-      console.error(
-        "Error al crear servicio:",
-        err.response?.data || err.message
-      );
-      // Mostramos un error más genérico al usuario
-      setErrors({
-        form:
-          err.response?.data?.message ||
-          "Ocurrió un error al crear el servicio.",
-      });
+      console.error("Error al crear servicio:");
+
+      // Mejor manejo del error, imprime el mensaje de error detallado
+      if (err.response && err.response.data) {
+        console.error("Mensaje de error del backend:", err.response.data.message);
+        setErrors({
+          form: err.response.data.message || "Ocurrió un error al crear el servicio.",
+        });
+      } else {
+        console.error("Error inesperado:", err.message);
+        setErrors({
+          form: "Ocurrió un error inesperado, por favor intente nuevamente.",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // La lógica de redirección se elimina, App.js ya protege esta ruta.
   if (!user) {
     return null; // O un spinner
   }

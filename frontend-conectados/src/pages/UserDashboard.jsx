@@ -212,14 +212,21 @@ const UserDashboard = () => {
                           >
                             Cancelar
                           </button>
-                          <button
-                            onClick={() => {
-                              /* Lógica de WhatsApp */
-                            }}
-                            className="btn-primary text-sm"
-                          >
-                            Contactar
-                          </button>
+                        <button
+                          onClick={() => {
+                            if (booking.serviceDetails?.prestador?.numero) {
+                              const numero = booking.serviceDetails.prestador.numero.replace("+", "");
+                              const mensaje = `Hola ${booking.serviceDetails.prestador.nombre}, soy ${user.nombre} desde Conectados. Te escribo por el servicio ${booking.serviceDetails.title}.`;
+                              window.open(`https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`, "_blank");
+                            } else {
+                              alert("Este usuario no tiene un número registrado.");
+                            }
+                          }}
+                          className="btn-primary text-sm"
+                        >
+                          Contactar por WhatsApp
+                        </button>
+
                         </div>
                       </div>
                     ))}

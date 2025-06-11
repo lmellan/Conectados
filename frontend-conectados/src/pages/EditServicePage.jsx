@@ -18,7 +18,6 @@ const EditServicePage = () => {
     foto: "" 
   });
   
-
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [errors, setErrors] = useState({});
@@ -41,10 +40,13 @@ const EditServicePage = () => {
         if (!response.ok) throw new Error("No se pudo cargar el servicio");
 
         const data = await response.json();
-        if (data.prestador?.id !== user?.id) {
+
+        // Verifica si el prestador del servicio corresponde al usuario activo
+        if (data.prestador?.id !== user?.id || user.rolActivo !== "PRESTADOR") {
           navigate("/pro-dashboard");
           return;
         }
+
         setFormData({
           nombre: data.nombre,
           categoria: data.categoria,
@@ -86,7 +88,6 @@ const EditServicePage = () => {
       reader.readAsDataURL(file);
     }
   };
-  
 
   const validateForm = () => {
     const newErrors = {};
@@ -125,7 +126,7 @@ const EditServicePage = () => {
     }
   };
 
-  if (!user || user.rol !== "PRESTADOR") {
+  if (!user || user.rolActivo !== "PRESTADOR") {
     navigate("/login");
     return null;
   }

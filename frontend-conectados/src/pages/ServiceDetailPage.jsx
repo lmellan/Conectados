@@ -4,7 +4,6 @@ import { useState, useContext, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import AvailabilityCalendar from "../components/AvailabilityCalendar";
-import { bookings } from "../data/mockData";
 import ConfirmationModal from "../components/ConfirmationModal";
 
 const ServiceDetailPage = () => {
@@ -53,9 +52,9 @@ const ServiceDetailPage = () => {
       setShowLoginModal(true);
       return;
     }
-  
+
     if (!validateForm()) return;
-  
+
     const nuevaCita = {
       idBuscador: user.id,
       idPrestador: provider.id,
@@ -64,23 +63,23 @@ const ServiceDetailPage = () => {
       hora: selectedTime,
       estado: "Pendiente"
     };
-  
+
     try {
       const response = await fetch("http://localhost:8080/api/citas/crear", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(nuevaCita)
       });
-  
+
       if (!response.ok) throw new Error("No se pudo agendar la cita");
-  
+
       setShowSuccessModal(true);
     } catch (error) {
       console.error("Error al crear cita:", error);
       alert("Hubo un error al agendar la cita. Inténtalo nuevamente.");
     }
   };
-  
+
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
     navigate("/user-dashboard");
@@ -97,6 +96,37 @@ const ServiceDetailPage = () => {
   };
 
   const disponibilidadNumerica = provider?.disponibilidad?.map(dia => diasSemana[dia]) || [];
+
+  // Si el usuario es un prestador, ocultamos la opción de agendar cita
+  const isBuscador = user?.rolActivo === "BUSCADOR";
+
+  // Formatear las horas de inicio y fin para mostrarlas correctamente
+  const formatTime = (timeString) => {
+    if (!timeString) return '';
+    const [hours, minutes] = timeString.split(":");
+    const formattedHours = hours % 12 || 12; // Formato 12 horas
+    const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    return `${formattedHours}:${formattedMinutes} ${ampm}`;
+  };
+
+  // Obtener las horas disponibles entre horaInicio y horaFin
+  const getAvailableTimes = () => {
+    if (!provider) return [];
+
+    const start = parseInt(provider.horaInicio.split(":")[0], 10); // Hora de inicio
+    const end = parseInt(provider.horaFin.split(":")[0], 10); // Hora de fin
+    const availableTimes = [];
+
+    for (let i = start; i < end; i++) {
+      availableTimes.push(`${i}:00`);
+      availableTimes.push(`${i}:30`); // También se puede agregar media hora
+    }
+
+    return availableTimes;
+  };
+
+  const availableTimes = getAvailableTimes();
 
   if (loading) {
     return (
@@ -122,12 +152,11 @@ const ServiceDetailPage = () => {
       <div className="container mx-auto px-4">
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="h-64 md:h-80 overflow-hidden">
-          <img
-            src={service.foto ? service.foto : "/placeholder.svg"}
-            alt={service.nombre}
-            className="w-full h-full object-cover"
-          />
-
+            <img
+              src={service.foto ? service.foto : "/placeholder.svg"}
+              alt={service.nombre}
+              className="w-full h-full object-cover"
+            />
           </div>
 
           <div className="p-6">
@@ -138,72 +167,13 @@ const ServiceDetailPage = () => {
                   <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
                     {service.categoria}
                   </span>
-                  <div className="ml-4 flex items-center">
-                    <div className="flex text-yellow-400">
-                    {[...Array(5)].map((_, i) => {
-                      const rating = (service.valoracionPromedio || 0) / 2;
-                      const isFull = rating >= i + 1;
-                      const isHalf = rating >= i + 0.5 && rating < i + 1;
-
-                      return (
-                        <span key={i} className="relative w-4 h-4">
-                          {isFull ? (
-                            <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 
-                                3.292a1 1 0 00.95.69h3.462c.969 0 1.371 
-                                1.24.588 1.81l-2.8 2.034a1 1 0 
-                                00-.364 1.118l1.07 3.292c.3.921-.755 
-                                1.688-1.54 1.118l-2.8-2.034a1 1 0 
-                                00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 
-                                0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 
-                                00.951-.69l1.07-3.292z" />
-                            </svg>
-                          ) : isHalf ? (
-                            <svg className="w-4 h-4 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                              <defs>
-                                <linearGradient id={`half-star-${i}`}>
-                                  <stop offset="50%" stopColor="currentColor" />
-                                  <stop offset="50%" stopColor="lightgray" />
-                                </linearGradient>
-                              </defs>
-                              <path fill={`url(#half-star-${i})`} d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 
-                                3.292a1 1 0 00.95.69h3.462c.969 0 1.371 
-                                1.24.588 1.81l-2.8 2.034a1 1 0 
-                                00-.364 1.118l1.07 3.292c.3.921-.755 
-                                1.688-1.54 1.118l-2.8-2.034a1 1 0 
-                                00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 
-                                0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 
-                                00.951-.69l1.07-3.292z" />
-                            </svg>
-                          ) : (
-                            <svg className="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 
-                                3.292a1 1 0 00.95.69h3.462c.969 0 1.371 
-                                1.24.588 1.81l-2.8 2.034a1 1 0 
-                                00-.364 1.118l1.07 3.292c.3.921-.755 
-                                1.688-1.54 1.118l-2.8-2.034a1 1 0 
-                                00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 
-                                0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 
-                                00.951-.69l1.07-3.292z" />
-                            </svg>
-                          )}
-                        </span>
-                      );
-                    })}
-
-
-                    </div>
-                    <span className="ml-1 text-sm text-gray-600">
-                      {service.valoracionPromedio?.toFixed(1) || "0.0"} ★
-                    </span>
-                  </div>
                 </div>
 
                 <h1 className="text-2xl md:text-3xl font-bold mb-4">{service.nombre}</h1>
 
                 <div className="flex items-center mb-6">
                   <img
-                    src={provider?.imagen ||`https://ui-avatars.com/api/?name=${encodeURIComponent(provider?.nombre)}&background=0D8ABC&color=fff`}
+                    src={provider?.imagen || `https://ui-avatars.com/api/?name=${encodeURIComponent(provider?.nombre)}&background=0D8ABC&color=fff`}
                     alt={provider?.nombre}
                     className="w-10 h-10 rounded-full mr-3"
                   />
@@ -211,6 +181,10 @@ const ServiceDetailPage = () => {
                     <p className="font-medium">{provider?.nombre}</p>
                     <p className="text-sm text-gray-600">
                       {provider?.categoria?.join(", ")}
+                    </p>
+                    {/* Mostrar horas de disponibilidad */}
+                    <p className="text-sm text-gray-600">
+                      Horario disponible: {formatTime(provider?.horaInicio)} - {formatTime(provider?.horaFin)}
                     </p>
                   </div>
                 </div>
@@ -233,7 +207,7 @@ const ServiceDetailPage = () => {
                 {provider && (
                   <AvailabilityCalendar availability={disponibilidadNumerica} />
                 )}
-                {user?.rol !== "PRESTADOR" && (
+                {isBuscador && ( // Solo mostrar la opción si el usuario es un buscador
                   <div className="mt-6 space-y-4">
                     <div>
                       <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
@@ -261,7 +235,7 @@ const ServiceDetailPage = () => {
                         onChange={(e) => setSelectedTime(e.target.value)}
                       >
                         <option value="">Seleccionar hora</option>
-                        {["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"].map(h => (
+                        {availableTimes.map(h => (
                           <option key={h} value={h}>{h}</option>
                         ))}
                       </select>
@@ -276,53 +250,31 @@ const ServiceDetailPage = () => {
               </div>
             </div>
 
-            {/* Reseñas */}
-            <div className="mt-6 w-full">
-              <h2 className="text-lg font-semibold mb-4">Reseñas</h2>
-              {service.resenas?.length > 0 ? (
-                <div className="grid gap-4">
-                  {service.resenas.map((r) => (
-                    <div key={r.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50 shadow-sm">
-                      <div className="flex justify-between items-center mb-1">
-                        <p className="text-sm font-medium text-gray-800">{r.nombreBuscador}</p>
-                        <p className="text-sm text-yellow-600 font-semibold">{r.valoracion}/10</p>
-                      </div>
-                      <p className="italic text-gray-700 mb-1">"{r.comentario}"</p>
-                      <p className="text-xs text-gray-400">{r.fecha}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 text-sm italic">Este servicio aún no tiene reseñas.</p>
-              )}
-            </div>
+            {/* Modal de login */}
+            {showLoginModal && (
+              <ConfirmationModal
+                title="Iniciar sesión requerido"
+                message="Debes iniciar sesión para solicitar este servicio."
+                confirmText="Ir a iniciar sesión"
+                cancelText="Cancelar"
+                onConfirm={() => navigate("/login")}
+                onCancel={() => setShowLoginModal(false)}
+              />
+            )}
+
+            {/* Modal de éxito */}
+            {showSuccessModal && (
+              <ConfirmationModal
+                title="¡Servicio agendado!"
+                message={`Has agendado el servicio "${service.nombre}" para el ${selectedDate} a las ${selectedTime}.`}
+                confirmText="Ver mis reservas"
+                showCancel={false}
+                onConfirm={handleCloseSuccessModal}
+              />
+            )}
           </div>
         </div>
       </div>
-
-
-      {/* Modal de login */}
-      {showLoginModal && (
-        <ConfirmationModal
-          title="Iniciar sesión requerido"
-          message="Debes iniciar sesión para solicitar este servicio."
-          confirmText="Ir a iniciar sesión"
-          cancelText="Cancelar"
-          onConfirm={() => navigate("/login")}
-          onCancel={() => setShowLoginModal(false)}
-        />
-      )}
-
-      {/* Modal de éxito */}
-      {showSuccessModal && (
-        <ConfirmationModal
-          title="¡Servicio agendado!"
-          message={`Has agendado el servicio "${service.nombre}" para el ${selectedDate} a las ${selectedTime}.`}
-          confirmText="Ver mis reservas"
-          showCancel={false}
-          onConfirm={handleCloseSuccessModal}
-        />
-      )}
     </div>
   );
 };
