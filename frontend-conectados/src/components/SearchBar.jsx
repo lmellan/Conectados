@@ -1,3 +1,4 @@
+// src/components/SearchBar.jsx
 "use client";
 
 import { useState } from "react";
@@ -13,7 +14,8 @@ const SearchBar = ({ className }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className={`${className || ""}`}>
+    // ¡Aquí está el cambio! Añadimos aria-label
+    <form onSubmit={handleSubmit} className={`${className || ""}`} aria-label="Buscador de servicios">
       <div className="flex w-full max-w-3xl">
         <input
           type="text"

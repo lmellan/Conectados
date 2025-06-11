@@ -38,8 +38,17 @@
       "last 1 safari version"
     ]
   },
+  "jest": {
+    "transformIgnorePatterns": [
+      "node_modules/(?!(axios)/)"
+    ]
+  },
   "devDependencies": {
+    "@babel/core": "^7.27.4",
+    "@babel/preset-env": "^7.27.2",
+    "@babel/preset-react": "^7.27.1",
     "autoprefixer": "^10.4.14",
+    "babel-jest": "^30.0.0",
     "postcss": "^8.4.23",
     "tailwindcss": "^3.3.2"
   }
