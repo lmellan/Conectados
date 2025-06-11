@@ -1,6 +1,10 @@
 const AvailabilityCalendar = ({ availability }) => {
   const daysOfWeek = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
+  // Asegúrate de que availability sea un arreglo, si no, usa un arreglo vacío.
+  // Esto previene el error "Cannot read properties of undefined (reading 'includes')"
+  const currentAvailability = Array.isArray(availability) ? availability : [];
+
   return (
     <div className="bg-white rounded-lg shadow p-4">
       <h3 className="font-semibold mb-4">Disponibilidad</h3>
@@ -11,12 +15,14 @@ const AvailabilityCalendar = ({ availability }) => {
             <div
               className={`h-8 rounded-md flex items-center justify-center text-sm
                 ${
-                  availability.includes(index)
+                  // Usa currentAvailability en lugar de availability directamente
+                  currentAvailability.includes(index)
                     ? "bg-green-100 text-green-800"
                     : "bg-gray-100 text-gray-400"
                 }`}
             >
-              {availability.includes(index) ? "Sí" : "No"}
+              {/* Usa currentAvailability aquí también */}
+              {currentAvailability.includes(index) ? "Sí" : "No"}
             </div>
           </div>
         ))}

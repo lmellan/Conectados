@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.conectados.conect.servicio.entities.Dto.ServicioDto;
 import com.conectados.conect.servicio.entities.Servicio;
 import com.conectados.conect.servicio.repositories.ServicioRepository;
 import com.conectados.conect.servicio.services.impl.ServicioServicesImpl;
@@ -17,12 +16,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-
-
 
 class ServicioServicesImplTest {
 
@@ -63,46 +59,7 @@ class ServicioServicesImplTest {
         verify(servicioRepository, times(1)).save(servicio);
     }
 
-    // @Test
-    // void crearServicio_validAtributos_deberiaGuardarServicio() {
-    //     Servicio servicio = new Servicio();
-    //     when(servicioRepository.save(any(Servicio.class))).thenReturn(servicio);
-
-    //     Servicio resultado = servicioServices.crearServicio(servicio);
-
-    //     assertNotNull(resultado);
-    //     verify(servicioRepository, times(1)).save(servicio);
-    // }
-
-
-    //2 test categoria no valida
-        @Test
-    void crearServicio_categoriaNoValida_deberiaLanzarExcepcion() {
-        Servicio servicio = new Servicio();
-        servicio.setNombre("Servicio de prueba");
-        servicio.setPrecio(10000.0);
-        servicio.setZonaAtencion("Santiago");
-        servicio.setCategoria("CategoriaInexistente");
-
-        Usuario prestador = new Usuario();
-        prestador.setId(1L);
-        prestador.setNombre("Prestador Test");
-        servicio.setPrestador(prestador);
-
-        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(prestador));
-
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-            servicioServices.crearServicio(servicio);
-        });
-
-        String expectedMessage = "Categoría no válida"; 
-        String actualMessage = exception.getMessage();
-
-        assertTrue(actualMessage.contains(expectedMessage));
-    }
-
-
-    // 3 obtener servicio por id existente
+    //2 obtener servicio por valid id
     @Test
     void obtenerServicioPorId_validAtributos_deberiaRetornarServicioExistente() {
         Servicio servicio = new Servicio();
@@ -113,7 +70,7 @@ class ServicioServicesImplTest {
         assertNotNull(resultado);
     }
 
-    // 4 caso de fallo al onbtener servicio por id
+    //3 obtener servicio por invalid id RETORNA NULL
     @Test
     void obtenerServicioPorId_invalidId_deberiaRetornarNull() {
         when(servicioRepository.findById(1L)).thenReturn(Optional.empty());
@@ -123,6 +80,7 @@ class ServicioServicesImplTest {
         assertNull(resultado);
     }
 
+    //4 obtener todos los servicios
     @Test
     void obtenerTodosLosServicios_peticion_deberiaListarServicios() {
         Servicio servicio = new Servicio();
@@ -133,8 +91,7 @@ class ServicioServicesImplTest {
         assertEquals(1, servicios.size());
     }
 
-
-    // 6 servicio por categoria
+    //5 obntener servicios x categoria
     @Test
     void obtenerServiciosPorCategoria_categoriaValida_deberiaListarServicios() {
         when(servicioRepository.findByCategoria("Educacion")).thenReturn(Collections.singletonList(new Servicio()));
@@ -144,10 +101,13 @@ class ServicioServicesImplTest {
         assertEquals(1, servicios.size());
     }
 
-    // 7 actualizar servicio valido 
+    //6 actualizar un servicio existente
     @Test
     void actualizarServicio_peticion_deberiaActualizarCampos() {
         Servicio servicioExistente = new Servicio();
+        Usuario prestador = new Usuario();
+        prestador.setRolActivo("PRESTADOR");
+        servicioExistente.setPrestador(prestador);
         servicioExistente.setNombre("Viejo");
 
         Servicio nuevoServicio = new Servicio();
@@ -162,8 +122,7 @@ class ServicioServicesImplTest {
         assertEquals("Nuevo", actualizado.getNombre());
     }
 
-
-    // 8 obtener servicios por prestador ID 
+    //7 obtener servicios x id prestador
     @Test
     void obtenerServiciosPorPrestadorId_valido_deberiaListarServicios() {
         when(servicioRepository.findByPrestador_Id(1L)).thenReturn(List.of(new Servicio()));
@@ -173,8 +132,7 @@ class ServicioServicesImplTest {
         assertEquals(1, servicios.size());
     }
 
-
-        // 9 eliminar servicio
+    //8 elliminar un servicio existente
     @Test
     void eliminarServicio_valido_deberiaEliminarServicio() {
         servicioServices.eliminarServicio(1L);

@@ -20,5 +20,7 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
         @Param("hora") LocalTime hora
     );
     List<Cita> findByEstado(String estado);
+    @Query("SELECT COUNT(c) FROM Cita c WHERE c.idPrestador = :idPrestador AND c.fecha = :fecha AND c.hora = :hora AND c.id <> :idCita")
+    Long contarCitasPorPrestadorFechaHoraExceptoId(Long idCita, Long idPrestador, LocalDate fecha, LocalTime hora);
 
 }

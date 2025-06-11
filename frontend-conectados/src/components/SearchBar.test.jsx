@@ -1,74 +1,75 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
-import SearchBar from "./SearchBar";
-import { React, act } from "react";
+import { render, screen, fireEvent } from '@testing-library/react';
+import { useNavigate } from 'react-router-dom';
+import SearchBar from './SearchBar'; // Ajusta la ruta si es necesario
 
 // Mock de useNavigate
-const mockNavigate = jest.fn();
-jest.mock("react-router-dom", () => {
-  const actual = jest.requireActual("react-router-dom");
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  };
-});
+const mockedUseNavigate = jest.fn();
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'), // Mantiene otras exportaciones reales
+  useNavigate: () => mockedUseNavigate, // Sobrescribe useNavigate con nuestro mock
+}));
 
-describe("SearchBar", () => {
+describe('SearchBar', () => {
+  // Limpiar todos los mocks antes de cada test
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
+  // 1. Renderiza el input de búsqueda y el botón
+  test('debe renderizar el campo de entrada de búsqueda y un botón "Buscar"', () => {
+    render(<SearchBar />);
 
-  test("renderiza el título, categoría y nombre del proveedor", () => {
-    act(() => {
-      render(
-        <MemoryRouter>
-          <SearchBar />
-        </MemoryRouter>
-      );
-    });
-
-
-  
-    expect(screen.getByPlaceholderText("¿Qué servicio necesitas?")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Buscar" })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('¿Qué servicio necesitas?')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Buscar' })).toBeInTheDocument();
   });
 
-  test("actualiza el valor del input cuando se escribe", () => {
-    render(
-      <MemoryRouter>
-        <SearchBar />
-      </MemoryRouter>
-    );
+  // 2. Actualiza el estado de searchTerm al cambiar el input
+  test('debe actualizar el valor del input cuando el usuario escribe', () => {
+    render(<SearchBar />);
+    const searchInput = screen.getByPlaceholderText('¿Qué servicio necesitas?');
 
-    const input = screen.getByPlaceholderText("¿Qué servicio necesitas?");
-    fireEvent.change(input, { target: { value: "plomería" } });
-    expect(input.value).toBe("plomería");
+    fireEvent.change(searchInput, { target: { value: 'electricista' } });
+
+    expect(searchInput).toHaveValue('electricista');
   });
 
-  test("navega a la ruta de búsqueda al enviar el formulario", () => {
-    render(
-      <MemoryRouter>
-        <SearchBar />
-      </MemoryRouter>
-    );
+  // 3. Navega a los resultados de búsqueda con la consulta correcta al enviar el formulario
+  test('debe navegar a la página de resultados de búsqueda con la consulta correcta al enviar el formulario', () => {
+    render(<SearchBar />);
+    const searchInput = screen.getByPlaceholderText('¿Qué servicio necesitas?');
+    const searchButton = screen.getByRole('button', { name: 'Buscar' });
 
-    const input = screen.getByPlaceholderText("¿Qué servicio necesitas?");
-    const form = input.closest("form");
+    // Escribe un término de búsqueda
+    fireEvent.change(searchInput, { target: { value: 'plomería' } });
 
-    fireEvent.change(input, { target: { value: "electricidad" } });
-    fireEvent.submit(form);
+    // Envía el formulario
+    fireEvent.click(searchButton); // Al hacer clic en el botón de enviar se activa el envío del formulario
 
-    expect(mockNavigate).toHaveBeenCalledWith("/search?q=electricidad");
+    // Verifica que navigate fue llamado con la ruta correcta
+    expect(mockedUseNavigate).toHaveBeenCalledTimes(1);
+    expect(mockedUseNavigate).toHaveBeenCalledWith('/search?q=plomería');
   });
 
-  test("aplica la clase adicional pasada por props", () => {
-    const { container } = render(
-      <MemoryRouter>
-        <SearchBar className="mt-10" />
-      </MemoryRouter>
-    );
+  // 4. Maneja el envío de términos de búsqueda vacíos (debe navegar, pero con la consulta vacía)
+  test('debe navegar a la búsqueda con una consulta vacía si el término de búsqueda está vacío', () => {
+    render(<SearchBar />);
+    const searchButton = screen.getByRole('button', { name: 'Buscar' });
 
-    expect(container.firstChild).toHaveClass("mt-10");
+    // No escribas nada, simplemente envía
+    fireEvent.click(searchButton);
+
+    expect(mockedUseNavigate).toHaveBeenCalledTimes(1);
+    expect(mockedUseNavigate).toHaveBeenCalledWith('/search?q=');
+  });
+
+  // 5. Aplica la className personalizada pasada a través de las props
+  test('debe aplicar la className personalizada pasada a través de las props al formulario', () => {
+    const customClassName = 'my-custom-search-bar';
+    render(<SearchBar className={customClassName} />);
+
+    // Ahora screen.getByRole('form', { name: 'Buscador de servicios' }) funcionará
+    // porque añadimos el aria-label al formulario en SearchBar.jsx
+    const formElement = screen.getByRole('form', { name: 'Buscador de servicios' });
+    expect(formElement).toHaveClass(customClassName);
   });
 });

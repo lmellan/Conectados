@@ -13,5 +13,4 @@ public interface CitaServices {
     List<Cita> obtenerCitasPorPrestador(Long idPrestador);
     void actualizarEstadosDeCitas();
 
-
 }
