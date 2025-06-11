@@ -1,145 +1,172 @@
-// package com.conectados.conect.test;
+package com.conectados.conect.test;
 
-// import static org.mockito.ArgumentMatchers.any;
-// import static org.mockito.ArgumentMatchers.anyLong;
-// import static org.mockito.Mockito.*;
-// import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-// import com.conectados.conect.cita.entities.Cita;
-// import com.conectados.conect.cita.repositories.CitaRepository;
-// import org.junit.jupiter.api.BeforeEach;
-// import org.junit.jupiter.api.Test;
-// import org.mockito.InjectMocks;
-// import com.conectados.conect.cita.services.impl.CitaServicesImpl;
-// import org.mockito.Mock;
-// import org.mockito.MockitoAnnotations;
-// import org.springframework.web.server.ResponseStatusException;
+import com.conectados.conect.cita.entities.Cita;
+import com.conectados.conect.cita.repositories.CitaRepository;
+import com.conectados.conect.cita.services.impl.CitaServicesImpl;
+import com.conectados.conect.servicio.entities.Servicio;
+import com.conectados.conect.servicio.repositories.ServicioRepository;
+import com.conectados.conect.user.model.Usuario;
+import com.conectados.conect.user.repository.UsuarioRepository;
 
-// import java.time.LocalDate;
-// import java.time.LocalTime;
-// import java.util.Collections;
-// import java.util.Optional;
-// import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.web.server.ResponseStatusException;
 
-// class CitaServicesImplTest {
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
-//     @Mock
-//     private CitaRepository citaRepository;
+public class CitaServicesImplTest {
 
-//     @InjectMocks
-//     private CitaServicesImpl citaServices;
+    @Mock private CitaRepository citaRepository;
+    @Mock private UsuarioRepository usuarioRepository;
+    @Mock private ServicioRepository servicioRepository;
 
-//     @BeforeEach
-//     void setUp() {
-//         MockitoAnnotations.openMocks(this);
-//     }
+    @InjectMocks private CitaServicesImpl citaServices;
 
-//     //1 caso de exito
-//     @Test
-//     void crearCita_atributosOK_deberiaCrearCita() {
-//         Cita cita = new Cita();
-//         cita.setIdPrestador(1L);
-//         cita.setFecha(LocalDate.now());
-//         cita.setHora(LocalTime.of(10, 0));
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
 
-//         when(citaRepository.contarCitasPorPrestadorFechaHora(anyLong(), any(), any())).thenReturn(0L);
-//         when(citaRepository.save(any(Cita.class))).thenReturn(cita);
+    //1 exito de crear cita
+    @Test
+    void crearCita_datosValidos_deberiaCrearCita() {
+        Cita cita = new Cita();
+        cita.setIdBuscador(1L);
+        cita.setIdPrestador(2L);
+        cita.setIdServicio(3L);
+        cita.setFecha(LocalDate.of(2025, 6, 15)); // Domingo
+        cita.setHora(LocalTime.of(10, 0));
 
-//         Cita resultado = citaServices.crearCita(cita);
+        Usuario buscador = new Usuario();
+        buscador.setRolActivo("BUSCADOR");
 
-//         assertNotNull(resultado);
-//         verify(citaRepository, times(1)).save(cita);
-//     }
+        Usuario prestador = new Usuario();
+        prestador.setRolActivo("PRESTADOR");
+        prestador.setHoraInicio(LocalTime.of(8, 0));
+        prestador.setHoraFin(LocalTime.of(18, 0));
+        prestador.setDisponibilidad(List.of("Domingo"));
 
-//     // 2 caso con conflicto
-//     @Test
-//     void crearCita_atributosConflicto_deberiaLanzarExcepcion() {
-//         Cita cita = new Cita();
-//         cita.setIdPrestador(1L);
-//         cita.setFecha(LocalDate.now());
-//         cita.setHora(LocalTime.of(10, 0));
+        Servicio servicio = new Servicio();
 
-//         when(citaRepository.contarCitasPorPrestadorFechaHora(anyLong(), any(), any())).thenReturn(1L);
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(buscador));
+        when(usuarioRepository.findById(2L)).thenReturn(Optional.of(prestador));
+        when(servicioRepository.findById(3L)).thenReturn(Optional.of(servicio));
+        when(citaRepository.contarCitasPorPrestadorFechaHora(2L, cita.getFecha(), cita.getHora()))
+            .thenReturn(0L);
+        when(citaRepository.save(any(Cita.class))).thenReturn(cita);
 
-//         assertThrows(ResponseStatusException.class, () -> citaServices.crearCita(cita));
-//         verify(citaRepository, never()).save(any(Cita.class));
-//     }
-// //3 probando exito
-//     @Test
-//     void obtenerCitaPorId_llamado_deberiaRetornarCitaExistente() {
-//         Cita cita = new Cita();
-//         when(citaRepository.findById(1L)).thenReturn(Optional.of(cita));
+        Cita resultado = citaServices.crearCita(cita);
 
-//         Cita resultado = citaServices.obtenerCitaPorId(1L);
+        assertNotNull(resultado);
+        verify(citaRepository).save(any(Cita.class));
+    }
 
-//         assertNotNull(resultado);
-//     }
+    //2 conflicto al crear cita x horario ocupado
+    @Test
+    void crearCita_conflictoHorario_deberiaLanzarExcepcion() {
+        Cita cita = new Cita();
+        cita.setIdBuscador(1L);
+        cita.setIdPrestador(2L);
+        cita.setIdServicio(3L);
+        cita.setFecha(LocalDate.now());
+        cita.setHora(LocalTime.of(10, 0));
 
-//     //4 probando si cita no existe
-//     @Test
-//     void obtenerCitaPorId_noExiste_deberiaRetornarNull() {
-//         when(citaRepository.findById(1L)).thenReturn(Optional.empty());
+        Usuario buscador = new Usuario();
+        buscador.setRolActivo("BUSCADOR");
 
-//         Cita resultado = citaServices.obtenerCitaPorId(1L);
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(buscador));
+        when(citaRepository.contarCitasPorPrestadorFechaHora(any(), any(), any())).thenReturn(1L);
 
-//         assertNull(resultado);
-//     }
-    
-//     // 5 actualiza bien cita
-//     @Test
-//     void actualizarCita_atributosValidos_deberiaActualizarCampos() {
-//         Cita citaExistente = new Cita();
-//         citaExistente.setId(1L);
+        assertThrows(ResponseStatusException.class, () -> citaServices.crearCita(cita));
+        verify(citaRepository, never()).save(any());
+    }
 
-//         Cita citaActualizada = new Cita();
-//         citaActualizada.setIdBuscador(2L);
-//         citaActualizada.setIdPrestador(3L);
-//         citaActualizada.setIdServicio(4L);
-//         citaActualizada.setFecha(LocalDate.now());
-//         citaActualizada.setHora(LocalTime.now());
-//         citaActualizada.setEstado("CONFIRMADA");
+    //3 obtener cita existente 
+    @Test
+    void obtenerCitaPorId_existente_deberiaRetornarCita() {
+        Cita cita = new Cita();
+        when(citaRepository.findById(1L)).thenReturn(Optional.of(cita));
+        Cita resultado = citaServices.obtenerCitaPorId(1L);
+        assertNotNull(resultado);
+    }
 
-//         when(citaRepository.findById(1L)).thenReturn(Optional.of(citaExistente));
-//         when(citaRepository.save(any(Cita.class))).thenReturn(citaExistente);
+    //4 obtener cita no existentre
+    @Test
+    void obtenerCitaPorId_noExiste_deberiaRetornarNull() {
+        when(citaRepository.findById(1L)).thenReturn(Optional.empty());
+        assertNull(citaServices.obtenerCitaPorId(1L));
+    }
 
-//         Cita resultado = citaServices.actualizarCita(1L, citaActualizada);
+    //5 actualizar cita valida
+    @Test
+    void actualizarCita_valida_deberiaActualizarCampos() {
+        Cita existente = new Cita();
+        existente.setId(1L);
 
-//         assertNotNull(resultado);
-//         assertEquals(2L, resultado.getIdBuscador());
-//         assertEquals("CONFIRMADA", resultado.getEstado());
-//     }
-//  // 6 citas por buscador
-//     @Test
-//     void obtenerCitas_porBuscador_deberiaListarCitas() {
-//         when(citaRepository.findByIdBuscador(1L)).thenReturn(Collections.singletonList(new Cita()));
+        Usuario prestador = new Usuario();
+        prestador.setDisponibilidad(List.of("Lunes"));
+        prestador.setHoraInicio(LocalTime.of(8, 0));
+        prestador.setHoraFin(LocalTime.of(18, 0));
 
-//         List<Cita> citas = citaServices.obtenerCitasPorBuscador(1L);
+        Cita actualizada = new Cita();
+        actualizada.setIdBuscador(10L);
+        actualizada.setIdPrestador(20L);
+        actualizada.setIdServicio(30L);
+        actualizada.setFecha(LocalDate.of(2025, 6, 9)); // Lunes
+        actualizada.setHora(LocalTime.of(10, 0));
+        actualizada.setEstado("CONFIRMADA");
 
-//         assertEquals(1, citas.size());
-//     }
+        when(citaRepository.findById(1L)).thenReturn(Optional.of(existente));
+        when(usuarioRepository.findById(20L)).thenReturn(Optional.of(prestador));
+        when(citaRepository.contarCitasPorPrestadorFechaHoraExceptoId(any(), any(), any(), any()))
+            .thenReturn(0L);
+        when(citaRepository.save(any())).thenReturn(existente);
 
-//     //7 citas por prestador
-//      @Test
-//     void obtenerCitas_porPrestador_deberiaListarCitas() {
-//         when(citaRepository.findByIdPrestador(1L)).thenReturn(Collections.singletonList(new Cita()));
+        Cita resultado = citaServices.actualizarCita(1L, actualizada);
 
-//         List<Cita> citas = citaServices.obtenerCitasPorPrestador(1L);
+        assertNotNull(resultado);
+        assertEquals("CONFIRMADA", resultado.getEstado());
+    }
 
-//         assertEquals(1, citas.size());
-//     }
-// // 8 actualizar citas
-//     @Test
-//     void actualizarEstadosDeCitas_pasoFecha_deberiaActualizarPendientesACompletadas() {
-//         Cita citaPendiente = new Cita();
-//         citaPendiente.setFecha(LocalDate.now().minusDays(1));
-//         citaPendiente.setEstado("PENDIENTE");
+    //6 listar citas por buscador
+    @Test
+    void obtenerCitas_porBuscador_deberiaRetornarLista() {
+        when(citaRepository.findByIdBuscador(1L)).thenReturn(List.of(new Cita()));
+        assertEquals(1, citaServices.obtenerCitasPorBuscador(1L).size());
+    }
 
-//         when(citaRepository.findByEstado("PENDIENTE")).thenReturn(List.of(citaPendiente));
-//         when(citaRepository.save(any(Cita.class))).thenReturn(citaPendiente);
+    //listar citas por prestador
+    @Test
+    void obtenerCitas_porPrestador_deberiaRetornarLista() {
+        when(citaRepository.findByIdPrestador(2L)).thenReturn(List.of(new Cita()));
+        assertEquals(1, citaServices.obtenerCitasPorPrestador(2L).size());
+    }
 
-//         citaServices.actualizarEstadosDeCitas();
+    //actualizar estado de citas vencidas
+    @Test
+    void actualizarEstados_deberiaMarcarCitasCompletadas() {
+        Cita cita = new Cita();
+        cita.setEstado("PENDIENTE");
+        cita.setFecha(LocalDate.now().minusDays(1));
 
-//         assertEquals("COMPLETADA", citaPendiente.getEstado());
-//         verify(citaRepository, times(1)).save(citaPendiente);
-//     }
-// }
+        when(citaRepository.findByEstado("PENDIENTE")).thenReturn(List.of(cita));
+        when(citaRepository.save(any())).thenReturn(cita);
+
+        citaServices.actualizarEstadosDeCitas();
+
+        assertEquals("COMPLETADA", cita.getEstado());
+        verify(citaRepository).save(cita);
+    }
+}

@@ -1,140 +1,153 @@
-// package com.conectados.conect.test;
+package com.conectados.conect.test;
 
-// import com.conectados.conect.user.dto.RegistroUsuarioDto;
-// import com.conectados.conect.user.model.Rol;
-// import com.conectados.conect.user.model.Usuario;
-// import com.conectados.conect.user.repository.UsuarioRepository;
-// import com.conectados.conect.user.service.impl.UsuarioServicesImpl;
-// import org.junit.jupiter.api.BeforeEach;
-// import org.junit.jupiter.api.Test;
-// import org.mockito.InjectMocks;
-// import org.mockito.Mock;
-// import org.mockito.MockitoAnnotations;
+import com.conectados.conect.user.dto.AddProfessionalDetailsDto;
+import com.conectados.conect.user.dto.RegistroUsuarioDto;
+import com.conectados.conect.user.model.Rol;
+import com.conectados.conect.user.model.Usuario;
+import com.conectados.conect.user.repository.UsuarioRepository;
+import com.conectados.conect.user.service.impl.UsuarioServicesImpl;
 
-// import java.util.Optional;
-// import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-// import static org.junit.jupiter.api.Assertions.*;
-// import static org.mockito.ArgumentMatchers.any;
-// import static org.mockito.Mockito.*;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.Optional;
 
-// class UsuarioServicesImplTest {
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
-//     @Mock
-//     private UsuarioRepository usuarioRepository;
+class UsuarioServicesImplTest {
 
-//     @InjectMocks
-//     private UsuarioServicesImpl usuarioServices;
+    @Mock
+    private UsuarioRepository usuarioRepository;
 
-//     @BeforeEach
-//     void setUp() {
-//         MockitoAnnotations.openMocks(this);
-//     }
+    @InjectMocks
+    private UsuarioServicesImpl usuarioServices;
 
-//     @Test
-//     void registrarUsuario_nuevoCorreo_deberiaCrearUsuario() {
-//         RegistroUsuarioDto dto = new RegistroUsuarioDto();
-//         dto.setNombre("Test");
-//         dto.setCorreo("test@example.com");
-//         dto.setContrasena("password");
-//         dto.setRoles(List.of(Rol.BUSCADOR));
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
 
-//         when(usuarioRepository.findByCorreo(dto.getCorreo())).thenReturn(Optional.empty());
-//         when(usuarioRepository.save(any(Usuario.class))).thenReturn(new Usuario());
+    //1 registrar un usuario nuevo
+    @Test
+    void registrarUsuario_nuevoCorreo_deberiaCrearUsuario() {
+        RegistroUsuarioDto dto = new RegistroUsuarioDto();
+        dto.setNombre("Test");
+        dto.setCorreo("test@example.com");
+        dto.setContrasena("password");
+        dto.setRoles(List.of(Rol.BUSCADOR));
 
-//         Usuario creado = usuarioServices.registrarUsuario(dto);
+        when(usuarioRepository.findByCorreo(dto.getCorreo())).thenReturn(Optional.empty());
+        when(usuarioRepository.save(any(Usuario.class))).thenReturn(new Usuario());
 
-//         assertNotNull(creado);
-//         verify(usuarioRepository, times(1)).save(any(Usuario.class));
-//     }
+        Usuario creado = usuarioServices.registrarUsuario(dto);
 
-//     @Test
-//     void registrarUsuario_correoExistente_deberiaLanzarExcepcion() {
-//         RegistroUsuarioDto dto = new RegistroUsuarioDto();
-//         dto.setCorreo("test@example.com");
+        assertNotNull(creado);
+        verify(usuarioRepository, times(1)).save(any(Usuario.class));
+    }
 
-//         when(usuarioRepository.findByCorreo(dto.getCorreo())).thenReturn(Optional.of(new Usuario()));
+    //2 registrar un usuario con correo existente
+    @Test
+    void registrarUsuario_correoExistente_deberiaLanzarExcepcion() {
+        RegistroUsuarioDto dto = new RegistroUsuarioDto();
+        dto.setCorreo("test@example.com");
 
-//         assertThrows(RuntimeException.class, () -> usuarioServices.registrarUsuario(dto));
-//     }
+        when(usuarioRepository.findByCorreo(dto.getCorreo())).thenReturn(Optional.of(new Usuario()));
 
-//     @Test
-//     void obtenerUsuarioPorId_existente_deberiaRetornarUsuario() {
-//         Usuario usuario = new Usuario();
-//         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
+        assertThrows(RuntimeException.class, () -> usuarioServices.registrarUsuario(dto));
+    }
 
-//         Optional<Usuario> encontrado = usuarioServices.obtenerUsuarioPorId(1L);
+    //3 obtener usuario x id existente
+    @Test
+    void obtenerUsuarioPorId_existente_deberiaRetornarUsuario() {
+        Usuario usuario = new Usuario();
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
 
-//         assertTrue(encontrado.isPresent());
-//     }
+        Optional<Usuario> encontrado = usuarioServices.obtenerUsuarioPorId(1L);
 
-//     @Test
-//     void obtenerUsuarioPorId_noExistente_deberiaRetornarVacio() {
-//         when(usuarioRepository.findById(1L)).thenReturn(Optional.empty());
+        assertTrue(encontrado.isPresent());
+    }
 
-//         Optional<Usuario> encontrado = usuarioServices.obtenerUsuarioPorId(1L);
+    //4 obtener usuario x id no existente retorna null
+    @Test
+    void obtenerUsuarioPorId_noExistente_deberiaRetornarVacio() {
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.empty());
 
-//         assertFalse(encontrado.isPresent());
-//     }
+        Optional<Usuario> encontrado = usuarioServices.obtenerUsuarioPorId(1L);
 
-//     @Test
-//     void actualizarUsuario_conDTO_deberiaActualizarUsuario() {
-//         Usuario usuarioExistente = new Usuario();
-//         RegistroUsuarioDto dto = new RegistroUsuarioDto();
-//         dto.setNombre("Nuevo Nombre");
-//         dto.setCorreo("nuevo@example.com");
-//         dto.setContrasena("nuevaPassword");
-//         dto.setRoles(List.of(Rol.PRESTADOR));
+        assertFalse(encontrado.isPresent());
+    }
 
-//         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioExistente));
-//         when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuarioExistente);
+    //5 actualizar un usuario existente
+    @Test
+    void actualizarUsuario_conDTO_deberiaActualizarUsuario() {
+        Usuario usuarioExistente = new Usuario();
+        RegistroUsuarioDto dto = new RegistroUsuarioDto();
+        dto.setNombre("Nuevo Nombre");
+        dto.setCorreo("nuevo@example.com");
+        dto.setContrasena("nuevaPassword");
+        dto.setRoles(List.of(Rol.PRESTADOR));
 
-//         Usuario actualizado = usuarioServices.actualizarUsuario(1L, dto);
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioExistente));
+        when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuarioExistente);
 
-//         assertNotNull(actualizado);
-//         assertEquals("Nuevo Nombre", actualizado.getNombre());
-//     }
+        Usuario actualizado = usuarioServices.actualizarUsuario(1L, dto);
 
+        assertNotNull(actualizado);
+        assertEquals("Nuevo Nombre", actualizado.getNombre());
+    }
 
-//     @Test
-//     void login_credencialesValidas_deberiaAutenticar() {
-//         Usuario usuario = new Usuario();
-//         usuario.setCorreo("test@example.com");
-//         usuario.setContrasena("password");
+    //6 login de credenciales 
+    @Test
+    void login_credencialesValidas_deberiaAutenticar() {
+        Usuario usuario = new Usuario();
+        usuario.setCorreo("test@example.com");
+        usuario.setContrasena("password");
 
-//         when(usuarioRepository.findByCorreo("test@example.com")).thenReturn(Optional.of(usuario));
+        when(usuarioRepository.findByCorreo("test@example.com")).thenReturn(Optional.of(usuario));
 
-//         Optional<Usuario> resultado = usuarioServices.login("test@example.com", "password");
+        Optional<Usuario> resultado = usuarioServices.login("test@example.com", "password");
 
-//         assertTrue(resultado.isPresent());
-//     }
+        assertTrue(resultado.isPresent());
+    }
 
-//     @Test
-//     void login_contrasenaIncorrecta_deberiaFallarf() {
-//         Usuario usuario = new Usuario();
-//         usuario.setCorreo("test@example.com");
-//         usuario.setContrasena("password");
+    //7 login incorrecto
+    @Test
+    void login_contrasenaIncorrecta_deberiaFallar() {
+        Usuario usuario = new Usuario();
+        usuario.setCorreo("test@example.com");
+        usuario.setContrasena("password");
 
-//         when(usuarioRepository.findByCorreo("test@example.com")).thenReturn(Optional.of(usuario));
+        when(usuarioRepository.findByCorreo("test@example.com")).thenReturn(Optional.of(usuario));
 
-//         Optional<Usuario> resultado = usuarioServices.login("test@example.com", "wrongpassword");
+        Optional<Usuario> resultado = usuarioServices.login("test@example.com", "wrongpassword");
 
-//         assertFalse(resultado.isPresent());
-//     }
+        assertFalse(resultado.isPresent());
+    }
 
-//     @Test
-//     void eliminarUsuario_deberiaEliminarUsuario() {
-//         usuarioServices.eliminarUsuario(1L);
+    //8 eliminar usuario existente
+    @Test
+    void eliminarUsuario_deberiaEliminarUsuario() {
+        usuarioServices.eliminarUsuario(1L);
 
-//         verify(usuarioRepository, times(1)).deleteById(1L);
-//     }
+        verify(usuarioRepository, times(1)).deleteById(1L);
+    }
 
-//     @Test
-//     void listarUsuarios_deberiaRetornarUsuarios() {
-//         when(usuarioRepository.findAll()).thenReturn(List.of(new Usuario()));
+    //listar usuarios
+    @Test
+    void listarUsuarios_deberiaRetornarUsuarios() {
+        when(usuarioRepository.findAll()).thenReturn(List.of(new Usuario()));
 
-//         List<Usuario> usuarios = usuarioServices.listarUsuarios();
+        List<Usuario> usuarios = usuarioServices.listarUsuarios();
 
-//         assertEquals(1, usuarios.size());
-//     }
-// }
+        assertEquals(1, usuarios.size());
+    }
+
+    
+}
