@@ -64,6 +64,7 @@ pipeline {
                 sh 'docker-compose down'
             }
 
+
             echo "Build finalizado con estado: ${currentBuild.currentResult}"
 
             withCredentials([string(credentialsId: 'slack-webhook', variable: 'SLACK_URL')]) {
