@@ -197,7 +197,6 @@ const BecomeProPage = () => {
                 id="descripcion"
                 name="descripcion"
                 rows={3}
-                required
                 value={formData.descripcion}
                 onChange={handleChange}
                 className="input-field"

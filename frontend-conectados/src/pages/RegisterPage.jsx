@@ -2,15 +2,14 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
+    nombre: "",
+    correo: "",
+    contrasena: "",
     confirmPassword: "",
-    numero: "", // Cambié 'phoneNumber' a 'numero'
+    numero: "",
   });
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -26,14 +25,13 @@ const RegisterPage = () => {
     e.preventDefault();
     setError("");
 
-    if (formData.password !== formData.confirmPassword) {
+    if (formData.contrasena !== formData.confirmPassword) {
       setError("Las contraseñas no coinciden");
       return;
     }
 
-    // Verificación del formato del número de celular
     const phoneRegex = /^569\d{8}$/;
-    if (!phoneRegex.test(formData.numero)) { // Usando 'numero' en lugar de 'phoneNumber'
+    if (!phoneRegex.test(formData.numero)) {
       setError("El número de celular debe ser en el formato 569XXXXXXXX");
       return;
     }
@@ -45,10 +43,10 @@ const RegisterPage = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          nombre: formData.name,
-          correo: formData.email,
-          contrasena: formData.password,
-          numero: formData.numero, // Enviando el 'numero' al backend
+          nombre: formData.nombre,
+          correo: formData.correo,
+          contrasena: formData.contrasena,
+          numero: formData.numero,
         }),
       });
 
@@ -96,19 +94,16 @@ const RegisterPage = () => {
           )}
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="nombre" className="block text-sm font-medium text-gray-700">
                 Nombre completo
               </label>
               <div className="mt-1">
                 <input
-                  id="name"
-                  name="name"
+                  id="nombre"
+                  name="nombre"
                   type="text"
                   required
-                  value={formData.name}
+                  value={formData.nombre}
                   onChange={handleChange}
                   className="input-field"
                 />
@@ -116,19 +111,16 @@ const RegisterPage = () => {
             </div>
 
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="correo" className="block text-sm font-medium text-gray-700">
                 Correo electrónico
               </label>
               <div className="mt-1">
                 <input
-                  id="email"
-                  name="email"
+                  id="correo"
+                  name="correo"
                   type="email"
                   required
-                  value={formData.email}
+                  value={formData.correo}
                   onChange={handleChange}
                   className="input-field"
                 />
@@ -136,10 +128,7 @@ const RegisterPage = () => {
             </div>
 
             <div>
-              <label
-                htmlFor="numero"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="numero" className="block text-sm font-medium text-gray-700">
                 Número de celular (Formato: 569XXXXXXXX)
               </label>
               <div className="mt-1">
@@ -157,19 +146,16 @@ const RegisterPage = () => {
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="contrasena" className="block text-sm font-medium text-gray-700">
                 Contraseña
               </label>
               <div className="mt-1">
                 <input
-                  id="password"
-                  name="password"
+                  id="contrasena"
+                  name="contrasena"
                   type="password"
                   required
-                  value={formData.password}
+                  value={formData.contrasena}
                   onChange={handleChange}
                   className="input-field"
                 />
@@ -177,10 +163,7 @@ const RegisterPage = () => {
             </div>
 
             <div>
-              <label
-                htmlFor="confirmPassword"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
                 Confirmar contraseña
               </label>
               <div className="mt-1">
