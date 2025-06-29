@@ -1,13 +1,15 @@
+// frontend-conectados/src/pages/ProDashboard.jsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useContext, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { AuthContext } from "../context/AuthContext";
 import ConfirmationModal from "../components/ConfirmationModal";
+import RescheduleAppointmentModal from "../components/RescheduleAppointmentModal"; // Importar el nuevo modal
 import axios from "axios";
 
 const ProDashboard = () => {
-  const { user, token } = useAuth();
+  const { user, token } = useContext(AuthContext); // Usamos useContext directamente
   const [activeTab, setActiveTab] = useState("services");
   const [proServices, setProServices] = useState([]);
   const [proBookings, setProBookings] = useState({
@@ -16,6 +18,10 @@ const ProDashboard = () => {
   });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState(null);
+  // Nuevos estados para el modal de reprogramación
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [selectedBookingToReschedule, setSelectedBookingToReschedule] =
+    useState(null);
 
   const loadProData = async () => {
     if (user && token && user.rolActivo === "PRESTADOR") {
@@ -72,7 +78,7 @@ const ProDashboard = () => {
 
   useEffect(() => {
     loadProData();
-  }, [user]);
+  }, [user, token]); // Añadido token a las dependencias
 
   const handleDeleteService = (service) => {
     setServiceToDelete(service);
@@ -88,15 +94,35 @@ const ProDashboard = () => {
         );
         setServiceToDelete(null);
         setShowDeleteModal(false);
-        loadProData();
+        loadProData(); // Recargar datos después de eliminar
       } catch (error) {
         console.error("Error al eliminar el servicio:", error);
       }
     }
   };
 
-  if (!user) {
-    return null; // Muestra nada o un spinner mientras carga el usuario
+  // Función para manejar la apertura del modal de reprogramación
+  const handleRescheduleClick = (booking) => {
+    setSelectedBookingToReschedule(booking);
+    setShowRescheduleModal(true);
+  };
+
+  // Función para manejar el éxito de la reprogramación
+  const handleRescheduleSuccess = () => {
+    setShowRescheduleModal(false);
+    setSelectedBookingToReschedule(null);
+    loadProData(); // Recargar datos después de reprogramar
+  };
+
+  if (!user || user.rolActivo !== "PRESTADOR") {
+    // Si no es un prestador logueado, puedes redirigir o mostrar un mensaje
+    return (
+      <div className="min-h-screen flex justify-center items-center">
+        <p className="text-gray-500">
+          Acceso denegado. Debes ser un prestador para ver este panel.
+        </p>
+      </div>
+    );
   }
 
   return (
@@ -186,7 +212,9 @@ const ProDashboard = () => {
                               className="w-16 h-16 object-cover rounded-md mr-4"
                             />
                             <div>
-                              <h3 className="font-semibold">{service.nombre}</h3>
+                              <h3 className="font-semibold">
+                                {service.nombre}
+                              </h3>
                               <p className="text-sm text-gray-600">
                                 Categoría: {service.categoria}
                               </p>
@@ -242,40 +270,75 @@ const ProDashboard = () => {
                   {proBookings.upcoming.length > 0 ? (
                     <div className="space-y-4">
                       {proBookings.upcoming.map((booking) => (
-                        <div key={booking.id} className="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between">
+                        <div
+                          key={booking.id}
+                          className="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between"
+                        >
                           <div className="flex items-start mb-4 md:mb-0">
                             <img
-                              src={booking.serviceDetails?.image || "/placeholder.svg"}
+                              src={
+                                booking.serviceDetails?.image ||
+                                "/placeholder.svg"
+                              }
                               alt={booking.serviceDetails?.title}
                               className="w-16 h-16 object-cover rounded-md mr-4"
                             />
                             <div>
-                              <h3 className="font-semibold">{booking.serviceDetails.title}</h3>
+                              <h3 className="font-semibold">
+                                {booking.serviceDetails.title}
+                              </h3>
                               <div className="flex items-center space-x-2">
                                 <img
-                                  src={booking.cliente?.imagen || `https://ui-avatars.com/api/?name=${encodeURIComponent(booking.cliente?.nombre || "Cliente")}&background=0D8ABC&color=fff`}
+                                  src={
+                                    booking.cliente?.imagen ||
+                                    `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                      booking.cliente?.nombre || "Cliente"
+                                    )}&background=0D8ABC&color=fff`
+                                  }
                                   alt={booking.cliente?.nombre || "Cliente"}
                                   className="w-8 h-8 rounded-full"
                                 />
-                                <p className="text-sm text-gray-600">Cliente: {booking.cliente?.nombre}</p>
+                                <p className="text-sm text-gray-600">
+                                  Cliente: {booking.cliente?.nombre}
+                                </p>
                               </div>
                               <div className="flex items-center mt-1">
-                                <span className="text-sm text-gray-600">{booking.fecha}</span>
+                                <span className="text-sm text-gray-600">
+                                  {booking.fecha}
+                                </span>
                                 <span className="mx-2 text-gray-400">|</span>
-                                <span className="text-sm text-green-600 font-medium">{booking.hora}</span>
+                                <span className="text-sm text-green-600 font-medium">
+                                  {booking.hora}
+                                </span>
                               </div>
                             </div>
                           </div>
                           <div className="flex space-x-2">
-                            <button className="btn-secondary text-sm">Reprogramar</button>
+                            {/* Botón Reprogramar: Ahora funcional */}
+                            <button
+                              onClick={() => handleRescheduleClick(booking)}
+                              className="btn-secondary text-sm"
+                            >
+                              Reprogramar
+                            </button>
                             <button
                               onClick={() => {
                                 if (booking.cliente?.numero) {
-                                  const numero = booking.cliente.numero.replace("+", "");
+                                  const numero = booking.cliente.numero.replace(
+                                    "+",
+                                    ""
+                                  );
                                   const mensaje = `Hola ${booking.cliente.nombre}, soy ${user.nombre} de Conectados. Confirmo tu cita para el ${booking.fecha} a las ${booking.hora}.`;
-                                  window.open(`https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`, "_blank");
+                                  window.open(
+                                    `https://wa.me/${numero}?text=${encodeURIComponent(
+                                      mensaje
+                                    )}`,
+                                    "_blank"
+                                  );
                                 } else {
-                                  alert("Este usuario no tiene un número registrado.");
+                                  alert(
+                                    "Este usuario no tiene un número registrado."
+                                  );
                                 }
                               }}
                               className="btn-primary text-sm"
@@ -287,31 +350,49 @@ const ProDashboard = () => {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-gray-500">No tienes citas programadas.</p>
+                    <p className="text-gray-500">
+                      No tienes citas programadas.
+                    </p>
                   )}
                 </div>
               )}
 
               {activeTab === "history" && (
                 <div>
-                  <h2 className="text-xl font-semibold mb-4">Historial de Servicios</h2>
+                  <h2 className="text-xl font-semibold mb-4">
+                    Historial de Servicios
+                  </h2>
                   {proBookings.completed.length > 0 ? (
                     <div className="space-y-4">
                       {proBookings.completed.map((booking) => (
-                        <div key={booking.id} className="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between">
+                        <div
+                          key={booking.id}
+                          className="border rounded-lg p-4 flex flex-col md:flex-row md:items-center md:justify-between"
+                        >
                           <div className="flex items-start mb-4 md:mb-0">
                             <img
-                              src={booking.serviceDetails?.image || "/placeholder.svg"}
+                              src={
+                                booking.serviceDetails?.image ||
+                                "/placeholder.svg"
+                              }
                               alt={booking.serviceDetails?.title}
                               className="w-16 h-16 object-cover rounded-md mr-4"
                             />
                             <div>
-                              <h3 className="font-semibold">{booking.serviceDetails.title}</h3>
-                              <p className="text-sm text-gray-600">Cliente: {booking.cliente?.nombre}</p>
+                              <h3 className="font-semibold">
+                                {booking.serviceDetails.title}
+                              </h3>
+                              <p className="text-sm text-gray-600">
+                                Cliente: {booking.cliente?.nombre}
+                              </p>
                               <div className="flex items-center mt-1">
-                                <span className="text-sm text-gray-600">{booking.fecha}</span>
+                                <span className="text-sm text-gray-600">
+                                  {booking.fecha}
+                                </span>
                                 <span className="mx-2 text-gray-400">|</span>
-                                <span className="text-sm text-green-600 font-medium">Completado</span>
+                                <span className="text-sm text-green-600 font-medium">
+                                  Completado
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -320,7 +401,9 @@ const ProDashboard = () => {
                     </div>
                   ) : (
                     <div className="text-center py-8 bg-gray-50 rounded-lg">
-                      <p className="text-gray-500">No tienes servicios completados.</p>
+                      <p className="text-gray-500">
+                        No tienes servicios completados.
+                      </p>
                     </div>
                   )}
                 </div>
@@ -339,6 +422,21 @@ const ProDashboard = () => {
           onConfirm={confirmDeleteService}
           onCancel={() => setShowDeleteModal(false)}
           isDestructive={true}
+        />
+      )}
+
+      {/* Nuevo Modal de Reprogramación */}
+      {showRescheduleModal && selectedBookingToReschedule && (
+        <RescheduleAppointmentModal
+          booking={selectedBookingToReschedule}
+          providerAvailability={{
+            disponibilidad: user.disponibilidad, // Acceder a la disponibilidad del usuario logueado
+            horaInicio: user.horaInicio,
+            horaFin: user.horaFin,
+          }}
+          onClose={() => setShowRescheduleModal(false)}
+          onRescheduleSuccess={handleRescheduleSuccess}
+          token={token}
         />
       )}
     </>

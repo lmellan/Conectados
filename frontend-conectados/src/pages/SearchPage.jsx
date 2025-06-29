@@ -12,9 +12,13 @@ const SearchPage = () => {
   const initialCategory = queryParams.get("category") || "";
 
   const [searchTerm, setSearchTerm] = useState(initialQuery);
-  const [selectedCategory, setSelectedCategory] = useState("Todas las categorías");
+  const [selectedCategory, setSelectedCategory] = useState(
+    "Todas las categorías"
+  );
   const [filteredServices, setFilteredServices] = useState([]);
   const [priceRange, setPriceRange] = useState([0, 10000]);
+  // 1. Nuevo estado para la opción de ordenación
+  const [sortOption, setSortOption] = useState("rating"); // Valor por defecto: Mejor valorados
 
   const categories = [
     { id: "all", name: "Todas las categorías" },
@@ -25,17 +29,20 @@ const SearchPage = () => {
     { id: "Peluquería", name: "Peluquería" },
     { id: "Carpintería", name: "Carpintería" },
   ];
+
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const query = queryParams.get("q") || "";
     setSearchTerm(query);
   }, [location.search]);
 
-  // Cargar servicios desde el backend
+  // Cargar servicios desde el backend y aplicar filtros/ordenación
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/servicios/todos");
+        const response = await fetch(
+          "http://localhost:8080/api/servicios/todos"
+        );
         if (!response.ok) throw new Error("Error al obtener los servicios");
 
         const data = await response.json();
@@ -46,7 +53,9 @@ const SearchPage = () => {
           results = results.filter(
             (service) =>
               service.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              service.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
+              service.descripcion
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase())
           );
         }
 
@@ -54,26 +63,54 @@ const SearchPage = () => {
         if (selectedCategory && selectedCategory !== "Todas las categorías") {
           results = results.filter(
             (service) =>
-              service.categoria?.toLowerCase() === selectedCategory.toLowerCase()
+              service.categoria?.toLowerCase() ===
+              selectedCategory.toLowerCase()
           );
         }
 
         // Filtrar por rango de precio
         results = results.filter(
-          (service) => service.precio >= priceRange[0] && service.precio <= priceRange[1]
+          (service) =>
+            service.precio >= priceRange[0] && service.precio <= priceRange[1]
         );
 
-        setFilteredServices(results);
+        // 3. Aplicar lógica de ordenación
+        let sortedResults = [...results]; // Crear una copia para ordenar
+
+        switch (sortOption) {
+          case "rating":
+            // Ordenar por valoración promedio (mayor a menor)
+            sortedResults.sort(
+              (a, b) =>
+                (b.valoracionPromedio || 0) - (a.valoracionPromedio || 0)
+            );
+            break;
+          case "price-asc":
+            // Ordenar por precio (menor a mayor)
+            sortedResults.sort((a, b) => a.precio - b.precio);
+            break;
+          case "price-desc":
+            // Ordenar por precio (mayor a menor)
+            sortedResults.sort((a, b) => b.precio - a.precio);
+            break;
+          default:
+            // No hacer nada si la opción no es reconocida (o puedes definir un orden por defecto)
+            break;
+        }
+
+        setFilteredServices(sortedResults); // Actualizar con los servicios ya ordenados
       } catch (error) {
         console.error("Error al cargar servicios:", error);
       }
     };
 
     fetchServices();
-  }, [searchTerm, selectedCategory, priceRange]);
+  }, [searchTerm, selectedCategory, priceRange, sortOption]); // Añadir sortOption a las dependencias del useEffect
 
   const handleSearch = (e) => {
     e.preventDefault();
+    // La búsqueda ya se maneja a través del useEffect cuando searchTerm cambia.
+    // Aquí podrías agregar lógica adicional si el submit del formulario lo requiere.
   };
 
   const handleCategoryChange = (e) => {
@@ -93,10 +130,17 @@ const SearchPage = () => {
     });
   };
 
+  // 2. Nuevo manejador para el cambio en la opción de ordenación
+  const handleSortChange = (e) => {
+    setSortOption(e.target.value);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold mb-8 text-center">Buscar Servicios</h1>
+        <h1 className="text-3xl font-bold mb-8 text-center">
+          Buscar Servicios
+        </h1>
 
         <div className="mb-8 flex justify-center">
           <SearchBar
@@ -112,7 +156,10 @@ const SearchPage = () => {
             <h2 className="text-lg font-semibold mb-4">Filtros</h2>
 
             <div className="mb-6">
-              <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="category"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Categoría
               </label>
               <select
@@ -121,7 +168,9 @@ const SearchPage = () => {
                 onChange={handleCategoryChange}
                 className="input-field"
               >
-                <option value="Todas las categorías">Todas las categorías</option>
+                <option value="Todas las categorías">
+                  Todas las categorías
+                </option>
                 {categories
                   .filter((cat) => cat.name !== "Todas las categorías")
                   .map((category) => (
@@ -133,10 +182,15 @@ const SearchPage = () => {
             </div>
 
             <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Precio por hora</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">
+                Precio por hora
+              </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="min-price" className="block text-xs text-gray-500 mb-1">
+                  <label
+                    htmlFor="min-price"
+                    className="block text-xs text-gray-500 mb-1"
+                  >
                     Mínimo
                   </label>
                   <input
@@ -150,7 +204,10 @@ const SearchPage = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="max-price" className="block text-xs text-gray-500 mb-1">
+                  <label
+                    htmlFor="max-price"
+                    className="block text-xs text-gray-500 mb-1"
+                  >
                     Máximo
                   </label>
                   <input
@@ -168,8 +225,9 @@ const SearchPage = () => {
             <button
               onClick={() => {
                 setSelectedCategory("Todas las categorías");
-                setPriceRange([0, 100000]);
+                setPriceRange([0, 10000]); // Ajustado a 10000 para que coincida con el valor inicial
                 setSearchTerm("");
+                setSortOption("rating"); // Resetear también la opción de ordenación
               }}
               className="w-full py-2 px-4 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
@@ -180,8 +238,14 @@ const SearchPage = () => {
           {/* Resultados */}
           <div className="lg:col-span-3">
             <div className="mb-4 flex justify-between items-center">
-              <p className="text-gray-600">{filteredServices.length} resultados encontrados</p>
-              <select className="border border-gray-300 rounded-md text-sm p-2" defaultValue="rating">
+              <p className="text-gray-600">
+                {filteredServices.length} resultados encontrados
+              </p>
+              <select
+                className="border border-gray-300 rounded-md text-sm p-2"
+                value={sortOption} // Asociar el valor con el estado sortOption
+                onChange={handleSortChange} // Asignar el nuevo manejador de eventos
+              >
                 <option value="rating">Ordenar por: Mejor valorados</option>
                 <option value="price-asc">Precio: Menor a mayor</option>
                 <option value="price-desc">Precio: Mayor a menor</option>
@@ -196,8 +260,12 @@ const SearchPage = () => {
               </div>
             ) : (
               <div className="text-center py-12 bg-white rounded-lg shadow-sm">
-                <p className="text-gray-500 text-lg">No se encontraron servicios que coincidan con tu búsqueda.</p>
-                <p className="text-gray-500 mt-2">Intenta con otros términos o filtros.</p>
+                <p className="text-gray-500 text-lg">
+                  No se encontraron servicios que coincidan con tu búsqueda.
+                </p>
+                <p className="text-gray-500 mt-2">
+                  Intenta con otros términos o filtros.
+                </p>
               </div>
             )}
           </div>
