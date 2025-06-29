@@ -5,7 +5,9 @@ import com.conectados.conect.servicio.entities.Servicio;
 import com.conectados.conect.servicio.services.ServicioServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import com.conectados.conect.user.repository.UsuarioRepository; 
 import org.springframework.web.bind.annotation.*;
+import com.conectados.conect.user.model.Usuario;
 
 import java.util.List;
 
@@ -17,10 +19,15 @@ public class ServicioController {
     @Autowired
     private ServicioServices servicioService;
 
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+    
     @PostMapping("/crear")
     public ResponseEntity<Servicio> crearServicio(@RequestBody Servicio servicio) {
         return ResponseEntity.ok(servicioService.crearServicio(servicio));
     }
+
+
 
     @GetMapping("/{id}")
     public ResponseEntity<ServicioDto> obtenerServicioPorId(@PathVariable Long id) {

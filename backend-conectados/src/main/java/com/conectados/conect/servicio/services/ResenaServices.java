@@ -16,4 +16,3 @@ public interface ResenaServices {
     ResenaDto crearResenaDesdeDto(ResenaRequestDto dto);
     ResenaDto obtenerResenaPorCitaId(Long id);
 }
-

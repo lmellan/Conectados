@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
@@ -43,6 +44,7 @@ class ResenaServicesImplTest {
         MockitoAnnotations.openMocks(this);
     }
 
+    //1 exito al crear reseña
     @Test
     void crearResena_validInputs_deberiaCrearResena() {
         Servicio servicio = new Servicio();
@@ -71,26 +73,35 @@ class ResenaServicesImplTest {
         verify(resenaRepository, times(1)).save(resena);
     }
 
+    //2 fallo al crear reseña por duplicado
     @Test
-    void crearResena_entidadRelacionadaNoEncontrada_deberiaLanzarExcepcion() {
-        Resena resena = new Resena();
+    void crearResena_duplicada_deberiaLanzarErrorDeIntegridad() {
         Servicio servicio = new Servicio();
         servicio.setId(1L);
-        resena.setServicio(servicio);
         Usuario buscador = new Usuario();
         buscador.setId(2L);
-        resena.setBuscador(buscador);
         Usuario prestador = new Usuario();
         prestador.setId(3L);
+
+        Resena resena = new Resena();
+        resena.setServicio(servicio);
+        resena.setBuscador(buscador);
         resena.setPrestador(prestador);
+        resena.setFecha(LocalDate.now());
+        resena.setComentario("Comentario duplicado");
+        resena.setValoracion(6);
 
-        when(servicioRepository.findById(1L)).thenReturn(Optional.empty());
+        when(servicioRepository.findById(1L)).thenReturn(Optional.of(servicio));
+        when(usuarioRepository.findById(2L)).thenReturn(Optional.of(buscador));
+        when(usuarioRepository.findById(3L)).thenReturn(Optional.of(prestador));
+        when(resenaRepository.save(any(Resena.class))).thenThrow(new DataIntegrityViolationException("Clave única violada"));
 
-        assertThrows(ResponseStatusException.class, () -> {
+        assertThrows(DataIntegrityViolationException.class, () -> {
             resenaServices.crearResena(resena);
         });
     }
 
+    //3 exito al buscar reseña 
     @Test
     void obtenerResenaPorId_existente_deberiaRetornarResena() {
         Resena resena = new Resena();
@@ -101,6 +112,8 @@ class ResenaServicesImplTest {
         assertNotNull(resultado);
     }
 
+
+    //4 null al buscar reseña inexistente
     @Test
     void obtenerResenaPorId_inexistente_deberiaRetornarNull() {
         when(resenaRepository.findById(1L)).thenReturn(Optional.empty());
@@ -110,6 +123,7 @@ class ResenaServicesImplTest {
         assertNull(resultado);
     }
 
+    //5 exito al obtener reseñas 
     @Test
     void obtenerTodasLasResenas_peticion_deberiaListarResenas() {
         Resena resenaMock = new Resena();
@@ -132,6 +146,7 @@ class ResenaServicesImplTest {
         assertEquals("Muy bueno", resenas.get(0).getComentario());
     }
 
+    //6 exito al obtener reseñas por servicio
     @Test
     void obtenerResenasPorServicio_peticion_deberiaListarResenas() {
         Servicio servicio = new Servicio();
@@ -155,7 +170,7 @@ class ResenaServicesImplTest {
         assertEquals("Excelente", resenas.get(0).getComentario());
     }
 
-
+    //7 exito al actualizar reseña existente
     @Test
     void actualizarResena_existente_deberiaActualizarCampos() {
         Resena existente = new Resena();
@@ -173,6 +188,7 @@ class ResenaServicesImplTest {
         assertEquals("Nuevo comentario", resultado.getComentario());
     }
 
+    //8 exito al eliminar reseña existente
     @Test
     void eliminarResena_peticion_deberiaEliminarResena() {
         resenaServices.eliminarResena(1L);

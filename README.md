@@ -4,7 +4,9 @@
 "Conectados" es una plataforma web que conecta a personas que ofrecen servicios a domicilio (como peluquería, electricidad, jardinería, etc.) con quienes los necesitan, de forma rápida, segura y confiable.  
 El proyecto está licenciado bajo **MIT License**.
 
-Link a video: https://youtu.be/A9TpElE2ETc
+Link a video E1: https://youtu.be/A9TpElE2ETc
+
+Link a video E2: https://youtu.be/YtOcm97fG4k
 
 ## Wiki
 
@@ -121,18 +123,30 @@ cd backend-conectados
 mvn test
 ```
 
+
+## Docker (opcional)
+
+El proyecto incluye una carpeta `docker/` con configuración para levantar un contenedor de **MySQL**, que puede usarse tanto en desarrollo local como dentro del pipeline de integración continua.
+
+## Jenkins (Integración Continua)
+
+El archivo `Jenkinsfile` define un pipeline de CI para compilar y probar automáticamente el proyecto en un entorno Jenkins.  
+Incluye pasos para levantar la base de datos, compilar el backend y frontend, y ejecutar tests.
+
+
 ## Estructura del Proyecto
 
 ```
 Conectados/
 ├── backend-conectados/       # Proyecto Java Spring Boot
 ├── frontend-conectados/      # Aplicación React.js
-├── .git/                     # Carpeta de control de versiones
+├── docker/                   # Archivos de configuración Docker (base de datos, despliegue local)
+├── Jenkinsfile               # Pipeline Jenkins para integración continua
+├── docs/                     # Documentación complementaria (videos, referencias)
 ├── .gitignore
 ├── LICENSE
-├── package.json              # Metadata general del proyecto (React)
-├── package-lock.json
 ├── README.md
+
 ```
 
 
@@ -202,55 +216,43 @@ frontend-conectados/
 
 Al ingresar a localhost:3000, verás la pantalla de bienvenida con acceso a funcionalidades clave. Desde esta vista puedes:
 
-* Registrarte como prestador usando el botón “Ofrecer Servicios”
-
-* Registrarte como buscador usando el botón “Registrarse” o el de “Buscar Servicios”
-
+* Registrarte como usuario usando el botón “Registrarse” (rol inicial: Buscador)
 * Iniciar sesión si ya tienes una cuenta, usando el botón “Iniciar Sesión”
+* Explorar la plataforma o acceder a “Buscar Servicios” (requiere sesión iniciada)
 
 La página también muestra:
 
 * Categorías destacadas (Limpieza, Electricidad, etc.)
-
 * Servicios destacados (si los hay)
-
 * Un buscador de servicios no funcional en esta etapa (requiere sesión iniciada)
 
- > **Nota:** La barra de búsqueda inicial **no está funcional** en esta etapa pública. Para hacer búsquedas reales, debes ingresar como usuario registrado y acceder al buscador desde el panel correspondiente.
-
+> **Nota:** La barra de búsqueda inicial **no está funcional** en esta etapa pública. Para hacer búsquedas reales, debes ingresar como usuario registrado y acceder al buscador desde el panel correspondiente.
 
 ### 2. Registro de usuarios
 
-Existen **dos tipos de registro**, cada uno habilita funcionalidades distintas dentro de la plataforma:
+El sistema ahora utiliza un **registro único**. Al registrarte, se crea una cuenta con rol inicial de **Buscador**, desde donde puedes explorar servicios y agendar citas.
 
-#### a) Registro como profesional (prestador)
+El formulario solicita:
 
-Accede a la opción **"Ofrecer Servicios"** y completa un formulario extendido que incluye:
+* Nombre completo  
+* Correo electrónico  
+* Número de teléfono  
+* Contraseña y confirmación  
+* Aceptación de los términos y condiciones
 
-* Nombre completo
-* Correo electrónico
-* Contraseña y confirmación
+Una vez registrado, puedes iniciar sesión y acceder a tu **panel personal**.
+
+Desde allí tienes la opción de **“Ofrecer Servicios”**, donde puedes activar el rol de **Prestador** completando un formulario adicional con los siguientes datos (RFN-14):
+
 * **Categorías de servicio** ofrecido (ej. Electricista, Peluquero, Jardinero, etc.)
 * **Zona de atención** geográfica
 * **Descripción de los servicios** ofrecidos
-* **Disponibilidad semanal** (selección de días laborales)
-* Aceptación de los términos y condiciones
+* **Disponibilidad semanal** (días laborales)
+* **Disponibilidad horaria**
 
-> **Importante:** Para que un servicio esté disponible al público, primero debe haberse registrado como profesional y creado el servicio correspondiente.
+> **Importante:** Esto te permitirá tener ambos roles desde una sola cuenta, manteniendo historial y funcionalidades completas.
 
-Una vez registrado, se habilita un panel especial donde podrás crear, editar o eliminar servicios, y gestionar citas recibidas.
-
-#### b) Registro como buscador
-
-Accede a la opción **"Registrarse"** y completa el formulario con:
-
-* Nombre completo
-* Correo electrónico
-* Contraseña y confirmación
-* Aceptación de los términos y condiciones
-
-Este tipo de cuenta permite buscar servicios, agendar citas y dejar reseñas, pero **no permite publicar servicios**.
-
+> **Nota:** Actualmente, al cambiar de rol o activar el rol de prestador, el sistema redirige a la página de inicio. Para ver correctamente la vista del nuevo rol, simplemente presiona nuevamente el botón **"Mi Panel"**.
 
 ### 3. Búsqueda y exploración de servicios
 
@@ -266,7 +268,6 @@ Una vez logueado como **buscador**:
   * Días disponibles
   * Reseñas de otros usuarios
 
-
 ### 4. Agendar un servicio
 
 Desde la vista de detalle del servicio:
@@ -275,6 +276,8 @@ Desde la vista de detalle del servicio:
 * Haz clic en **"Solicitar Servicio"**
 * El sistema agenda automáticamente la cita, visible tanto para el buscador como para el prestador
 
+> **Nuevo:** Una vez agendada la cita, tanto el **buscador** como el **prestador** podrán **contactarse directamente por WhatsApp** desde la sección de citas, siempre que ambos tengan registrado su número de teléfono (RFN-10).  
+> Si alguno no tiene número registrado, el sistema mostrará un mensaje indicándolo.
 
 ### 5. Panel del usuario (Buscador)
 
@@ -285,18 +288,25 @@ Desde **"Mi Panel"** puedes:
 * Cancelar citas programadas
 * **Dejar reseñas**, siempre que se cumpla lo siguiente:
 
-> **Restricción:** Solo se puede dejar una reseña **si la cita fue completada**. Esto ocurre automáticamente cuando la fecha agendada ya pasó y la cita **no fue cancelada**.
+> **Restricción:** Solo se puede dejar una reseña **si la cita fue completada**. Esto ocurre automáticamente cuando la fecha agendada ya pasó y la cita **no fue cancelada**.  
 > Las reseñas se realizan desde el **historial de servicios**, seleccionando la opción disponible para cada cita completada.
 
+* **Contactar al prestador** por WhatsApp si ya agendaste con él y tiene número disponible (RFN-10)
+* **Activar el rol de prestador** desde tu cuenta completando los datos adicionales (RFN-14)
+
+> Recuerda: tras activar el nuevo rol o cambiar de vista, vuelve a presionar **"Mi Panel"** para ver correctamente la interfaz correspondiente.
 
 ### 6. Panel del profesional (Prestador)
 
-El dashboard profesional permite:
+Una vez activado el rol de **Prestador** desde tu cuenta, accedes a un panel especializado que permite:
 
-* Publicar nuevos servicios
-* Modificar o eliminar servicios existentes
-* Revisar citas agendadas
-* Ver comentarios y calificaciones recibidas
+* Publicar nuevos servicios completando el formulario correspondiente
+* Modificar o eliminar servicios existentes en cualquier momento
+* Revisar y gestionar las **citas agendadas** por los buscadores
+* Ver los **comentarios y calificaciones** recibidas por cada servicio
+* **Contactar directamente al buscador** de una cita mediante WhatsApp, si tiene número registrado (RFN-10)
+
+> Si deseas volver a buscar servicios, puedes usar la funcionalidad de **cambio de rol** desde el mismo panel, sin necesidad de crear una nueva cuenta.
 
 
 
@@ -382,3 +392,6 @@ Si deseas contribuir al proyecto, sigue estos pasos utilizando **GitFlow** de pa
 ## Licencia
 
 Este proyecto está bajo la **MIT License** - ver el archivo [LICENSE](https://github.com/lmellan/Tarea_1-INF331/blob/main/LICENSE) para más detalles.
+
+
+

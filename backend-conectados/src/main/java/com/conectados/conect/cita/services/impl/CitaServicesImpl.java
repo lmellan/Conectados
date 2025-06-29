@@ -3,6 +3,8 @@ package com.conectados.conect.cita.services.impl;
 import com.conectados.conect.cita.entities.Cita;
 import com.conectados.conect.cita.repositories.CitaRepository;
 import com.conectados.conect.cita.services.CitaServices;
+import com.conectados.conect.servicio.entities.Servicio;
+import com.conectados.conect.servicio.repositories.ServicioRepository;
 import com.conectados.conect.user.model.Usuario;
 import com.conectados.conect.user.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,28 +27,38 @@ public class CitaServicesImpl implements CitaServices {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private ServicioRepository servicioRepository;
+
     @Override
     public Cita crearCita(Cita cita) {
-        // Verifica si ya existe una cita para ese prestador en esa fecha y hora
+        // Verificar que el buscador tenga el rol activo de "BUSCADOR"
+        Usuario buscador = usuarioRepository.findById(cita.getIdBuscador())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Buscador no encontrado"));
+        if (!tieneRol(buscador, "BUSCADOR")) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "El usuario no tiene el rol de Buscador");
+        }
+
+        // Verificar si el prestador tiene una cita en el mismo horario
         Long conteo = citaRepository.contarCitasPorPrestadorFechaHora(
-                cita.getIdPrestador(),
-                cita.getFecha(),
-                cita.getHora()
+            cita.getIdPrestador(),
+            cita.getFecha(),
+            cita.getHora()
         );
 
         if (conteo > 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El prestador ya tiene una cita en ese horario.");
         }
 
-        // Verifica que el prestador exista
-        Optional<Usuario> prestadorOpt = usuarioRepository.findById(cita.getIdPrestador());
-        if (prestadorOpt.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Prestador no encontrado.");
-        }
+        // Verificar que el servicio exista
+        Servicio servicio = servicioRepository.findById(cita.getIdServicio())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Servicio no encontrado"));
 
-        Usuario prestador = prestadorOpt.get();
+        // Verificar que el prestador exista y sea un prestador válido
+        Usuario prestador = usuarioRepository.findById(cita.getIdPrestador())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Prestador no encontrado"));
 
-        // Traduce el día a español capitalizado y verifica disponibilidad
+        // Validar que el prestador esté disponible en esa fecha
         String diaSemana = traducirDiaADisponibilidad(cita.getFecha().getDayOfWeek());
         List<String> diasDisponibles = prestador.getDisponibilidad();
 
@@ -57,7 +69,7 @@ public class CitaServicesImpl implements CitaServices {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El prestador no trabaja ese día.");
         }
 
-        // Valida que la hora esté dentro del horario permitido
+        // Validar la hora dentro del horario de trabajo del prestador
         LocalTime horaCita = cita.getHora();
         if (prestador.getHoraInicio() == null || prestador.getHoraFin() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El prestador no tiene definido su horario.");
@@ -67,7 +79,21 @@ public class CitaServicesImpl implements CitaServices {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La hora está fuera del horario del prestador.");
         }
 
-        return citaRepository.save(cita);
+        // Crear y guardar la nueva cita con los IDs
+        Cita nuevaCita = new Cita();
+        nuevaCita.setFecha(cita.getFecha());
+        nuevaCita.setHora(cita.getHora());
+        nuevaCita.setEstado("Pendiente");
+        nuevaCita.setIdBuscador(cita.getIdBuscador()); // Usando ID directamente
+        nuevaCita.setIdPrestador(cita.getIdPrestador()); // Usando ID directamente
+        nuevaCita.setIdServicio(cita.getIdServicio()); // Usando ID directamente
+
+        return citaRepository.save(nuevaCita);
+    }
+
+    // Método para verificar si un usuario tiene un rol específico
+    private boolean tieneRol(Usuario usuario, String rol) {
+        return usuario.getRolActivo() != null && usuario.getRolActivo().equals(rol);
     }
 
     private String traducirDiaADisponibilidad(DayOfWeek dia) {
@@ -147,7 +173,6 @@ public class CitaServicesImpl implements CitaServices {
         return citaRepository.save(c);
     }
 
-
     @Override
     public void eliminarCita(Long id) {
         citaRepository.deleteById(id);
@@ -163,17 +188,16 @@ public class CitaServicesImpl implements CitaServices {
         return citaRepository.findByIdPrestador(idPrestador);
     }
 
+    @Override
     public void actualizarEstadosDeCitas() {
-    List<Cita> citasPendientes = citaRepository.findByEstado("PENDIENTE");
-    LocalDate hoy = LocalDate.now();
+        List<Cita> citasPendientes = citaRepository.findByEstado("PENDIENTE");
+        LocalDate hoy = LocalDate.now();
 
-    for (Cita cita : citasPendientes) {
-        if (cita.getFecha().isBefore(hoy)) {
-            cita.setEstado("COMPLETADA");
-            citaRepository.save(cita);
+        for (Cita cita : citasPendientes) {
+            if (cita.getFecha().isBefore(hoy)) {
+                cita.setEstado("COMPLETADA");
+                citaRepository.save(cita);
             }
         }
     }
-
-
 }

@@ -1,12 +1,9 @@
-"use client";
-
-import { useState, useContext } from "react";
+import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 
 const Header = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout, switchRole, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -14,150 +11,81 @@ const Header = () => {
     navigate("/");
   };
 
+  const handleRoleChange = (e) => {
+    const newRole = e.target.value;
+    switchRole(newRole);
+  };
+
   return (
-    <header className="bg-white shadow-sm">
-      <div className="container mx-auto px-4 py-3">
-        <div className="flex justify-between items-center">
-          <Link to="/" className="text-xl font-bold text-green-600">
-            Conectados
+    <header className="bg-white shadow-md">
+      <nav className="container mx-auto px-6 py-3 flex justify-between items-center">
+        <Link to="/" className="text-xl font-bold text-indigo-600">
+          Conectados
+        </Link>
+        <div className="flex items-center space-x-4">
+          <Link to="/search" className="text-gray-600 hover:text-indigo-600">
+            Buscar Servicios
           </Link>
 
-          {/* Menú para móviles */}
-          <div className="md:hidden">
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-500 hover:text-gray-700 focus:outline-none"
-            >
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+          {isAuthenticated && user ? (
+            <>
+              {user.roles && user.roles.length > 1 && (
+                <div className="flex items-center">
+                  <label htmlFor="role-select" className="text-gray-600 mr-2">
+                    Vista:
+                  </label>
+                  <select
+                    id="role-select"
+                    value={user.rolActivo}
+                    onChange={handleRoleChange}
+                    className="bg-gray-100 border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 p-2"
+                  >
+                    {user.roles.map((role) => (
+                      <option key={role} value={role}>
+                        {/* --- ESTA ES LA LÍNEA CORREGIDA --- */}
+                        {/* Comprobamos contra "PRESTADOR", el nombre real del rol */}
+                        {role === "PRESTADOR" ? "Profesional" : "Buscador"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <Link
+                to="/dashboard"
+                className="text-gray-600 hover:text-indigo-600"
               >
-                {isMenuOpen ? (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                ) : (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                )}
-              </svg>
-            </button>
-          </div>
+                Mi Panel
+              </Link>
 
-          {/* Menú para desktop */}
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/search" className="text-gray-600 hover:text-green-600">
-              Servicios
-            </Link>
-
-            {user ? (
-              <>
-                <Link
-                  to={
-                    user.rol === "PRESTADOR" ? "/pro-dashboard" : "/user-dashboard"
-                  }
-                  className="text-gray-600 hover:text-green-600"
-                >
-                  Mi Panel
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="text-gray-600 hover:text-green-600"
-                >
-                  Cerrar Sesión
-                </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="text-gray-600 hover:text-green-600"
-                >
-                  Iniciar Sesión
-                </Link>
-                <Link
-                  to="/register"
-                  className="text-gray-600 hover:text-green-600"
-                >
-                  Registrarse
-                </Link>
-                <Link to="/register-pro" className="btn-primary">
-                  Ofrecer Servicios
-                </Link>
-              </>
-            )}
-          </nav>
+              <span className="text-gray-800 font-medium">
+                Hola, {user.nombre}
+              </span>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-md hover:bg-red-600"
+              >
+                Cerrar Sesión
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-indigo-600"
+              >
+                Iniciar Sesión
+              </Link>
+              <Link
+                to="/register"
+                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+              >
+                Registrarse
+              </Link>
+            </>
+          )}
         </div>
-
-        {/* Menú móvil desplegable */}
-        {isMenuOpen && (
-          <div className="md:hidden mt-2 py-2 space-y-2" data-testid="mobile-menu">
-            <Link
-              to="/search"
-              className="block px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-md"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Servicios
-            </Link>
-
-            {user ? (
-              <>
-                <Link
-                  to={
-                    user.rol === "PRESTADOR" ? "/pro-dashboard" : "/user-dashboard"
-                  }
-                  className="block px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-md"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Mi Panel
-                </Link>
-                <button
-                  onClick={() => {
-                    handleLogout();
-                    setIsMenuOpen(false);
-                  }}
-                  className="block w-full text-left px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-md"
-                >
-                  Cerrar Sesión
-                </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="block px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-md"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Iniciar Sesión
-                </Link>
-                <Link
-                  to="/register"
-                  className="block px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-md"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Registrarse
-                </Link>
-                <Link
-                  to="/register-pro"
-                  className="block px-3 py-2 text-green-600 font-medium hover:bg-gray-100 rounded-md"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Ofrecer Servicios
-                </Link>
-              </>
-            )}
-          </div>
-        )}
-      </div>
+      </nav>
     </header>
   );
 };

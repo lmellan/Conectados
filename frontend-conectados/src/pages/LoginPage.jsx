@@ -1,143 +1,118 @@
-"use client";
-
-import { useState, useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
-import { users } from "../data/mockData";
+import React, { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
 
 const LoginPage = () => {
-  const [formData, setFormData] = useState({
-    correo: "",
-    contrasena: "",
-  });
-  
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const { login } = useContext(AuthContext);
+  const [loading, setLoading] = useState(false);
+
+  const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/api";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-  
+    setLoading(true);
+
     try {
-      const response = await fetch("http://localhost:8080/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          correo: formData.correo,  
-          contrasena: formData.contrasena
-        })
-        
+      // --- MODIFICACIÓN CLAVE ---
+      // El objeto que se envía ahora usa las claves "correo" y "contrasena"
+      // para coincidir con el DTO del backend.
+      const response = await axios.post(`${API_URL}/auth/login`, {
+        correo: email,
+        contrasena: password,
       });
-  
-      if (!response.ok) {
-        throw new Error("Credenciales incorrectas");
+
+      const { usuario, token } = response.data;
+
+      if (usuario && token) {
+        login(usuario, token);
+        navigate("/dashboard");
+      } else {
+        setError("Respuesta inesperada del servidor.");
       }
-  
-      const user = await response.json();
-      login(user);
-  
-      navigate(user.rol === "PRESTADOR" ? "/pro-dashboard" : "/user-dashboard");
     } catch (err) {
-      setError(err.message || "Error al iniciar sesión");
+      setError(
+        err.response?.data?.message ||
+          err.response?.data ||
+          "Error al iniciar sesión. Por favor, revisa tus credenciales."
+      );
+      console.error("Login error:", err);
+    } finally {
+      setLoading(false);
     }
   };
-  
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold text-center text-gray-900">
           Iniciar Sesión
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          <div>
+            <label
+              htmlFor="email"
+              className="text-sm font-medium text-gray-700"
+            >
+              Correo Electrónico
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="password"
+              className="text-sm font-medium text-gray-700"
+            >
+              Contraseña
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          {error && <p className="text-sm text-red-600">{error}</p>}
+
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400"
+            >
+              {loading ? "Iniciando..." : "Iniciar Sesión"}
+            </button>
+          </div>
+        </form>
+        <p className="text-sm text-center text-gray-600">
           ¿No tienes una cuenta?{" "}
           <Link
             to="/register"
-            className="font-medium text-green-600 hover:text-green-500"
+            className="font-medium text-indigo-600 hover:text-indigo-500"
           >
             Regístrate aquí
           </Link>
         </p>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          {error && (
-            <div className="mb-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
-              {error}
-            </div>
-          )}
-
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Correo electrónico
-              </label>
-              <div className="mt-1">
-                <input
-                  id="correo"
-                  name="correo"
-                  type="email"
-                  value={formData.correo}
-                  onChange={handleChange}
-                  className="input-field"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Contraseña
-              </label>
-              <div className="mt-1">
-                <input
-                  id="contrasena"
-                  name="contrasena"
-                  type="password"
-                  value={formData.contrasena}
-                  onChange={handleChange}
-                  className="input-field"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="text-sm">
-                <a
-                  href="#"
-                  className="font-medium text-green-600 hover:text-green-500"
-                >
-                  ¿Olvidaste tu contraseña?
-                </a>
-              </div>
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-              >
-                Iniciar Sesión
-              </button>
-            </div>
-          </form>
-        </div>
       </div>
     </div>
   );

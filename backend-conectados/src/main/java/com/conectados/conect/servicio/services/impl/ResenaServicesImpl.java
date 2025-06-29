@@ -155,5 +155,4 @@ public class ResenaServicesImpl implements ResenaServices {
         return resenaOpt.map(ResenaDto::fromEntity).orElse(null);
     }
 
-
 }

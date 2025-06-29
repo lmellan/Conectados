@@ -7,6 +7,8 @@ import com.conectados.conect.user.model.Usuario;
 import com.conectados.conect.user.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.conectados.conect.user.model.Usuario;
+
 
 
 import java.util.List;
@@ -22,6 +24,7 @@ public class ServicioServicesImpl implements ServicioServices {
     private UsuarioRepository usuarioRepository;
 
 
+
     @Override
     public Servicio crearServicio(Servicio servicio) {
         if (servicio.getPrestador() != null && servicio.getPrestador().getId() != null) {
@@ -33,6 +36,31 @@ public class ServicioServicesImpl implements ServicioServices {
         }
 
         return servicioRepository.save(servicio);
+    }
+
+
+    @Override
+    public Servicio actualizarServicio(Long id, Servicio servicio) {
+        Optional<Servicio> servicioExistente = servicioRepository.findById(id);
+        if (servicioExistente.isPresent()) {
+            Servicio s = servicioExistente.get();
+
+            // Verifica si el prestador tiene el rol adecuado
+            Usuario prestador = s.getPrestador();
+            if (prestador != null && !prestador.getRolActivo().equals("PRESTADOR")) {
+                throw new RuntimeException("El prestador no tiene el rol adecuado.");
+            }
+
+            s.setNombre(servicio.getNombre());
+            s.setPrecio(servicio.getPrecio());
+            s.setZonaAtencion(servicio.getZonaAtencion());
+            s.setCategoria(servicio.getCategoria());
+            s.setFoto(servicio.getFoto());
+            s.setDescripcion(servicio.getDescripcion());
+            return servicioRepository.save(s);
+        }
+
+        return null;
     }
 
     @Override
@@ -51,22 +79,6 @@ public class ServicioServicesImpl implements ServicioServices {
         return servicioRepository.findByCategoria(categoria);
     }
 
-    @Override
-    public Servicio actualizarServicio(Long id, Servicio servicio) {
-        Optional<Servicio> servicioExistente = servicioRepository.findById(id);
-        if (servicioExistente.isPresent()) {
-            Servicio s = servicioExistente.get();
-            s.setNombre(servicio.getNombre());
-            s.setPrecio(servicio.getPrecio());
-            s.setZonaAtencion(servicio.getZonaAtencion());
-            s.setCategoria(servicio.getCategoria());
-            s.setFoto(servicio.getFoto());
-            s.setDescripcion(servicio.getDescripcion());
-            return servicioRepository.save(s);
-        }
-
-        return null;
-    }
 
     @Override
     public void eliminarServicio(Long id) {

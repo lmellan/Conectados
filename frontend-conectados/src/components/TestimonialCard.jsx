@@ -1,3 +1,6 @@
+// src/components/TestimonialCard.jsx
+import React from "react"; // Asegúrate de que React está importado si no lo estaba
+
 const TestimonialCard = ({ testimonial }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
@@ -13,6 +16,8 @@ const TestimonialCard = ({ testimonial }) => {
             {[...Array(5)].map((_, i) => (
               <svg
                 key={i}
+                // ¡¡¡ASEGÚRATE DE QUE ESTA LÍNEA ESTÁ AQUÍ!!!
+                data-testid={i < testimonial.rating ? "star-icon-filled" : "star-icon-empty"}
                 className={`w-4 h-4 ${
                   i < testimonial.rating ? "text-yellow-400" : "text-gray-300"
                 }`}
