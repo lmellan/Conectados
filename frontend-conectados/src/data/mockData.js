@@ -128,7 +128,7 @@ export const services = [
     providerName: "María González",
     providerImage: "https://randomuser.me/api/portraits/women/8.jpg",
     image:
-      "https://images.unsplash.com/photo-1581579185169-641f92f3f41b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+      "https://plus.unsplash.com/premium_photo-1663047022624-2e573ccd0682?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     rating: 4.9,
     reviews: 42,
   },
@@ -145,7 +145,7 @@ export const services = [
       "https://images.unsplash.com/photo-1597262975002-c5c3b14bbd62?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
     rating: 4.6,
     reviews: 30,
-  }
+  },
 ];
 
 // Testimonios

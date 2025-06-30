@@ -1,15 +1,21 @@
+"use client";
+
 import { Link } from "react-router-dom";
 import SearchBar from "../components/SearchBar";
 import CategoryList from "../components/CategoryList";
-import ServiceCard from "../components/ServiceCard";
+import ServiceCard from "../components/ServiceCard"; // Mantén este import, ya que puede ser usado en otros lugares o para futura referencia.
+// ¡Importa el nuevo componente para los servicios destacados!
+import FeaturedServiceCard from "../components/FeaturedServiceCard";
 import TestimonialCard from "../components/TestimonialCard";
-import { services, testimonials } from "../data/mockData";
+import { services, testimonials } from "../data/mockData"; // Sigue importando ambos de mockData
 
 const HomePage = () => {
-  // Mostrar solo los 3 servicios mejor valorados
+  // Mostrar solo los 3 servicios mejor valorados de los datos mock
   const topServices = [...services]
     .sort((a, b) => b.rating - a.rating)
     .slice(0, 3);
+
+  // No necesitamos estados de carga/error aquí si todo es mock como acordamos
 
   return (
     <div>
@@ -30,7 +36,6 @@ const HomePage = () => {
           <Link to="/register" className="btn-primary mr-4">
             Buscar Servicios
           </Link>
-          {/* MODIFICADO: Este enlace ahora apunta a /register */}
           <Link to="/register" className="btn-secondary">
             Ofrecer mis Servicios
           </Link>
@@ -47,17 +52,26 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Servicios Destacados */}
+      {/* Servicios Destacados (¡AHORA USA FeaturedServiceCard!) */}
       <section className="py-12">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl font-bold mb-8 text-center">
             Servicios Destacados
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {topServices.map((service) => (
-              <ServiceCard key={service.id} service={service} />
-            ))}
-          </div>
+          {topServices.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {topServices.map((service) => (
+                // ¡Usa el nuevo componente aquí!
+                <FeaturedServiceCard key={service.id} service={service} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-6">
+              <p className="text-gray-500 text-lg">
+                No hay servicios destacados disponibles en este momento.
+              </p>
+            </div>
+          )}
           <div className="text-center mt-8">
             <Link to="/search" className="btn-primary">
               Ver todos los servicios
@@ -66,17 +80,29 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Testimonios */}
+      {/* Testimonios (sigue usando datos mock) */}
       <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl font-bold mb-8 text-center">
             Lo que dicen nuestros usuarios
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((testimonial) => (
-              <TestimonialCard key={testimonial.id} testimonial={testimonial} />
-            ))}
-          </div>
+          {/* Aquí se mantienen los testimonios mock, sin cambios. */}
+          {testimonials.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {testimonials.map((testimonial) => (
+                <TestimonialCard
+                  key={testimonial.id}
+                  testimonial={testimonial}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-6">
+              <p className="text-gray-500 text-lg">
+                Aún no hay testimonios disponibles.
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -88,7 +114,6 @@ const HomePage = () => {
             Únete a nuestra plataforma y comienza a ofrecer tus servicios a
             miles de usuarios.
           </p>
-          {/* MODIFICADO: Este enlace también apunta a /register */}
           <Link
             to="/register"
             className="bg-white text-green-600 hover:bg-gray-100 font-medium py-3 px-8 rounded-md transition-colors"
