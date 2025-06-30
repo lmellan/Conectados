@@ -11,9 +11,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 
+
 import static org.junit.jupiter.api.Assertions.*;
 
-public class BecomeProUITest {
+public class T4_BecomeProUITest {
 
     private WebDriver driver;
     private WebDriverWait wait;
