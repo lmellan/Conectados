@@ -9,7 +9,7 @@ import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class SwitchRoleUITest {
+public class T6_SwitchRoleUITest {
 
     private WebDriver driver;
     private WebDriverWait wait;

@@ -12,7 +12,7 @@ import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DashboardRedirectionUITest {
+public class T3_DashboardRedirectionUITest {
 
     private WebDriver driver;
     private WebDriverWait wait;

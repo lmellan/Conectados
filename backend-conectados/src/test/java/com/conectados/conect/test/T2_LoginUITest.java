@@ -3,6 +3,8 @@ package com.conectados.conect.test;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+
 import org.openqa.selenium.support.ui.*;
 
 import java.io.File;
@@ -12,7 +14,7 @@ import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class LoginUITest {
+public class T2_LoginUITest {
 
     private WebDriver driver;
     private WebDriverWait wait;
@@ -23,7 +25,10 @@ public class LoginUITest {
 
     @BeforeEach
     public void setUp() {
-        driver = new ChromeDriver();
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--user-data-dir=/tmp/selenium-profile-" + System.currentTimeMillis());
+        driver = new ChromeDriver(options);
+
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         driver.get(baseUrl + "/login");
     }

@@ -4,26 +4,46 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.*;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class CreateServiceUITest {
+public class T5_CreateServiceUITest {
 
     private WebDriver driver;
     private WebDriverWait wait;
     private final String baseUrl = "http://localhost:3000";
     private final String email = "alo@alo.com";
+
+
     private final String password = "1234";
 
     @BeforeEach
     public void setUp() {
-        driver = new ChromeDriver();
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--incognito");
+        options.addArguments("--disable-extensions");
+        options.addArguments("--disable-notifications");
+        options.addArguments("--no-default-browser-check");
+        options.addArguments("--disable-blink-features=AutomationControlled");
+        options.setExperimentalOption("excludeSwitches", new String[]{"enable-automation"});
+        options.setExperimentalOption("useAutomationExtension", false);
+        options.addArguments("--disable-features=PasswordManagerEnabled,AutofillServerCommunication,AutofillEnableAccountWalletStorage");
+
+        options.setExperimentalOption("prefs", new HashMap<String, Object>() {{
+            put("credentials_enable_service", false);
+            put("profile.password_manager_enabled", false);
+        }});
+
+        driver = new ChromeDriver(options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(15));
     }
 
@@ -33,6 +53,7 @@ public class CreateServiceUITest {
             driver.quit();
         }
     }
+    
 
     @Test
     public void testCreateService() {
@@ -73,39 +94,18 @@ public class CreateServiceUITest {
             ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true); arguments[0].click();", linkNuevoServicio);
             wait.until(ExpectedConditions.urlContains("/create-service"));
 
-            JavascriptExecutor js = (JavascriptExecutor) driver;
+            Thread.sleep(300); // pequeña pausa para asegurar renderizado
 
-            // Título del servicio
-            js.executeScript(
-                "const input = document.getElementById('nombre');" +
-                "input.value = 'Servicio Selenium Automatizado';" +
-                "input.dispatchEvent(new Event('input', { bubbles: true }));" +
-                "input.dispatchEvent(new Event('change', { bubbles: true }));"
-            );
-
-            // Categoría y zona
+            // Completar categoría y zona
             new Select(driver.findElement(By.id("categoria"))).selectByVisibleText("Electricidad");
             new Select(driver.findElement(By.id("zonaAtencion"))).selectByVisibleText("Valparaíso");
 
-            // Descripción
-            js.executeScript(
-                "const desc = document.getElementById('descripcion');" +
-                "desc.value = arguments[0];" +
-                "desc.dispatchEvent(new Event('input', { bubbles: true }));" +
-                "desc.dispatchEvent(new Event('change', { bubbles: true }));",
-                "Servicio creado automáticamente con Selenium."
-            );
+            // Escribir campos con sendKeys letra por letra (React necesita esto)
+            escribirCampoLetraPorLetra(driver.findElement(By.id("nombre")), "Servicio Selenium Automatizado");
+            escribirCampoLetraPorLetra(driver.findElement(By.id("descripcion")), "Servicio creado automáticamente con Selenium.");
+            escribirCampoLetraPorLetra(driver.findElement(By.id("precio")), "9990");
 
-            // Precio
-            js.executeScript(
-                "const input = document.getElementById('precio');" +
-                "input.value = arguments[0];" +
-                "input.dispatchEvent(new Event('input', { bubbles: true }));" +
-                "input.dispatchEvent(new Event('change', { bubbles: true }));",
-                "9990"
-            );
-
-            // Crear servicio
+            // Enviar formulario
             driver.findElement(By.xpath("//button[contains(text(),'Crear Servicio')]")).click();
 
             // Verificar redirección
@@ -113,13 +113,28 @@ public class CreateServiceUITest {
             assertEquals(baseUrl + "/dashboard", driver.getCurrentUrl());
 
         } catch (Exception e) {
-            try {
-                File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-                Files.copy(screenshot.toPath(), Path.of("create_service_error.png"));
-            } catch (Exception ignored) {}
-
+            tomarCaptura("create_service_error.png");
             e.printStackTrace();
             fail("Error al crear servicio: " + e.getMessage());
         }
     }
+
+    private void escribirCampoLetraPorLetra(WebElement input, String texto) throws InterruptedException {
+        input.click();
+        for (char c : texto.toCharArray()) {
+            input.sendKeys(Character.toString(c));
+            Thread.sleep(50); // deja reaccionar a React
+        }
+    }
+
+    private void tomarCaptura(String nombreArchivo) {
+        try {
+            File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+            Files.copy(screenshot.toPath(), Path.of(nombreArchivo));
+            System.out.println("Captura de pantalla guardada: " + nombreArchivo);
+        } catch (Exception e) {
+            System.err.println("No se pudo guardar screenshot: " + e.getMessage());
+        }
+    }
+
 }
