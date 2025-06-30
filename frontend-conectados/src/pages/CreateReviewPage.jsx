@@ -117,6 +117,7 @@ const CreateReviewPage = () => {
                     <span key={i} className="relative">
                     {/* Media estrella */}
                     <span
+                        role="button"
                         onClick={() => setFormData({ ...formData, valoracion: half })}
                         className={`absolute inset-0 w-1/2 overflow-hidden hover:scale-110 transition-transform ${
                         isHalf || formData.valoracion > half ? "text-yellow-400" : "text-gray-300"
@@ -136,6 +137,7 @@ const CreateReviewPage = () => {
 
                     {/* Estrella completa */}
                     <span
+                        role="button"
                         onClick={() => setFormData({ ...formData, valoracion: whole })}
                         className={`hover:scale-110 transition-transform ${
                         isSelected ? "text-yellow-400" : "text-gray-300"
