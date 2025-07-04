@@ -26,12 +26,20 @@ public class T2_LoginUITest {
     @BeforeEach
     public void setUp() {
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--user-data-dir=/tmp/selenium-profile-" + System.currentTimeMillis());
-        driver = new ChromeDriver(options);
+        try {
+            Path userDataDir = Files.createTempDirectory("selenium-profile");
+            options.addArguments("--user-data-dir=" + userDataDir.toAbsolutePath());
+        } catch (Exception e) {
+            throw new RuntimeException("No se pudo crear directorio temporal para el perfil de Chrome", e);
+        }
 
+        options.addArguments("--no-sandbox", "--disable-dev-shm-usage");
+
+        driver = new ChromeDriver(options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        driver.get(baseUrl + "/login");
+        driver.get(baseUrl + "/login"); 
     }
+
 
     @AfterEach
     public void tearDown() {
