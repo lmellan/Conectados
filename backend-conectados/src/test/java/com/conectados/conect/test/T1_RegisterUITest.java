@@ -23,21 +23,27 @@ public class T1_RegisterUITest {
     private final String contrasena = "1234";
     private final String numero = "56912345678";
 
+
     @BeforeEach
     public void setUp() {
         ChromeOptions options = new ChromeOptions();
+
+        // Forzar directorio único de perfil temporal
+        String tempProfile = "/tmp/selenium-profile-" + System.currentTimeMillis();
         options.addArguments(
             "--headless=new",
             "--no-sandbox",
             "--disable-dev-shm-usage",
-            "--disable-gpu"
-            // ¡NO USAR --user-data-dir en Jenkins!
+            "--disable-gpu",
+            "--user-data-dir=" + tempProfile
         );
 
         driver = new ChromeDriver(options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         driver.get(baseUrl + "/register");
     }
+
+
 
     @AfterEach
     public void tearDown() {
