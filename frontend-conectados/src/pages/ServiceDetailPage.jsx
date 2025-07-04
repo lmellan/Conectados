@@ -16,14 +16,17 @@ const ServiceDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState({}); // Errores de validación frontend (fecha/hora vacía)
+  const [apiError, setApiError] = useState(null); // Nuevo estado para errores del backend
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     const fetchService = async () => {
       try {
-        const response = await fetch(`http://localhost:8080/api/servicios/${id}`);
+        const response = await fetch(
+          `http://localhost:8080/api/servicios/${id}`
+        );
         if (!response.ok) throw new Error("Error al obtener el servicio");
 
         const servicioData = await response.json();
@@ -41,13 +44,17 @@ const ServiceDetailPage = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!selectedDate) newErrors.date = "Por favor selecciona una fecha";
-    if (!selectedTime) newErrors.time = "Por favor selecciona una hora";
+    if (!selectedDate) newErrors.date = "Por favor selecciona una fecha.";
+    if (!selectedTime) newErrors.time = "Por favor selecciona una hora.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleBookService = async () => {
+    // 1. Limpiar errores anteriores al intentar una nueva reserva
+    setErrors({});
+    setApiError(null);
+
     if (!user) {
       setShowLoginModal(true);
       return;
@@ -61,22 +68,34 @@ const ServiceDetailPage = () => {
       idServicio: service.id,
       fecha: selectedDate,
       hora: selectedTime,
-      estado: "Pendiente"
+      estado: "Pendiente",
     };
 
     try {
       const response = await fetch("http://localhost:8080/api/citas/crear", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(nuevaCita)
+        headers: {
+          "Content-Type": "application/json",
+          // Asegúrate de enviar el token si la API lo requiere para esta ruta
+          // 'Authorization': `Bearer ${user.token}`, // Descomenta si es necesario
+        },
+        body: JSON.stringify(nuevaCita),
       });
 
-      if (!response.ok) throw new Error("No se pudo agendar la cita");
+      if (!response.ok) {
+        // Si la respuesta no es OK, intenta leer el mensaje de error del backend
+        const errorData = await response.json();
+        // El backend de Spring Boot con ResponseStatusException suele devolver 'message'
+        throw new Error(
+          errorData.message || "Error desconocido al agendar la cita."
+        );
+      }
 
       setShowSuccessModal(true);
     } catch (error) {
       console.error("Error al crear cita:", error);
-      alert("Hubo un error al agendar la cita. Inténtalo nuevamente.");
+      // 2. Establecer el mensaje de error de la API
+      setApiError(error.message);
     }
   };
 
@@ -86,41 +105,51 @@ const ServiceDetailPage = () => {
   };
 
   const diasSemana = {
-    "Lunes": 0,
-    "Martes": 1,
-    "Miércoles": 2,
-    "Jueves": 3,
-    "Viernes": 4,
-    "Sábado": 5,
-    "Domingo": 6,
+    Lunes: 0,
+    Martes: 1,
+    Miércoles: 2,
+    Jueves: 3,
+    Viernes: 4,
+    Sábado: 5,
+    Domingo: 6,
   };
 
-  const disponibilidadNumerica = provider?.disponibilidad?.map(dia => diasSemana[dia]) || [];
+  const disponibilidadNumerica =
+    provider?.disponibilidad?.map((dia) => diasSemana[dia]) || [];
 
   // Si el usuario es un prestador, ocultamos la opción de agendar cita
   const isBuscador = user?.rolActivo === "BUSCADOR";
 
   // Formatear las horas de inicio y fin para mostrarlas correctamente
   const formatTime = (timeString) => {
-    if (!timeString) return '';
+    if (!timeString) return "";
     const [hours, minutes] = timeString.split(":");
     const formattedHours = hours % 12 || 12; // Formato 12 horas
     const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
-    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const ampm = hours >= 12 ? "PM" : "AM";
     return `${formattedHours}:${formattedMinutes} ${ampm}`;
   };
 
   // Obtener las horas disponibles entre horaInicio y horaFin
   const getAvailableTimes = () => {
-    if (!provider) return [];
+    if (!provider || !provider.horaInicio || !provider.horaFin) return [];
 
-    const start = parseInt(provider.horaInicio.split(":")[0], 10); // Hora de inicio
-    const end = parseInt(provider.horaFin.split(":")[0], 10); // Hora de fin
+    const start = parseInt(provider.horaInicio.split(":")[0], 10);
+    const end = parseInt(provider.horaFin.split(":")[0], 10);
     const availableTimes = [];
 
     for (let i = start; i < end; i++) {
-      availableTimes.push(`${i}:00`);
-      availableTimes.push(`${i}:30`); // También se puede agregar media hora
+      // Agregar la hora en punto
+      availableTimes.push(`${String(i).padStart(2, "0")}:00`);
+      // Agregar la media hora, si es aplicable y si no es la última hora completa
+      if (i < end - 1 || (i === end - 1 && end % 1 !== 0)) {
+        // Esta condición es para evitar agregar :30 si la horaFin es :00 de la siguiente hora
+        availableTimes.push(`${String(i).padStart(2, "0")}:30`);
+      }
+    }
+    // Añadir la última hora de fin si no es una hora en punto
+    if (provider.horaFin.endsWith(":30")) {
+      availableTimes.push(provider.horaFin);
     }
 
     return availableTimes;
@@ -169,11 +198,18 @@ const ServiceDetailPage = () => {
                   </span>
                 </div>
 
-                <h1 className="text-2xl md:text-3xl font-bold mb-4">{service.nombre}</h1>
+                <h1 className="text-2xl md:text-3xl font-bold mb-4">
+                  {service.nombre}
+                </h1>
 
                 <div className="flex items-center mb-6">
                   <img
-                    src={provider?.imagen || `https://ui-avatars.com/api/?name=${encodeURIComponent(provider?.nombre)}&background=0D8ABC&color=fff`}
+                    src={
+                      provider?.imagen ||
+                      `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                        provider?.nombre
+                      )}&background=0D8ABC&color=fff`
+                    }
                     alt={provider?.nombre}
                     className="w-10 h-10 rounded-full mr-3"
                   />
@@ -184,7 +220,8 @@ const ServiceDetailPage = () => {
                     </p>
                     {/* Mostrar horas de disponibilidad */}
                     <p className="text-sm text-gray-600">
-                      Horario disponible: {formatTime(provider?.horaInicio)} - {formatTime(provider?.horaFin)}
+                      Horario disponible: {formatTime(provider?.horaInicio)} -{" "}
+                      {formatTime(provider?.horaFin)}
                     </p>
                   </div>
                 </div>
@@ -210,39 +247,73 @@ const ServiceDetailPage = () => {
                 {isBuscador && ( // Solo mostrar la opción si el usuario es un buscador
                   <div className="mt-6 space-y-4">
                     <div>
-                      <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
+                      <label
+                        htmlFor="date"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
                         Fecha
                       </label>
                       <input
                         type="date"
                         id="date"
-                        className={`input-field ${errors.date ? "border-red-500" : ""}`}
+                        className={`input-field ${
+                          errors.date ? "border-red-500" : ""
+                        }`}
                         value={selectedDate}
                         onChange={(e) => setSelectedDate(e.target.value)}
                         min={new Date().toISOString().split("T")[0]}
                       />
-                      {errors.date && <p className="text-sm text-red-600 mt-1">{errors.date}</p>}
+                      {errors.date && (
+                        <p className="text-sm text-red-600 mt-1">
+                          {errors.date}
+                        </p>
+                      )}
                     </div>
 
                     <div>
-                      <label htmlFor="time" className="block text-sm font-medium text-gray-700 mb-1">
+                      <label
+                        htmlFor="time"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
                         Hora
                       </label>
                       <select
                         id="time"
-                        className={`input-field ${errors.time ? "border-red-500" : ""}`}
+                        className={`input-field ${
+                          errors.time ? "border-red-500" : ""
+                        }`}
                         value={selectedTime}
                         onChange={(e) => setSelectedTime(e.target.value)}
                       >
                         <option value="">Seleccionar hora</option>
-                        {availableTimes.map(h => (
-                          <option key={h} value={h}>{h}</option>
+                        {availableTimes.map((h) => (
+                          <option key={h} value={h}>
+                            {h}
+                          </option>
                         ))}
                       </select>
-                      {errors.time && <p className="text-sm text-red-600 mt-1">{errors.time}</p>}
+                      {errors.time && (
+                        <p className="text-sm text-red-600 mt-1">
+                          {errors.time}
+                        </p>
+                      )}
                     </div>
 
-                    <button onClick={handleBookService} className="w-full btn-primary py-3">
+                    {/* Mostrar mensaje de error del backend aquí */}
+                    {apiError && (
+                      <div
+                        className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+                        role="alert"
+                      >
+                        <strong className="font-bold">Error:</strong>
+                        <span className="block sm:inline"> {apiError}</span>
+                      </div>
+                    )}
+
+                    <button
+                      onClick={handleBookService}
+                      className="w-full btn-primary py-3"
+                    >
                       Solicitar Servicio
                     </button>
                   </div>

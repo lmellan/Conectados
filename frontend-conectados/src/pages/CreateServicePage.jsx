@@ -147,27 +147,29 @@ const CreateServicePage = () => {
               <p className="text-sm text-red-600 mb-4">{errors.form}</p>
             )}
 
-            <div>
-              <label
-                htmlFor="nombre"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Título del servicio *
-              </label>
-              <input
-                type="text"
-                id="nombre"
-                name="nombre"
-                value={formData.nombre}
-                onChange={handleChange}
-                className={`input-field ${
-                  errors.nombre ? "border-red-500" : ""
-                }`}
-              />
-              {errors.nombre && (
-                <p className="text-sm text-red-600 mt-1">{errors.nombre}</p>
-              )}
-            </div>
+<div>
+  <label
+    htmlFor="nombre"
+    className="text-sm font-medium text-gray-700"
+  >
+    Título del servicio *
+  </label>
+  <input
+    id="nombre"
+    name="nombre"
+    type="text"
+    required
+    value={formData.nombre}
+    onChange={handleChange}
+    className={`w-full px-3 py-2 mt-1 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 ${
+      errors.nombre ? "border-red-500" : "border-gray-300"
+    }`}
+  />
+  {errors.nombre && (
+    <p className="text-sm text-red-600 mt-1">{errors.nombre}</p>
+  )}
+</div>
+
 
             <div>
               <label
@@ -288,7 +290,11 @@ const CreateServicePage = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              
+              <label 
+                htmlFor="imageFile"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Imagen del servicio
               </label>
               <input
