@@ -94,8 +94,9 @@ Asegúrate de tener **Java 17+** y **Maven**. Puedes compilar con:
 
 ```bash
 cd backend-conectados
-./mvnw clean install
+./mvnw clean install -DskipTests
 ```
+> Se usa `-DskipTests`  para que no se ejecuten las pruebas con selenium antes de levantar el backned
 
 ##  Levantar el Proyecto
 
