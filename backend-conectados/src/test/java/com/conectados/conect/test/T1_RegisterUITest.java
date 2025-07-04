@@ -24,14 +24,13 @@ public class T1_RegisterUITest {
     private final String numero = "56912345678";
 
     @BeforeEach
-    public void setUp() {
-        ChromeOptions options = new ChromeOptions();
-        
-        // Crear un directorio temporal único para evitar conflictos en Jenkins
-        String userDataDir = "/tmp/chrome-profile-" + System.currentTimeMillis();
-        options.addArguments("--user-data-dir=" + userDataDir);
+    public void setUp() throws Exception {
+        // Crear un perfil temporal único
+        Path tempUserDataDir = Files.createTempDirectory("chrome-profile-");
 
+        ChromeOptions options = new ChromeOptions();
         options.addArguments(
+            "--user-data-dir=" + tempUserDataDir.toAbsolutePath().toString(),
             "--no-sandbox",
             "--disable-dev-shm-usage",
             "--headless=new",
@@ -43,7 +42,6 @@ public class T1_RegisterUITest {
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         driver.get(baseUrl + "/register");
     }
-
     @AfterEach
     public void tearDown() {
         if (driver != null) {
