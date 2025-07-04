@@ -5,8 +5,6 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.*;
-import org.junit.jupiter.api.io.TempDir;
-
 
 import java.io.File;
 import java.nio.file.Files;
@@ -25,9 +23,6 @@ public class T1_RegisterUITest {
     private final String contrasena = "1234";
     private final String numero = "56912345678";
 
-    @TempDir
-    Path tempDir;  // JUnit crea y elimina este directorio automáticamente
-
     @BeforeEach
     public void setUp() {
         ChromeOptions options = new ChromeOptions();
@@ -35,8 +30,8 @@ public class T1_RegisterUITest {
             "--headless=new",
             "--no-sandbox",
             "--disable-dev-shm-usage",
-            "--disable-gpu",
-            "--user-data-dir=" + tempDir.toAbsolutePath().toString()
+            "--disable-gpu"
+            // ¡NO USAR --user-data-dir en Jenkins!
         );
 
         driver = new ChromeDriver(options);
