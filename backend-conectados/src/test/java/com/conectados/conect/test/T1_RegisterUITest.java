@@ -23,14 +23,24 @@ public class T1_RegisterUITest {
     private final String contrasena = "1234";
     private final String numero = "56912345678";
 
+
     @BeforeEach
     public void setUp() {
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--user-data-dir=/tmp/selenium-profile-" + System.currentTimeMillis());
+        try {
+            Path userDataDir = Files.createTempDirectory("selenium-profile");
+            options.addArguments("--user-data-dir=" + userDataDir.toAbsolutePath());
+        } catch (Exception e) {
+            throw new RuntimeException("No se pudo crear directorio temporal para el perfil de Chrome", e);
+        }
+
+        options.addArguments("--no-sandbox", "--disable-dev-shm-usage");
+
         driver = new ChromeDriver(options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         driver.get(baseUrl + "/register");
     }
+
 
     @AfterEach
     public void tearDown() {
