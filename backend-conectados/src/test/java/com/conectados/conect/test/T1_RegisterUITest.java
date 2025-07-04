@@ -23,24 +23,27 @@ public class T1_RegisterUITest {
     private final String contrasena = "1234";
     private final String numero = "56912345678";
 
-
     @BeforeEach
     public void setUp() {
         ChromeOptions options = new ChromeOptions();
         try {
             Path userDataDir = Files.createTempDirectory("selenium-profile");
+            userDataDir.toFile().deleteOnExit();
             options.addArguments("--user-data-dir=" + userDataDir.toAbsolutePath());
         } catch (Exception e) {
             throw new RuntimeException("No se pudo crear directorio temporal para el perfil de Chrome", e);
         }
 
-        options.addArguments("--no-sandbox", "--disable-dev-shm-usage");
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--headless=new"); // importante para Jenkins
+        options.addArguments("--disable-gpu");
+        options.addArguments("--remote-debugging-port=9222");
 
         driver = new ChromeDriver(options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         driver.get(baseUrl + "/register");
     }
-
 
     @AfterEach
     public void tearDown() {
@@ -52,18 +55,15 @@ public class T1_RegisterUITest {
     @Test
     public void testRegistroUsuario() {
         try {
-            // Completar el formulario
             wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("nombre"))).sendKeys("Usuario Test");
             driver.findElement(By.id("correo")).sendKeys(correo);
             driver.findElement(By.id("numero")).sendKeys(numero);
             driver.findElement(By.id("contrasena")).sendKeys(contrasena);
             driver.findElement(By.id("confirmPassword")).sendKeys(contrasena);
 
-            // Enviar el formulario
             WebElement boton = driver.findElement(By.xpath("//button[@type='submit']"));
             boton.click();
 
-            // Esperar redirección o error
             boolean redirigeALogin = wait.until(ExpectedConditions.or(
                     ExpectedConditions.urlContains("/login"),
                     ExpectedConditions.presenceOfElementLocated(By.className("text-red-600"))
@@ -72,7 +72,6 @@ public class T1_RegisterUITest {
             String currentUrl = driver.getCurrentUrl();
             System.out.println("URL actual después de registrarse: " + currentUrl);
 
-            // Verificar resultados
             if (currentUrl.contains("/login")) {
                 System.out.println("Registro exitoso. Redirigido al login.");
                 assertTrue(true);
