@@ -26,6 +26,11 @@ public class T1_RegisterUITest {
     @BeforeEach
     public void setUp() {
         ChromeOptions options = new ChromeOptions();
+        
+        // Crear un directorio temporal único para evitar conflictos en Jenkins
+        String userDataDir = "/tmp/chrome-profile-" + System.currentTimeMillis();
+        options.addArguments("--user-data-dir=" + userDataDir);
+
         options.addArguments(
             "--no-sandbox",
             "--disable-dev-shm-usage",
