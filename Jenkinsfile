@@ -67,14 +67,24 @@ pipeline {
                     sh '''
                         echo "Esperando backend (8080)..."
                         for i in {1..20}; do
-                          curl -s http://localhost:8080/api/public/ping || sleep 3
-                          curl -s http://localhost:8080/api/public/ping && break
+                          respuesta=$(curl -s http://localhost:8080/api/public/ping)
+                          if [ "$respuesta" = "pong" ]; then
+                            echo "Backend está listo"
+                            break
+                          fi
+                          echo "Esperando backend..."
+                          sleep 3
                         done
 
                         echo "Esperando frontend (3000)..."
                         for i in {1..20}; do
-                          curl -s http://localhost:3000 || sleep 3
-                          curl -s http://localhost:3000 && break
+                          codigo=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000)
+                          if [ "$codigo" = "200" ]; then
+                            echo "Frontend está listo"
+                            break
+                          fi
+                          echo "Esperando frontend..."
+                          sleep 3
                         done
                     '''
                 }
