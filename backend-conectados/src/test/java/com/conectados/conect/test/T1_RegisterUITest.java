@@ -23,25 +23,21 @@ public class T1_RegisterUITest {
     private final String contrasena = "1234";
     private final String numero = "56912345678";
 
-    @BeforeEach
-    public void setUp() throws Exception {
-        // Crear un perfil temporal único
-        Path tempUserDataDir = Files.createTempDirectory("chrome-profile-");
+@BeforeEach
+public void setUp() {
+    ChromeOptions options = new ChromeOptions();
+    options.addArguments(
+        "--headless=new",         // Chrome >= 109
+        "--no-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu"
+    );
 
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments(
-            "--user-data-dir=" + tempUserDataDir.toAbsolutePath().toString(),
-            "--no-sandbox",
-            "--disable-dev-shm-usage",
-            "--headless=new",
-            "--disable-gpu",
-            "--remote-debugging-port=9222"
-        );
+    driver = new ChromeDriver(options);
+    wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+    driver.get(baseUrl + "/register");
+}
 
-        driver = new ChromeDriver(options);
-        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        driver.get(baseUrl + "/register");
-    }
     @AfterEach
     public void tearDown() {
         if (driver != null) {
