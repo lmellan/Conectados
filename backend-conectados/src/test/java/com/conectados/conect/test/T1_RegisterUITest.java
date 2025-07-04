@@ -5,6 +5,8 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.*;
+import org.junit.jupiter.api.io.TempDir;
+
 
 import java.io.File;
 import java.nio.file.Files;
@@ -23,20 +25,24 @@ public class T1_RegisterUITest {
     private final String contrasena = "1234";
     private final String numero = "56912345678";
 
-@BeforeEach
-public void setUp() {
-    ChromeOptions options = new ChromeOptions();
-    options.addArguments(
-        "--headless=new",         // Chrome >= 109
-        "--no-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu"
-    );
+    @TempDir
+    Path tempDir;  // JUnit crea y elimina este directorio automáticamente
 
-    driver = new ChromeDriver(options);
-    wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-    driver.get(baseUrl + "/register");
-}
+    @BeforeEach
+    public void setUp() {
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments(
+            "--headless=new",
+            "--no-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-gpu",
+            "--user-data-dir=" + tempDir.toAbsolutePath().toString()
+        );
+
+        driver = new ChromeDriver(options);
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        driver.get(baseUrl + "/register");
+    }
 
     @AfterEach
     public void tearDown() {
