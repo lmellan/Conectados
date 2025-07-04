@@ -1,6 +1,5 @@
 package com.conectados.conect.test;
 
-import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -12,7 +11,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.HashMap;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,22 +20,26 @@ public class T5_CreateServiceUITest {
     private WebDriverWait wait;
     private final String baseUrl = "http://localhost:3000";
     private final String email = "alo@alo.com";
-
-
     private final String password = "1234";
 
     @BeforeEach
     public void setUp() {
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--incognito");
-        options.addArguments("--disable-extensions");
-        options.addArguments("--disable-notifications");
-        options.addArguments("--no-default-browser-check");
-        options.addArguments("--disable-blink-features=AutomationControlled");
+        options.addArguments(
+            "--no-sandbox",
+            "--disable-dev-shm-usage",
+            "--headless=new",
+            "--disable-gpu",
+            "--remote-debugging-port=9222",
+            "--incognito",
+            "--disable-extensions",
+            "--disable-notifications",
+            "--disable-blink-features=AutomationControlled",
+            "--disable-features=PasswordManagerEnabled,AutofillServerCommunication,AutofillEnableAccountWalletStorage"
+        );
+
         options.setExperimentalOption("excludeSwitches", new String[]{"enable-automation"});
         options.setExperimentalOption("useAutomationExtension", false);
-        options.addArguments("--disable-features=PasswordManagerEnabled,AutofillServerCommunication,AutofillEnableAccountWalletStorage");
-
         options.setExperimentalOption("prefs", new HashMap<String, Object>() {{
             put("credentials_enable_service", false);
             put("profile.password_manager_enabled", false);
@@ -53,7 +55,6 @@ public class T5_CreateServiceUITest {
             driver.quit();
         }
     }
-    
 
     @Test
     public void testCreateService() {
@@ -93,22 +94,16 @@ public class T5_CreateServiceUITest {
             );
             ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true); arguments[0].click();", linkNuevoServicio);
             wait.until(ExpectedConditions.urlContains("/create-service"));
+            Thread.sleep(300);
 
-            Thread.sleep(300); // pequeña pausa para asegurar renderizado
-
-            // Completar categoría y zona
+            // Completar campos
             new Select(driver.findElement(By.id("categoria"))).selectByVisibleText("Electricidad");
             new Select(driver.findElement(By.id("zonaAtencion"))).selectByVisibleText("Valparaíso");
-
-            // Escribir campos con sendKeys letra por letra (React necesita esto)
             escribirCampoLetraPorLetra(driver.findElement(By.id("nombre")), "Servicio Selenium Automatizado");
             escribirCampoLetraPorLetra(driver.findElement(By.id("descripcion")), "Servicio creado automáticamente con Selenium.");
             escribirCampoLetraPorLetra(driver.findElement(By.id("precio")), "9990");
 
-            // Enviar formulario
             driver.findElement(By.xpath("//button[contains(text(),'Crear Servicio')]")).click();
-
-            // Verificar redirección
             wait.until(ExpectedConditions.urlToBe(baseUrl + "/dashboard"));
             assertEquals(baseUrl + "/dashboard", driver.getCurrentUrl());
 
@@ -123,7 +118,7 @@ public class T5_CreateServiceUITest {
         input.click();
         for (char c : texto.toCharArray()) {
             input.sendKeys(Character.toString(c));
-            Thread.sleep(50); // deja reaccionar a React
+            Thread.sleep(50);
         }
     }
 
@@ -131,10 +126,9 @@ public class T5_CreateServiceUITest {
         try {
             File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
             Files.copy(screenshot.toPath(), Path.of(nombreArchivo));
-            System.out.println("Captura de pantalla guardada: " + nombreArchivo);
+            System.out.println("Captura guardada: " + nombreArchivo);
         } catch (Exception e) {
-            System.err.println("No se pudo guardar screenshot: " + e.getMessage());
+            System.err.println("Error guardando screenshot: " + e.getMessage());
         }
     }
-
 }

@@ -3,6 +3,7 @@ package com.conectados.conect.test;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.*;
 
@@ -10,7 +11,6 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
-
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -24,7 +24,16 @@ public class T4_BecomeProUITest {
 
     @BeforeEach
     public void setUp() {
-        driver = new ChromeDriver();
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments(
+            "--no-sandbox",
+            "--disable-dev-shm-usage",
+            "--headless=new",
+            "--disable-gpu",
+            "--remote-debugging-port=9222"
+        );
+
+        driver = new ChromeDriver(options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
@@ -48,7 +57,7 @@ public class T4_BecomeProUITest {
             wait.until(ExpectedConditions.urlContains("/dashboard"));
             driver.get(baseUrl + "/become-professional");
 
-            // 3. Verificar si existe el botón (sólo se muestra si aún no es prestador)
+            // 3. Verificar si existe el botón (sólo si aún no es prestador)
             boolean botonPresente = driver.findElements(
                 By.xpath("//button[contains(text(),'Completar Perfil y Ofrecer Servicios')]")
             ).size() > 0;
@@ -67,7 +76,7 @@ public class T4_BecomeProUITest {
             Select zona = new Select(wait.until(ExpectedConditions.elementToBeClickable(By.id("zonaAtencion"))));
             zona.selectByVisibleText("Valparaíso");
 
-            // 6. Descripción (opcional, pero lo incluimos igual)
+            // 6. Descripción
             WebElement descripcion = wait.until(ExpectedConditions.presenceOfElementLocated(By.name("descripcion")));
             descripcion.clear();
             descripcion.sendKeys("Descripción desde Selenium UI test");
@@ -82,7 +91,7 @@ public class T4_BecomeProUITest {
             js.executeScript("document.getElementById('horaInicio').value = '08:00';");
             js.executeScript("document.getElementById('horaFin').value = '17:00';");
 
-            // 9. Submit con scroll y JS click forzado
+            // 9. Enviar formulario
             WebElement submitBtn = driver.findElement(
                 By.xpath("//button[contains(text(),'Completar Perfil y Ofrecer Servicios')]")
             );

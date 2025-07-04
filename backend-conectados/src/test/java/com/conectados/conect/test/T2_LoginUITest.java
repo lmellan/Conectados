@@ -4,7 +4,6 @@ import org.junit.jupiter.api.*;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-
 import org.openqa.selenium.support.ui.*;
 
 import java.io.File;
@@ -26,20 +25,18 @@ public class T2_LoginUITest {
     @BeforeEach
     public void setUp() {
         ChromeOptions options = new ChromeOptions();
-        try {
-            Path userDataDir = Files.createTempDirectory("selenium-profile");
-            options.addArguments("--user-data-dir=" + userDataDir.toAbsolutePath());
-        } catch (Exception e) {
-            throw new RuntimeException("No se pudo crear directorio temporal para el perfil de Chrome", e);
-        }
-
-        options.addArguments("--no-sandbox", "--disable-dev-shm-usage");
+        options.addArguments(
+            "--no-sandbox",
+            "--disable-dev-shm-usage",
+            "--headless=new",
+            "--disable-gpu",
+            "--remote-debugging-port=9222"
+        );
 
         driver = new ChromeDriver(options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        driver.get(baseUrl + "/login"); 
+        driver.get(baseUrl + "/login");
     }
-
 
     @AfterEach
     public void tearDown() {
@@ -59,20 +56,15 @@ public class T2_LoginUITest {
             passwordInput.sendKeys(contrasenaExistente);
             loginButton.click();
 
-            // Debug: esperar máximo 10 segundos a que cambie la URL
             wait.until(ExpectedConditions.or(
-                    ExpectedConditions.urlContains("/dashboard"),
-                    ExpectedConditions.presenceOfElementLocated(By.className("text-red-600"))
+                ExpectedConditions.urlContains("/dashboard"),
+                ExpectedConditions.presenceOfElementLocated(By.className("text-red-600"))
             ));
 
             String currentUrl = driver.getCurrentUrl();
-            String pageTitle = driver.getTitle();
             System.out.println("URL actual: " + currentUrl);
-            System.out.println("Título actual: " + pageTitle);
 
-            // Si NO redirigió al dashboard, probablemente hubo error
             if (!currentUrl.contains("/dashboard")) {
-                // Buscar mensaje de error si existe
                 try {
                     WebElement errorMsg = driver.findElement(By.className("text-red-600"));
                     System.out.println("Mensaje de error: " + errorMsg.getText());
@@ -83,7 +75,6 @@ public class T2_LoginUITest {
                 fail("No se redirigió al dashboard. URL actual: " + currentUrl);
             }
 
-            // Validación final
             assertTrue(currentUrl.contains("/dashboard"), "Redirección a dashboard falló.");
 
         } catch (Exception e) {
