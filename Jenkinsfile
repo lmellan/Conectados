@@ -4,7 +4,7 @@ pipeline {
     environment {
         BACKEND_DIR = 'backend-conectados'
         FRONTEND_DIR = 'frontend-conectados'
-        DOCKER_COMPOSE_DIR = 'docker' 
+        DOCKER_COMPOSE_DIR = 'docker'
     }
 
     stages {
@@ -13,6 +13,7 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/ConectadosTeam/Conectados.git'
             }
         }
+
         stage('Levantar MySQL') {
             steps {
                 dir("${DOCKER_COMPOSE_DIR}") {
@@ -32,20 +33,74 @@ pipeline {
             }
         }
 
-        stage('Test y Build Backend') {
+        stage('Build Backend') {
             steps {
                 dir("${BACKEND_DIR}") {
-                    sh './mvnw clean verify'
+                    sh './mvnw clean install -DskipTests'
                 }
             }
         }
 
-        stage('Test y Build Frontend') {
+        stage('Build Frontend') {
             steps {
                 dir("${FRONTEND_DIR}") {
                     sh 'npm install'
-                    sh 'npm test -- --watchAll=false'
                     sh 'CI="" npm run build'
+                }
+            }
+        }
+
+        stage('Levantar Frontend y Backend') {
+            steps {
+                script {
+                    // Backend en segundo plano
+                    dir("${BACKEND_DIR}") {
+                        sh 'nohup ./mvnw spring-boot:run -DskipTests &'
+                    }
+
+                    // Frontend en segundo plano
+                    dir("${FRONTEND_DIR}") {
+                        sh 'nohup npm run dev &'
+                    }
+
+                    // Esperar que estén disponibles
+                    sh '''
+                        echo "Esperando backend (8080)..."
+                        for i in {1..20}; do
+                          curl -s http://localhost:8080/api/public/ping || sleep 3
+                          curl -s http://localhost:8080/api/public/ping && break
+                        done
+
+                        echo "Esperando frontend (3000)..."
+                        for i in {1..20}; do
+                          curl -s http://localhost:3000 || sleep 3
+                          curl -s http://localhost:3000 && break
+                        done
+                    '''
+                }
+            }
+        }
+
+        stage('Test UI Selenium') {
+            steps {
+                dir("${BACKEND_DIR}") {
+                    sh './mvnw test -Dtest=*UITest'
+                }
+            }
+        }
+
+        stage('Test Unitarios Backend') {
+            steps {
+                dir("${BACKEND_DIR}") {
+                    sh './mvnw test -Dtest=!*UITest'
+                }
+            }
+        }
+
+        stage('Test Frontend') {
+            steps {
+                dir("${FRONTEND_DIR}") {
+                    sh 'npm test -- --watchAll=false'
                 }
             }
         }
@@ -59,11 +114,14 @@ pipeline {
 
     post {
         always {
-            echo "Deteniendo contenedores..."
+            echo "Deteniendo contenedores y procesos..."
+
             dir("${DOCKER_COMPOSE_DIR}") {
                 sh 'docker-compose down'
             }
 
+            sh 'pkill -f "mvnw spring-boot:run" || true'
+            sh 'pkill -f "npm run dev" || true'
 
             echo "Build finalizado con estado: ${currentBuild.currentResult}"
 
