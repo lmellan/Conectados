@@ -3,6 +3,7 @@ package com.conectados.conect.test;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.*;
 
 import java.time.Duration;
@@ -19,7 +20,16 @@ public class T6_SwitchRoleUITest {
 
     @BeforeEach
     public void setUp() {
-        driver = new ChromeDriver();
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments(
+            "--no-sandbox",
+            "--disable-dev-shm-usage",
+            "--headless=new",
+            "--disable-gpu",
+            "--remote-debugging-port=9222"
+        );
+
+        driver = new ChromeDriver(options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 

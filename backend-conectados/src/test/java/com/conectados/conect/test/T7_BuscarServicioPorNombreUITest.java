@@ -23,11 +23,19 @@ public class T7_BuscarServicioPorNombreUITest {
     @BeforeEach
     public void setUp() {
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--incognito", "--disable-extensions", "--disable-notifications",
-                "--no-default-browser-check", "--disable-blink-features=AutomationControlled");
+        options.addArguments(
+                "--headless=new",
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--incognito",
+                "--disable-extensions",
+                "--disable-notifications",
+                "--no-default-browser-check",
+                "--disable-blink-features=AutomationControlled",
+                "--disable-features=PasswordManagerEnabled,AutofillServerCommunication,AutofillEnableAccountWalletStorage"
+        );
         options.setExperimentalOption("excludeSwitches", new String[]{"enable-automation"});
         options.setExperimentalOption("useAutomationExtension", false);
-        options.addArguments("--disable-features=PasswordManagerEnabled,AutofillServerCommunication,AutofillEnableAccountWalletStorage");
         options.setExperimentalOption("prefs", new HashMap<String, Object>() {{
             put("credentials_enable_service", false);
             put("profile.password_manager_enabled", false);
