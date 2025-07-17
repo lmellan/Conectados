@@ -4,11 +4,6 @@
 "Conectados" es una plataforma web que conecta a personas que ofrecen servicios a domicilio (como peluquería, electricidad, jardinería, etc.) con quienes los necesitan, de forma rápida, segura y confiable.  
 El proyecto está licenciado bajo **MIT License**.
 
-Link a video E1: https://youtu.be/A9TpElE2ETc
-
-Link a video E2: https://youtu.be/YtOcm97fG4k
-
-Link a video E3: https://youtu.be/6Ss840ySBNE
 ## Wiki
 
 Puedes acceder a la Wiki del proyecto desde el siguiente [enlace](https://github.com/lmellan/Conectados/wiki).
