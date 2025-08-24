@@ -1,7 +1,14 @@
 
 # Conectados
 
-"Conectados" es una plataforma web que conecta a personas que ofrecen servicios a domicilio (como peluquería, electricidad, jardinería, etc.) con quienes los necesitan, de forma rápida, segura y confiable.  
+## Resumen del proyecto
+
+Conectados es una plataforma web desarrollada con el objetivo de facilitar la conexión entre personas que ofrecen servicios a domicilio (como peluquería, electricidad, jardinería, entre otros) y quienes los necesitan. Su propósito es ofrecer un canal confiable, eficiente y seguro para agendar servicios, administrar citas y compartir experiencias mediante reseñas.
+
+El proyecto incluye una arquitectura basada en roles (buscador, prestador y administrador), y cuenta con funcionalidades clave como registro de usuarios, publicación de servicios, búsqueda con filtros, gestión de citas y sistema de calificaciones.
+
+El sistema fue construido utilizando React.js para el frontend, Spring Boot para el backend y MySQL como base de datos, con despliegue pensado en infraestructura en la nube (AWS). 
+
 El proyecto está licenciado bajo **MIT License**.
 
 ## Wiki
@@ -389,6 +396,7 @@ Si deseas contribuir al proyecto, sigue estos pasos utilizando **GitFlow** de pa
 ## Licencia
 
 Este proyecto está bajo la **MIT License** - ver el archivo [LICENSE](https://github.com/lmellan/Tarea_1-INF331/blob/main/LICENSE) para más detalles.
+
 
 
 
